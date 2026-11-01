@@ -3678,8 +3678,8 @@ function showIncident(inc){
     <details class="incinfo"><summary>${ISVG} 관련 능력이 확률에 영향을 줘요</summary><p>관련 능력이 이 리그 평균(${incMean()})보다 높을수록 성공 확률이 올라가요. 평균과 같으면 50%, 10 높으면 약 75%예요. 위험한 선택은 확률이 조금 더 낮고, 어떤 경우든 15~85% 사이예요.</p></details>
     ${d.choices.map((c,j)=>{const R='font-size:13px',E=e=>e?effChips(e).replace(/^<span class="chips">|<\/span>$/g,''):'';
       const top=c.fixed?'<span class="muted" style="font-size:13px">확정</span>':`<b class="num" style="font-size:22px;color:#8CB8FF">${Math.round(incChance(c)*100)}%</b>`;
-      const body=c.fixed?`<span class="chip ${c.fixed.delta>0?'down':''}" style="${R}">${c.fixed.delta>0?c.fixed.delta+'계단 하락':'순위 유지'}</span>${E(c.fixed.eff)}`
-        :`<span class="chip up" style="${R}">성공 ${-c.good[0]>0?'최대 ▲'+(-c.good[0]):'순위 유지'}</span><span class="chip down" style="${R}">실패 최대 ▼${c.bad[1]}${c.dnf?' · 리타이어 위험':''}</span>${E(c.eff)}`;
+      const body=c.fixed?`<span class="chip ${c.fixed.delta>0?'down':''}" style="${R}">${c.fixed.delta>0?c.fixed.delta+'그리드 하락':'순위 유지'}</span>${E(c.fixed.eff)}`
+        :`<span class="chip up" style="${R}">성공 ${-c.good[0]>0?'최대 ▲'+(-c.good[0])+'그리드':'순위 유지'}</span><span class="chip down" style="${R}">실패 최대 ▼${c.bad[1]}그리드${c.dnf?' · 리타이어 위험':''}</span>${E(c.eff)}`;
       return`<button class="choice" type="button" data-inc="${j}" style="background:var(--surface-2)"><span class="row"><span class="h3">${esc(c.label)}</span>${top}</span><span class="chips">${body}</span>${c.fixed?'':`<span class="muted" style="font-size:12px">${c.stat?LBL[c.stat]+' '+S.p.stats[c.stat]+'로 판정':'운에 맡겨요'}</span>`}</button>`}).join('')}</section></div>`;
 }
 function finishProgress(){
