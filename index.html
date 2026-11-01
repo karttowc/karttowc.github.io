@@ -2020,7 +2020,7 @@ function rivalLine(){const rv=S.rival;if(!rv)return'';
   return`<div class="rvline"><span class="rvb">라이벌</span><b>${esc(rv.name)}</b> · ${rv.f1&&rv.team?logo(rv.team,20)+esc(teamDef(rv.team).name):esc(rivalSeriesName(rv))} · OVR ${ovrOf(rv.stats)} <span>맞대결 ${rv.h2h[0]}:${rv.h2h[1]}</span></div>`}
 function newGame(o){
   const pot=Math.round(clamp(B.driver.potential.mean+gauss()*B.driver.potential.sd,B.driver.potential.min,B.driver.potential.max));
-  S={v:1,startYear:K.start_year,year:K.start_year,phase:'ready',train:'focus',prog:STYLE_PROG[o.style]||'craft',progYear:K.start_year,progFree:null,
+  S={v:1,startYear:K.start_year,year:K.start_year,phase:'ready',train:'focus',prog:STYLE_PROG[o.style]||'craft',progYear:K.start_year,progFree:'first',
     teams:K.teams.map(t=>({id:t.id,name:t.name,short:t.short,color:t.color,machine:t.machine_2026,tier:t.tier})),
     f1:K.drivers.map(d=>({id:d.id,name:d.name,nationality:d.nationality,age:K.start_year-d.birth_year,team:d.team,style:d.style,potential:d.potential,stats:{...d.stats}})),
     p:{name:o.name,num:o.num,nat:o.nat,avatar:o.avatar??avDefault(o.nat),helmet:o.helmet,style:o.style,stats:{...o.stats},potential:Math.max(pot,ovrOf(o.stats)+15),focus:[...progDef(STYLE_PROG[o.style]).st],
@@ -2615,6 +2615,7 @@ const STYLE_PROG={qualifier:'sim',racer:'craft',rain:'rainx',manager:'longrun'},
 const progDef=id=>PROGS.find(g=>g.id===id)||PROGS[0];
 const stageKey=p=>p.series==='ALT'?p.alt:p.series;
 // a new plan can be picked every 3 seasons, or straight away after moving up a stage or maxing a stat
+// 'first': the style's plan can still be swapped before the very first season (no popup, via 바꾸기)
 const trOpen=()=>!S.prog||S.progFree||S.year-S.progYear>=PROG_LOCK;
 const progStats=g=>g.st.map(k=>LBL[k]).join('·');
 const trName=()=>S.train==='rest'?'휴식':progDef(S.prog).name;
@@ -4015,7 +4016,7 @@ if(typeof document.addEventListener==='function'){document.addEventListener('poi
 document.addEventListener('contextmenu',e=>{if(e.target.closest('.peekbtn'))e.preventDefault()});}
 // the training plan only shows up in the chain when it can be changed
 function nextStep(){const p=S.p;
-  if(!chainSeen.tr&&trOpen()){chainSeen.tr=1;sheet='train';render();return}
+  if(!chainSeen.tr&&trOpen()&&S.progFree!=='first'){chainSeen.tr=1;sheet='train';render();return}
   if(S.events.length){sheet='ev0';render();return}
   if(S.challenge&&!chainSeen.ch){chainSeen.ch=1;sheet='ch';render();return}
   sheet='go';render()}
