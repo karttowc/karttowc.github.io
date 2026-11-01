@@ -3531,6 +3531,7 @@ function retiredView(){
     <button class="btn" type="button" id="newCareer">한 번 더 하기</button>
     <div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" id="tHof">랭킹</button><button class="btn ghost" type="button" id="replayCer">은퇴식 보기</button></div>
   </section>
+  <section class="card"><div class="row"><span class="muted">하면서 아쉬웠던 점이 있었나요?</span></div><button class="btn ghost" type="button" id="fbOpen">의견 보내기</button></section>
   ${recordsBody()}${logBtn()?`<section class="card">${logBtn()}<p class="muted" style="margin:0;font-size:12px">인터넷이 막혀 기록을 못 보냈어요. 파일을 받아 개발자에게 전해 주면 밸런스에 써요.</p></section>`:''}`;
 }
 function shareText(){const p=S.p,T=p.tot,s=similarDriver(),last=p.history.at(-1);
@@ -3736,6 +3737,15 @@ function logRetire(){const p=S.p,t=p.tot;
   logEv('retire',{year:S.year,age:p.age,seasons:p.history.length,debut:p.debutYear||null,f1s:p.history.filter(h=>h.sid==='F1'&&h.role==='race').length,titles:t.titles,wins:t.wins,podiums:t.podiums,starts:t.starts,
     peak:p.peak,pot:p.potential,style:p.style,fans:p.fans,earn:p.earn||0,path:p.history.map(h=>h.lk+(h.role==='reserve'?'r':'')).join('>'),ch:(p.challenges||[]).map(c=>c.id+':'+c.res)})}
 // blocked networks (e.g. a work PC): hand the unsent queue over as a file instead
+let fbText='',fbLast=0;
+function fbSend(){const text=fbText.trim().slice(0,300);if(!text){toast('내용을 적어 주세요');return}
+  if(!rkNet()){toast('인터넷이 연결돼 있지 않아요');return}
+  if(Date.now()-fbLast<30000){toast('잠시 후 다시 보내 주세요');return}
+  const p=S&&S.p,d={uid:logUid(),cid:S&&S.cid||'',kind:'fb',v:LOG_VER,t:Date.now(),text,
+    lk:p?p.series+(p.role&&p.role!=='race'?':'+p.role:''):null,phase:S?S.phase:'title',seasons:p&&p.history?p.history.length:0,year:S?S.year:null};
+  fbLast=Date.now();
+  fetch(LOG_URL,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain'},body:JSON.stringify([d])})
+    .then(()=>{fbText='';sheet=null;render();toast('보냈어요. 고마워요!')}).catch(()=>{fbLast=0;toast('보내지 못했어요. 잠시 후 다시 시도해 주세요.')})}
 function logDownload(){const q=logQ();if(!q.length)return;const name=`kart-to-wc-log-${logUid().slice(0,6)}-${Date.now()}.json`,data=JSON.stringify(q);
   if(DL){saveFile(name,data);return}
   try{const u=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);toast('기록 파일을 받았어요')}catch(e){toast('파일을 받지 못했어요')}}
@@ -4161,6 +4171,10 @@ function sheetView(){
       <div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" id="closeSheet">닫기</button><button class="btn" type="button" data-pickoffer="${sheet.i}">이 제안 선택</button></div></section></div>`}
   if(sheet==='helmet')return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:88vh;overflow:auto"><div class="row"><h3 class="h2">헬멧 꾸미기</h3><button class="iconbtn" type="button" id="hRandom">랜덤</button></div>
       <div class="row" style="justify-content:center">${helmet(S.p.helmet,S.p.num,150)}</div>${helmetEditor(S.p.helmet)}<button class="btn" type="button" id="closeSheet">완료</button></section></div>`;
+  if(sheet==='fb')return`<div class="sheet" id="sheetBg"><section class="card"><h3 class="h3">의견 보내기</h3>
+      <textarea class="field" id="fbText" maxlength="300" rows="5" placeholder="불편한 점, 어려운 구간, 바랐던 기능 등 뭐든 좋아요" style="resize:none">${esc(fbText)}</textarea>
+      <p class="muted" style="margin:0;font-size:12px">이름 없이 익명으로 가요. 답장은 못 드려요.</p>
+      <div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" id="closeSheet">닫기</button><button class="btn" type="button" id="fbSend">보내기</button></div></section></div>`;
   return menuSheet();
 }
 function menuSheet(){
@@ -4171,6 +4185,7 @@ function menuSheet(){
     sheet==='retire'?`<p style="margin:0">지금 은퇴하고 커리어 카드를 받을까요? 되돌릴 수 없어요.</p><div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" id="cancelNew">취소</button><button class="btn" type="button" id="confirmRetire">은퇴하기</button></div>`:
     `${S.phase!=='progress'?'<button class="btn ghost" type="button" id="askRetire">은퇴하기</button>':''}<button class="btn ghost" type="button" id="askNew" style="color:var(--bad)">새 커리어 시작</button>`}
     <button class="btn ghost" type="button" id="toTitle">타이틀 화면으로</button>
+    <button class="btn ghost" type="button" id="fbOpen">의견 보내기</button>
     <button class="btn ghost" type="button" id="logToggle">익명 플레이 기록 보내기: ${logOff()?'끔':'켬'}</button>
     ${logBtn()}
     <p class="muted" style="margin:0;font-size:12px">시즌 결과·선택 같은 플레이 기록을 이름 없이 익명으로 모아 밸런스 조정에 써요.</p>
@@ -4187,6 +4202,7 @@ async function saveFile(filename,data){
   if(!DL)return;try{await DL.save({filename,data});toast('저장했어요')}catch(e){if(e&&e.code!=='declined')toast('저장하지 못했어요. 잠시 후 다시 시도해 주세요.')}
 }
 root.addEventListener('input',e=>{
+  if(e.target.id==='fbText'){fbText=e.target.value;return}
   if(!ob||S)return;
   if(e.target.id==='obName'){ob.name=e.target.value;const t=document.querySelector('.obname');if(t)t.textContent=ob.name.trim()||'이름 없음';const b=document.getElementById('obNext1');if(b)b.disabled=!ob.name.trim()}
   if(e.target.id==='obNum'){ob.num=clamp(parseInt(e.target.value)||2,2,99)}
@@ -4261,6 +4277,8 @@ root.addEventListener('click',e=>{
   if(id==='rkRetry'){rkLoad();render();return}
   if(id==='hofClose'){hofOpen=false;render();return}
   if(id==='logDl'){logDownload();return}
+  if(id==='fbOpen'){sheet='fb';render();setTimeout(()=>{const x=document.getElementById('fbText');if(x)x.focus()},50);return}
+  if(id==='fbSend'){fbSend();return}
   if(id==='logToggle'){if(logOff())lsSet('k2wc-log-off','0');else{lsSet('k2wc-log-off','1');lsSet(KEYL,'[]')}render();return}
   if(id==='toTitle'){sheet=null;title=true;render();window.scrollTo(0,0);return}
   if(id==='closeSheet'){if(sheetBack){sheet=sheetBack;sheetBack=null;render();return}sheet=null;chain=false;evPick=null;render();return}

@@ -67,3 +67,8 @@ last={}
 for d in S:last[d['cid']]=d['lk']
 stop=collections.Counter(v for c,v in last.items() if c not in {d['cid'] for d in R})
 if stop:print('unfinished careers stopped at:',dict(stop))
+FB=sorted(K['fb'],key=lambda d:d['t'])
+if FB:
+    import datetime
+    print(f'feedback {len(FB)}:')
+    for d in FB[-30:]:print(' ',datetime.datetime.fromtimestamp(d['t']/1000).strftime('%m-%d %H:%M'),d.get('lk') or d.get('phase'),f"{d.get('seasons',0)}시즌",'|',d['text'])

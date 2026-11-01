@@ -30,6 +30,16 @@ function doPost(e) {
   try {
     const sh = tab(Utilities.formatDate(new Date(now), 'Asia/Seoul', 'yyyy-MM'));
     sh.getRange(sh.getLastRow() + 1, 1, rows.length, HEAD.length).setValues(rows);
+    // feedback ("의견 보내기") also goes to a readable "의견" tab
+    const fb = a.filter(d => d.kind === 'fb' && d.text).map(d => [
+      Utilities.formatDate(new Date(now), 'Asia/Seoul', 'yyyy-MM-dd HH:mm'), String(d.text).slice(0, 300),
+      String(d.lk || d.phase || ''), d.seasons || 0, String(d.v || ''), String(d.uid || '').slice(0, 6)]);
+    if (fb.length) {
+      const ss = SpreadsheetApp.getActive();
+      let f = ss.getSheetByName('의견');
+      if (!f) { f = ss.insertSheet('의견', 0); f.appendRow(['시간', '내용', '무대', '시즌 수', '버전', '기기']); f.setFrozenRows(1); f.setColumnWidth(2, 400); }
+      f.getRange(f.getLastRow() + 1, 1, fb.length, 6).setValues(fb);
+    }
   } finally { lock.releaseLock(); }
   return out({ ok: rows.length });
 }
