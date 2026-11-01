@@ -2690,22 +2690,22 @@ function applyIncident(inc,j){
 
 /* ---------- mid-season gamble ---------- */
 const GACHA=[
- {id:'boxing',title:'복싱으로 반사신경 키우기',ev:'복싱 훈련',p:.65,win:{stats:{mental:3,race:2}},inj:[1,1]},
- {id:'mtb',title:'산악자전거로 지구력 훈련',ev:'산악자전거 훈련',p:.65,win:{stats:{consistency:3,tyre:2}},inj:[1,2]},
- {id:'kart',title:'옛 라이벌들과 카트 레이스!',ev:'카트 레이스',p:.6,win:{stats:{race:3,quali:1}},inj:[1,1]},
+ {id:'boxing',title:'복싱으로 반사신경 키우기',ev:'복싱 훈련',p:.65,win:{stats:{mental:3,race:3}},inj:[1,1]},
+ {id:'mtb',title:'산악자전거로 지구력 훈련',ev:'산악자전거 훈련',p:.65,win:{stats:{consistency:3,tyre:3}},inj:[1,2]},
+ {id:'kart',title:'옛 라이벌들과 카트 레이스!',ev:'카트 레이스',p:.6,win:{stats:{race:3,quali:1}},slump:4},
  {id:'simnight',title:'시뮬레이터로 밤샘 예선 연습',p:.6,win:{stats:{quali:3}},slump:6,fm:7},
- {id:'skydive',title:'스폰서랑 스카이다이빙 이벤트!',ev:'스카이다이빙',p:.75,win:{fans:15,morale:5,rep:3},inj:[1,2]},
- {id:'rainold',title:'구형 머신으로 빗길 테스트',ev:'빗길 테스트',p:.6,win:{stats:{wet:4}},inj:[1,1]},
- {id:'padel',title:'드라이버들과 파델 테니스',ev:'파델 테니스',p:.7,win:{fans:8,rep:3},inj:[1,1]},
+ {id:'skydive',title:'스폰서랑 스카이다이빙 이벤트!',ev:'스카이다이빙',p:.75,win:{fans:15,morale:5,rep:5},inj:[1,2]},
+ {id:'rainold',title:'구형 머신으로 빗길 테스트',ev:'빗길 테스트',p:.6,win:{stats:{wet:4}},slump:4},
+ {id:'padel',title:'드라이버들과 파델 테니스',ev:'파델 테니스',p:.7,win:{fans:8,rep:3},slump:4},
  {id:'gt3',title:'가명으로 몰래 GT3 레이스 출전',p:.6,win:{stats:{race:2,wet:1},fans:6},slump:5},
  {id:'esports',title:'프로게이머들과 24시간 심레이싱',p:.65,win:{stats:{quali:2},fans:5},slump:5},
- {id:'rallyx',title:'주말에 랠리 출전!',ev:'랠리',p:.6,win:{stats:{wet:3,consistency:2,race:1}},inj:[1,2]},
- {id:'cycle',title:'알프스 사이클 투어',ev:'사이클 투어',p:.7,win:{stats:{consistency:2},morale:4},inj:[1,1]},
- {id:'surf',title:'친구들과 서핑 여행',ev:'서핑',p:.75,win:{stats:{mental:3},fans:3},inj:[1,1]},
- {id:'football',title:'학교 친구들과 축구 시합',ev:'축구 시합',p:.7,win:{stats:{consistency:2,race:1}},inj:[1,1]},
- {id:'rentkart',title:'카트 동호회 형들이랑 레이스 연습!',ev:'카트 연습',p:.65,win:{stats:{race:2}},inj:[1,1],fm:5},
+ {id:'rallyx',title:'주말에 랠리 출전!',ev:'랠리',p:.6,win:{stats:{wet:4,consistency:2,race:2}},inj:[1,2]},
+ {id:'cycle',title:'알프스 사이클 투어',ev:'사이클 투어',p:.7,win:{stats:{consistency:2},morale:4},slump:4},
+ {id:'surf',title:'친구들과 서핑 여행',ev:'서핑',p:.75,win:{stats:{mental:3},fans:3},slump:4},
+ {id:'football',title:'학교 친구들과 축구 시합',ev:'축구 시합',p:.7,win:{stats:{consistency:2,race:1}},slump:4},
+ {id:'rentkart',title:'카트 동호회 형들이랑 레이스 연습!',ev:'카트 연습',p:.65,win:{stats:{race:2}},slump:3,fm:5},
  {id:'gamenight',title:'친구들이랑 밤새 레이싱 게임 대회',p:.65,win:{stats:{quali:2}},slump:3,fm:5},
- {id:'trampoline',title:'트램펄린 파크에서 균형 훈련',ev:'트램펄린',p:.7,win:{stats:{mental:2,consistency:1}},inj:[1,1],fm:7}
+ {id:'trampoline',title:'트램펄린 파크에서 균형 훈련',ev:'트램펄린',p:.7,win:{stats:{mental:2,consistency:1}},slump:3,fm:7}
 ];
 // who can do which break: a 14-year-old karter doesn't play padel with F1 drivers
 const GA_REQ={boxing:{age:16},esports:{age:16},simnight:{age:15},kart:{min:'F3'},skydive:{min:'F2',age:18},rainold:{min:'F3'},padel:{min:'F1'},gt3:{min:'F2',age:18},rallyx:{age:17},cycle:{age:16},surf:{age:15},
