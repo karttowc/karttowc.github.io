@@ -222,6 +222,11 @@ label.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--
 .steps{display:flex;gap:6px;justify-content:center}
 .steps i{width:22px;height:6px;border-radius:6px;background:var(--line)}
 .steps i.on{background:var(--accent)}
+.ladder{display:flex;align-items:center;gap:0;margin:2px 0 4px}
+.ladder span{flex:1;text-align:center;font:700 11px/1 'Barlow Condensed',sans-serif;letter-spacing:.3px;padding:6px 0;border-radius:8px;color:var(--muted);background:var(--surface-2)}
+.ladder i{width:6px;height:2px;background:var(--line);flex:none}
+.ladder span.done{color:var(--fg)}
+.ladder span.now{background:var(--accent);color:#fff}
 .choice{background:var(--surface);border:2px solid transparent;border-radius:22px;padding:18px 20px;text-align:left;display:flex;flex-direction:column;gap:10px;width:100%}
 .choice[aria-pressed="true"]{border-color:var(--accent)}
 .choice .row .tick{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-size:14px}
@@ -877,6 +882,7 @@ const B = {
   "debut_age_penalty_from": 25,
   "debut_age_penalty_per_year": 2,
   "rookie_adapt": 3,
+  "first_kart_easy": 5,
   "champ_hunt": {"cars": 2, "chance": 0.5}
  },
  "super_licence": {
@@ -2011,10 +2017,10 @@ function rivalLine(){const rv=S.rival;if(!rv)return'';
   return`<div class="rvline"><span class="rvb">라이벌</span><b>${esc(rv.name)}</b> · ${rv.f1&&rv.team?logo(rv.team,20)+esc(teamDef(rv.team).name):esc(rivalSeriesName(rv))} · OVR ${ovrOf(rv.stats)} <span>맞대결 ${rv.h2h[0]}:${rv.h2h[1]}</span></div>`}
 function newGame(o){
   const pot=Math.round(clamp(B.driver.potential.mean+gauss()*B.driver.potential.sd,B.driver.potential.min,B.driver.potential.max));
-  S={v:1,startYear:K.start_year,year:K.start_year,phase:'ready',train:'focus',
+  S={v:1,startYear:K.start_year,year:K.start_year,phase:'ready',train:'focus',prog:STYLE_PROG[o.style]||'craft',progYear:K.start_year,progFree:null,
     teams:K.teams.map(t=>({id:t.id,name:t.name,short:t.short,color:t.color,machine:t.machine_2026,tier:t.tier})),
     f1:K.drivers.map(d=>({id:d.id,name:d.name,nationality:d.nationality,age:K.start_year-d.birth_year,team:d.team,style:d.style,potential:d.potential,stats:{...d.stats}})),
-    p:{name:o.name,num:o.num,nat:o.nat,avatar:o.avatar??avDefault(o.nat),helmet:o.helmet,style:o.style,stats:{...o.stats},potential:Math.max(pot,ovrOf(o.stats)+15),focus:[...o.focus],
+    p:{name:o.name,num:o.num,nat:o.nat,avatar:o.avatar??avDefault(o.nat),helmet:o.helmet,style:o.style,stats:{...o.stats},potential:Math.max(pot,ovrOf(o.stats)+15),focus:[...progDef(STYLE_PROG[o.style]).st],
       age:B.driver.start_age,series:'KART',team:{name:'파크 레이싱',tier:'mid'},role:'race',academy:null,academyBad:0,rep:50,sl:[],
       seriesSeasons:1,f2Seasons:0,noSeat:0,alt:null,
       tot:{starts:0,wins:0,podiums:0,poles:0,points:0,titles:0},jr:[],alts:[],f1Teams:{},peak:ovrOf(o.stats),debutYear:null,history:[],retired:false,fans:5,morale:80,rep:10,repBonus:0,val:0,valPeak:0,challenges:[],monaco:false},
@@ -2097,7 +2103,8 @@ function startSeason(){
   }else{
     const isAlt=p.series==='ALT',sd=isAlt?altDef(p.alt):seriesDef(p.series);
     races=sd.races;field=Math.min(sd.field,30);seriesName=sd.name;teamName=p.team.name;
-    const carT=isAlt?ALT_CAR:sd.car,mean=AI_MEAN[p.series];
+    // a gentler field for the very first kart season, so a new player gets a taste of the podium
+    const easy=p.series==='KART'&&!p.history.length?(B.career.first_kart_easy||0):0,carT=isAlt?ALT_CAR:sd.car,mean=AI_MEAN[p.series]-easy;
     me=entrant({key:'me',name:p.name,team:p.team.name,car:carT[p.team.tier],isPlayer:true,...fromStats(p.stats)});ents.push(me);
     for(let i=1;i<field;i++){const o=mean+gauss()*5,tier=Math.random()<.3?'top':Math.random()<.57?'mid':'bottom';
       ents.push(entrant({key:'a'+i,name:genName(pick(NATS)),team:'',car:carT[tier],q:o+gauss()*2,d:o+gauss()*2,w:o+gauss()*3,cons:o,mental:o}))}
@@ -2105,7 +2112,8 @@ function startSeason(){
     const rv=S.rival;if(rv&&rv.st==='on'&&!rv.f1&&rv.series===p.series&&ents[1])ents[1]=entrant({key:'rival',name:rv.name,team:'',car:carT[pick(['top','mid','mid','bottom'])],...fromStats(rv.stats)});
   }
   const lk0=p.series==='ALT'?p.alt:p.series,firstLeague=p.role==='race'&&!p.history.some(h=>(h.lk||h.sid)===lk0&&h.role==='race'&&h.starts>0);
-  let avgAd=0;if(firstLeague){const R0=Math.max(2,Math.round(races*.35)),A=B.career.rookie_adapt||3;me.adapt=r=>r<R0?A*(1-r/R0):0;for(let r=0;r<races;r++)avgAd+=me.adapt(r);avgAd/=races}
+  // no adapting in the very first kart season
+  let avgAd=0;if(firstLeague&&p.history.length){const R0=Math.max(2,Math.round(races*.35)),A=B.career.rookie_adapt||3;me.adapt=r=>r<R0?A*(1-r/R0):0;for(let r=0;r<races;r++)avgAd+=me.adapt(r);avgAd/=races}
   {const mb=(p.morale-60)/15-(p.xfer===S.year?.6:0);me.q+=mb;me.d+=mb;me.w+=mb;
    // where would I finish on paper? (same formula the race uses, without luck)
    const dw=B.race.driver_weight,cw=B.race.car_weight,oth=ents.filter(e=>e!==me),n=oth.length||1;
@@ -2560,7 +2568,7 @@ function makeOffers(pos,field,h2h){
 }
 
 function applyOffer(o){
-  const p=S.p,ev=[];S.logPick={year:S.year,age:p.age,from:p.series==='ALT'?p.alt:p.series,pick:o.kind+':'+(o.teamId||o.series||o.altId||'')+':'+(o.tier||(o.team&&o.team.tier)||(o.teamId?teamDef(o.teamId).tier:'')),
+  const p=S.p,ev=[],stage0=stageKey(p);S.logPick={year:S.year,age:p.age,from:p.series==='ALT'?p.alt:p.series,pick:o.kind+':'+(o.teamId||o.series||o.altId||'')+':'+(o.tier||(o.team&&o.team.tier)||(o.teamId?teamDef(o.teamId).tier:'')),
     offers:(S.offers||[]).map(x=>x.kind+':'+(x.teamId||x.series||x.altId||'')),ovr:ovrOf(p.stats)};
   const leavingF1Seat=p.series==='F1'&&p.role==='race'&&!(o.kind==='resign');
   const oldTeam=p.series==='F1'?p.team.id:null;
@@ -2584,17 +2592,32 @@ function applyOffer(o){
   if(S.last&&S.last.rec&&S.last.rec.titled&&S.last.rec.sid==='F1'&&p.series==='F1'&&p.role==='race')champHunt();
   {const tgt=p.age>=36?70:p.age>=33?78:85;p.morale=Math.round(p.morale+(tgt-p.morale)*.45)}
   if(S.train==='rest'){p.morale=Math.min(100,p.morale+15);S.train='focus'}
-  // the plan carries over; a maxed stat is swapped for the recommended one
-  {const keep=p.focus.filter(k=>p.stats[k]<99),out=p.focus.filter(k=>p.stats[k]>=99);S.trAuto=null;
-    if(out.length||!p.focus.length){const add=recStats(B.driver.max_focus_stats-keep.length,keep).map(r=>r.k);p.focus=[...keep,...add];if(out.length&&add.length)S.trAuto={year:S.year,from:out,to:add}}}
+  // the plan carries over; moving up a stage or maxing one of its stats opens it again
+  if(stageKey(p)!==stage0)S.progFree='stage';else if(progDef(S.prog).st.some(k=>p.stats[k]>=99))S.progFree='max';
   p.val=valueOf();p.valPeak=Math.max(p.valPeak||0,p.val);
   S.offers=[];S.phase='ready';S.events=genEvents();buildNotice();
   S.challenge=(p.series==='F1'&&p.role==='race'&&Math.random()<.2+p.fans/250)?(Math.random()<.7||p.age<24?{id:'LEMANS',name:'르망 24시'}:{id:'INDY500',name:'인디 500'}):null;
   save();
 }
 
-/* ---------- preseason training: pick up to 2 stats, or rest ---------- */
-const trName=()=>S.train==='rest'?'휴식':S.p.focus.map(k=>LBL[k]).join(', ')||'-';
+/* ---------- training programs: two stats each (every stat sits in exactly two), held for 3 seasons, or rest for one ---------- */
+const PROGS=[
+ {id:'speed',name:'스피드 특훈',st:['quali','race']},
+ {id:'sim',name:'시뮬레이터 집중',st:['quali','consistency']},
+ {id:'craft',name:'휠투휠 세션',st:['race','mental']},
+ {id:'longrun',name:'롱런 프로그램',st:['tyre','consistency']},
+ {id:'rainx',name:'빗길 특훈',st:['wet','tyre']},
+ {id:'mind',name:'멘탈 코칭',st:['mental','wet']}];
+const STYLE_PROG={qualifier:'sim',racer:'craft',rain:'rainx',manager:'longrun'},PROG_LOCK=3;
+const progDef=id=>PROGS.find(g=>g.id===id)||PROGS[0];
+const stageKey=p=>p.series==='ALT'?p.alt:p.series;
+// a new plan can be picked every 3 seasons, or straight away after moving up a stage or maxing a stat
+const trOpen=()=>!S.prog||S.progFree||S.year-S.progYear>=PROG_LOCK;
+const progStats=g=>g.st.map(k=>LBL[k]).join('·');
+const trName=()=>S.train==='rest'?'휴식':progDef(S.prog).name;
+function setProg(id){S.prog=id;S.p.focus=[...progDef(id).st]}
+function recProg(){const sc=statScore();return[...PROGS].sort((a,b)=>b.st.reduce((x,k)=>x+sc[k],0)-a.st.reduce((x,k)=>x+sc[k],0))[0]}
+function trWhen(){return S.train==='rest'?'이번 시즌 휴식 · 체력 회복':trOpen()?(S.progFree==='stage'?'새 무대! 훈련을 다시 고를 수 있어요':S.progFree==='max'?'최대치 달성! 훈련을 바꿀 수 있어요':'훈련 프로그램을 고를 수 있어요'):`${S.progYear+PROG_LOCK}년에 변경 가능`}
 /* ---------- race incidents ---------- */
 const INC=[
  {id:'rain',title:'갑자기 비가 내리기 시작했어요',desc:'트랙이 빠르게 젖고 있어요. 지금 결정해야 해요.',choices:[
@@ -2937,6 +2960,7 @@ function tone(s,o={}){
 function ieyo(w){const c=w.charCodeAt(w.length-1)-0xAC00;return c>=0&&c<11172&&c%28?'이에요':'예요'}
 function ro(w){const c=w.charCodeAt(w.length-1)-0xAC00;return c>=0&&c<11172&&c%28&&c%28!==8?'으로':'로'}
 function josa(w){const c=w.charCodeAt(w.length-1)-0xAC00;return c>=0&&c<11172&&c%28?'을':'를'}
+const batchim=w=>{const c=w.charCodeAt(w.length-1)-0xAC00;return c>=0&&c<11172&&c%28>0},josa2=w=>batchim(w)?'은':'는',josa3=w=>batchim(w)?'이':'가';
 const NICKS=['새벽알람','피트레인직관러','타이어요정','DRS열어','언더컷장인','입문3년차','헬멧수집가','패독고양이','세이프티카','블루플래그','체커기','예선덕후','풀웻파','부산f1팬','대전레이싱'];
 const PLAT=['커뮤니티','SNS','영상 댓글','팬카페'];
 const FAN={
@@ -3099,7 +3123,7 @@ function buildReact(R,x){
   if(!f&&R.pos)f=pick(['큰 변수 없이 실력대로 나온 시즌이었어요.','눈에 띄는 변수 없이 꾸준히 달렸어요.']);
   if(f)E.push(f);
   // 4) what next
-  const st=p.stats,rs0=recStats()[0],weak=rs0.k,dO=R.ovrAfter-R.ovrBefore,trTxt=S.train!=='rest'&&p.focus.includes(weak)?'지금 훈련 방향이 맞아요.':`훈련 계획에서 ${LBL[weak]}${josa(LBL[weak])} 골라 보세요.`;
+  const st=p.stats,rs0=recStats()[0],weak=rs0.k,dO=R.ovrAfter-R.ovrBefore,trTxt=S.train!=='rest'&&p.focus.includes(weak)?'지금 훈련 방향이 맞아요.':`${LBL[weak]}${josa3(LBL[weak])} 든 훈련 프로그램을 골라 보세요${trOpen()?'':` (${S.progYear+PROG_LOCK}년에 변경 가능)`}.`;
   let adv,pre='';
   if(dO<0)pre=R.slump&&R.slump!=='random'&&R.age<33?`OVR이 ${dO} 떨어졌어요. ${R.slump==='tired'?'체력이 바닥난 탓':R.slump==='norace'?'실전 감각이 떨어진 탓':'부진이 자신감을 흔든 탓'}이라 일시적이에요. `:R.age>=33?`OVR이 ${dO} 떨어졌어요. 나이에 따른 하락이 시작됐어요. `:`OVR이 ${dO} 떨어졌지만 일시적인 부진이에요. `;
   else if(dO>=4)pre=`OVR이 +${dO} 오르며 한 단계 성장했어요. `;
@@ -3197,12 +3221,12 @@ function readyCard(){
   if(p.series==='F1'&&p.role==='race'){const t=teamDef(p.team.id),mate=S.f1.find(d=>d.team===t.id);desc=`${K.series.find(s=>s.id==='F1').races}R${mate?' · 팀메이트 '+esc(mate.name):''}`}
   else if(p.series==='F1')desc='리저브 · 주전이 빠지면 대타 출전';
   else{const sd=p.series==='ALT'?altDef(p.alt):seriesDef(p.series);desc=`${sd.races}R · ${TIER_LBL[c.tier]}`}
-  const n=S.events.length,mxF=S.train!=='rest'&&p.focus.find(k=>p.stats[k]>=99),TA=S.trAuto&&S.trAuto.year===S.year?S.trAuto:null;
+  const n=S.events.length;
   const row=(attr,ic,title,sub,hot)=>`<button class="trow${hot?' need':''}" type="button" ${attr}><span class="ti">${ic}</span><span class="tb"><b>${title}</b><span>${sub}</span></span><span class="ta">›</span></button>`;
   return`<section class="card prep"><div><h2 class="h3" style="font-size:20px;margin:0">${S.year} 시즌 준비</h2><span class="muted" style="font-size:13px">${desc}</span></div>
     ${rivalLine()}
     <div class="tlist">
-      ${row('data-sheet="train"','훈련','훈련 계획',S.train==='rest'?'이번 시즌 휴식 · 체력 회복':mxF?`${LBL[mxF]} 최대치! 다른 능력치를 골라 보세요`:TA?`${TA.to.map(k=>LBL[k]).join(', ')} · 최대치라 자동 교체`:`${trName()} · 추천: ${recStats().map(r=>LBL[r.k]).join(', ')}`,!!mxF||(S.train!=='rest'&&!p.focus.length))}
+      ${row('data-sheet="train"','훈련','훈련 계획',`${S.train==='rest'?'':esc(trName())+' · '}${trWhen()}`,S.train!=='rest'&&trOpen())}
       ${n?row('data-sheet="ev0"','결정',`결정할 일 ${n}개`,esc(evDef(S.events[0].id).title)+(n>1?' 외':''),1):''}
       ${S.challenge?row('data-sheet="ch"','★',`${S.challenge.name} 출전 제안`,'선택 · 도전 이벤트',0):''}
       ${p.series==='F1'&&p.role==='race'?(p.xfer===S.year?`<div class="trow"><span class="ti" style="background:#3A1E22;color:#FF8A94">이적</span><span class="tb"><b>이적 요청 중</b><span>시즌 뒤 다른 팀들이 평가해요</span></span></div>`:row('data-sheet="xfer"','이적','이적 요청하기','선택 · 다른 팀으로 가고 싶다고 선언',0)):''}
@@ -3222,6 +3246,13 @@ function hlList(R){const H=R.hl||[];if(!H.length)return'';
     ${H.length>5?`<button class="nmore" type="button" data-hlmore="1">${hlMore?'접기':`${H.length-5}경기 더 보기`} <span>›</span></button>`:''}</div>`}
 const ALERT_EV=/방출|아카데미 경고|경고를 보냈어요|조기 해지|재계약을 하지 않기로|옵션을 행사|탈출 조항/;
 const OTHER_EV=/권으로|대규정|관심 팀 변화|컨스트럭터/;
+// the next step up the ladder, right under the first look at the result
+function nextCard(){const p=S.p,cur=ORDER.indexOf(p.series);if(cur<0||S.phase!=='result')return'';
+  const L=[...ORDER,'F1'],up=(S.offers||[]).filter(o=>o.kind==='f1'||o.kind==='reserve'||o.kind==='alt'||o.kind==='junior'&&ORDER.indexOf(o.series)>cur).length;
+  return`<section class="card" style="gap:10px"><div class="ladder">${L.map((x,i)=>`<span class="${i===cur?'now':i<cur?'done':''}">${x}</span>`).join('<i></i>')}</div>
+    <b style="font-size:16px">${up?`다음 무대 제안 ${up}개가 와 있어요`:'이번엔 승격 제안이 없어요'}</b>
+    <span class="muted" style="font-size:13px;margin-top:-6px">${up?'이적 시장에서 골라 보세요.':'한 시즌 더 다듬으면 기회가 와요.'}</span>
+    <button class="btn" type="button" id="okBtn">이적 시장으로</button></section>`}
 function resultCard(){
   const L=S.last,R=L.rec,d=R.ovrAfter-R.ovrBefore,mine=L.ev.filter(e=>!OTHER_EV.test(e)&&!ALERT_EV.test(e)),rest=L.ev.filter(e=>OTHER_EV.test(e));
   const dm=Object.fromEntries(L.deltas.map(x=>[x.k,x.d])),fo=R.train&&R.train!=='휴식'?S.p.focus:[];
@@ -3327,7 +3358,7 @@ function homeHero(){const p=S.p,c=currentLine();
 function homeTab(){
   return`<header class="top"><h1>카트부터 월챔까지</h1><button class="iconbtn" type="button" id="menuBtn">설정</button></header>
   ${stepper()}
-  ${S.phase==='result'?resultBoard()+resultCard():S.phase==='offers'?homeHero()+offersCard():homeHero()+readyCard()}`;
+  ${S.phase==='result'?resultBoard()+nextCard()+resultCard():S.phase==='offers'?homeHero()+offersCard():homeHero()+readyCard()}`;
 }
 function offerTeam(x){if(x.teamId)return x.teamId;if(['resign','stay','option'].includes(x.kind)&&S.p.series==='F1')return S.p.team.id;return null}
 function driverTab(){
@@ -3666,37 +3697,26 @@ function stepper(){
 /* ---------- onboarding ---------- */
 function obInit(){
   const c={};B.styles.forEach(s=>c[s.id]=styleStats(B.driver.start_ovr,s.id));
-  ob={step:1,name:'',num:ri(2,99),nat:'KOR',av:avDefault('KOR'),avPick:false,helmet:randomHelmet(),style:null,cands:c,focus:[]};
+  ob={step:1,name:genName('KOR'),nameAuto:true,num:ri(2,99),nat:'KOR',av:avDefault('KOR'),avPick:false,helmet:randomHelmet(),style:null,cands:c};
 }
 function obView(){
-  const steps=`<div class="steps">${[1,2,3,4].map(i=>`<i class="${i<=ob.step?'on':''}"></i>`).join('')}</div>`;
+  const steps=`<div class="steps">${[1,2].map(i=>`<i class="${i<=ob.step?'on':''}"></i>`).join('')}</div>`;
   const hero=`<section class="obhero"><div class="obstage">${avatar(ob.av,ob.helmet,118,true)}</div><div class="obtag"><div class="obmeta">${helmet(ob.helmet,null,44)}<b class="num">#${esc(ob.num)}</b><em>${esc(K.nationalities[ob.nat]||'')}</em></div><span class="obname">${esc(ob.name.trim()||'이름 없음')}</span></div></section>`;
-  if(ob.step===1)return`<header class="top"><span></span>${steps}<button class="iconbtn" type="button" id="obRandom">랜덤</button></header>
-    <div><div class="eyebrow">${B.driver.start_age}세, 카트에서 시작해요</div><h2 class="h2">나만의 헬멧을 만들어 주세요</h2><p class="muted" style="margin:6px 0 0">슈트 색도 헬멧 색을 따라가요.</p></div>
-    <section class="obhero obhel">${helmet(ob.helmet,null,190)}</section>
-    <section class="card">${helmetEditor(ob.helmet)}</section>
-    <button class="btn" type="button" id="obNextH">다음</button><p class="muted" style="margin:4px 0 0;font-size:12px;text-align:center">비공식 팬 게임이에요. 수익을 내지 않으며 F1·FIA·각 팀과 관련이 없어요. 팀명·로고·선수명 등 상표는 각 소유자의 것이에요.</p>`;
-  if(ob.step===2)return`<header class="top"><button class="iconbtn" type="button" id="obBack">이전</button>${steps}<button class="iconbtn" type="button" id="obRandom">랜덤</button></header>
+  if(ob.step===1)return`<header class="top"><span style="width:56px"></span>${steps}<button class="iconbtn" type="button" id="obRandom">랜덤</button></header>
     <div><h2 class="h2">어떤 드라이버로 살아볼까요?</h2></div>
     ${hero}
     <section class="card"><div class="avgrid">${AVATAR.map((_,i)=>`<button class="avopt" type="button" data-av="${i}" aria-pressed="${i===ob.av}" aria-label="드라이버 ${i+1}">${avatar(i,ob.helmet,64)}</button>`).join('')}</div></section>
     <section class="card"><div class="grid2"><label class="lbl" for="obName">이름<input class="field" id="obName" maxlength="12" placeholder="이름" value="${esc(ob.name)}"></label>
       <label class="lbl" for="obNum">차량 번호<input class="field num" id="obNum" type="number" min="2" max="99" value="${ob.num}"></label></div>
       <label class="lbl" for="obNat">국적<select class="field" id="obNat">${Object.entries(K.nationalities).map(([k,v])=>`<option value="${k}"${k===ob.nat?' selected':''}>${v}</option>`).join('')}</select></label></section>
-    <button class="btn" type="button" id="obNext1" ${ob.name.trim()?'':'disabled'}>다음</button>`;
-  if(ob.step===3)return`<header class="top"><button class="iconbtn" type="button" id="obBack">이전</button>${steps}<span style="width:56px"></span></header>
+    <button class="btn" type="button" id="obNext1" ${ob.name.trim()?'':'disabled'}>다음</button><p class="muted" style="margin:0;font-size:12px;text-align:center">헬멧은 나중에 드라이버 탭에서 꾸밀 수 있어요.</p><p class="muted" style="margin:4px 0 0;font-size:12px;text-align:center">비공식 팬 게임이에요. 수익을 내지 않으며 F1·FIA·각 팀과 관련이 없어요. 팀명·로고·선수명 등 상표는 각 소유자의 것이에요.</p>`;
+  return`<header class="top"><button class="iconbtn" type="button" id="obBack">이전</button>${steps}<span style="width:56px"></span></header>
     <div><div class="eyebrow">네 후보 모두 능력치 합은 ${B.driver.start_stat_sum}이고, 분포만 달라요.</div><h2 class="h2">드라이버 스타일을 골라 주세요</h2></div>
     ${B.styles.map(s=>{const st=ob.cands[s.id],top=[...STATS].sort((a,b)=>st[b]-st[a]).slice(0,2);return`<button class="choice" type="button" data-style="${s.id}" aria-pressed="${ob.style===s.id}">
       <span class="row"><span class="h3">${s.name}</span><span class="tick">✓</span></span><span class="muted" style="font-size:14px">${s.desc}</span>
-      <span class="chips">${top.map(k=>`<span class="chip blue">${LBL[k]} ${st[k]}</span>`).join('')}</span>
+      <span class="chips">${top.map(k=>`<span class="chip blue">${LBL[k]} ${st[k]}</span>`).join('')}<span class="chip">훈련: ${progDef(STYLE_PROG[s.id]).name}</span></span>
       ${ob.style===s.id?STATS.map(k=>`<span class="statrow"><span class="muted">${LBL[k]}</span><span class="bar"><i style="width:${st[k]}%"></i></span><b>${st[k]}</b></span>`).join(''):''}</button>`}).join('')}
-    <button class="btn" type="button" id="obNext2" ${ob.style?'':'disabled'}>이 스타일로 할게요</button>`;
-  const st=ob.cands[ob.style];
-  return`<header class="top"><button class="iconbtn" type="button" id="obBack">이전</button>${steps}<span style="width:56px"></span></header>
-    <div><div class="eyebrow">${B.styles.find(s=>s.id===ob.style).name} · OVR ${ovrOf(st)}</div><h2 class="h2">훈련으로 키울 능력치를<br>골라 주세요</h2>
-    <p class="muted" style="margin:6px 0 0">최대 ${B.driver.max_focus_stats}개까지 고를 수 있어요. 고른 능력치가 훨씬 빨리 자라요. 매 시즌 준비 때 훈련 계획에서 바꿀 수 있어요.</p></div>
-    <section class="card"><div class="list">${STATS.map(k=>`<button class="item" type="button" data-focus="${k}" aria-pressed="${ob.focus.includes(k)}"><span class="body"><b>${LBL[k]}</b></span><span class="num" style="font-size:20px;color:var(--muted)">${st[k]}</span><span class="tick"></span></button>`).join('')}</div></section>
-    <button class="btn" type="button" id="obDone" ${ob.focus.length?'':'disabled'}>드라이버 만들기</button>`;
+    <button class="btn" type="button" id="obDone" ${ob.style?'':'disabled'}>이 스타일로 시작</button>`;
 }
 
 /* ---------- render & events ---------- */
@@ -3733,7 +3753,7 @@ function logFlush(){if(logBusy||!rkNet()||logOff())return;const q=logQ();if(!q.l
 if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')logFlush()});
 function logSeason(rec){const p=S.p,c=currentLine(),Z=S.season||{},L=S.logPre||{};
   logEv('season',{year:rec.year,age:rec.age,lk:rec.lk,role:rec.role,tier:c.tier,team:rec.team,pos:rec.pos,field:rec.field,starts:rec.starts,wins:rec.wins,podiums:rec.podiums,poles:rec.poles,dnf:rec.dnf,
-    titled:!!rec.titled,ovr0:rec.ovrBefore,ovr1:rec.ovrAfter,pot:p.potential,s0:(Z.ctx&&Z.ctx.statsBefore)||null,stats:p.stats,focus:p.focus,train:S.train||null,morale0:L.morale??null,morale1:p.morale,fans:p.fans,rep:p.rep,
+    titled:!!rec.titled,ovr0:rec.ovrBefore,ovr1:rec.ovrAfter,pot:p.potential,s0:(Z.ctx&&Z.ctx.statsBefore)||null,stats:p.stats,focus:p.focus,prog:S.prog||null,train:S.train||null,morale0:L.morale??null,morale1:p.morale,fans:p.fans,rep:p.rep,
     ev:(S.evSeason||[]).map(e=>e.id+':'+e.j),ch:L.ch||null,ga:Z.gacha?Z.gacha.id+':'+(Z.gacha.res||'-'):null,inc:(Z.incidents||[]).filter(x=>x.done).length,slump:rec.slump||null,
     h2h:rec.h2h?[rec.h2h.q,rec.h2h.r]:null,slp:slPoints(),sc:Math.max(0,...Object.values(p.scout||{0:0})),acad:p.academy||null,why:rec.why||null,pick:S.logPick||null})}
 function logRetire(){const p=S.p,t=p.tot;
@@ -3953,7 +3973,7 @@ function celebrate(R,done){
 let chainSeen={},sheetBack=null;
 const PRE=s=>typeof s==='string'&&(/^ev\d/.test(s)||s==='train'||s==='ch');
 const INFO=s=>typeof s==='string'&&/^(st_|skip_|acad_)/.test(s);
-function openSheet(s){if(INFO(s)&&PRE(sheet))sheetBack=sheet;sheet=s;render()}
+function openSheet(s){if(INFO(s)&&PRE(sheet)||s==='train'&&sheet==='go')sheetBack=sheet;sheet=s;render()}
 const PEEK=`<button class="peekbtn" type="button">꾹 눌러 능력치 보기</button>`;
 function peekShow(){if(document.getElementById('peek'))return;const p=S.p,d=document.createElement('div');d.id='peek';
   d.innerHTML=`<div class="pk"><div class="pkh"><b>${esc(p.name)}</b><span>OVR <b class="num">${ovrOf(p.stats)}</b></span></div>${STATS.map(k=>`<div class="pkr"><span${p.focus.includes(k)?' class="f"':''}>${LBL[k]}</span><div class="bar"><i style="width:${p.stats[k]}%"></i></div><b class="num">${p.stats[k]}</b></div>`).join('')}</div>`;document.body.appendChild(d)}
@@ -3961,16 +3981,16 @@ function peekHide(){const d=document.getElementById('peek');if(d)d.remove()}
 if(typeof document.addEventListener==='function'){document.addEventListener('pointerdown',e=>{if(e.target.closest('.peekbtn')){e.preventDefault();peekShow()}});
 ['pointerup','pointercancel','blur'].forEach(ev=>window.addEventListener(ev,peekHide));
 document.addEventListener('contextmenu',e=>{if(e.target.closest('.peekbtn'))e.preventDefault()});}
-// the training plan shows up every preseason, pre-filled with last season's pick
+// the training plan only shows up in the chain when it can be changed
 function nextStep(){const p=S.p;
-  if(!chainSeen.tr){chainSeen.tr=1;sheet='train';render();return}
+  if(!chainSeen.tr&&trOpen()){chainSeen.tr=1;sheet='train';render();return}
   if(S.events.length){sheet='ev0';render();return}
   if(S.challenge&&!chainSeen.ch){chainSeen.ch=1;sheet='ch';render();return}
   sheet='go';render()}
 function goSheet(){const p=S.p,picked=(S.evSeason||[]).map(e=>{const d=evDef(e.id);return d?d.choices[e.j].label:null}).filter(Boolean);
   const row=(k,v)=>`<div class="row"><span>${k}</span><span>${v}</span></div>`;
   return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">${S.year} 시즌</div><h3 class="h2">준비 완료!</h3>
-    <div class="kv">${row('훈련',esc(trName()))}${picked.length?row('결정',picked.map(esc).join('<br>')):''}
+    <div class="kv"><div class="row"><span>훈련</span><span style="text-align:right">${esc(trName())}${S.train!=='rest'?` <span class="muted" style="font-size:12px">(${progStats(progDef(S.prog))})</span>`:''}<button class="infobtn" type="button" data-sheet="train" style="margin-left:8px;font-size:12px">바꾸기</button><br><span class="muted" style="font-size:12px">${trWhen()}</span></span></div>${picked.length?row('결정',picked.map(esc).join('<br>')):''}
       ${S.chTxt?row('도전',esc(S.chTxt)):''}
       ${p.series==='F1'&&p.role==='race'?row('이적 요청',p.xfer===S.year?'<span style="color:#FF8A94">요청함</span>':'안 함'):''}
       ${row('체력',`<b class="num">${p.morale}</b>${p.morale<40?' <span style="color:var(--bad)">(지침 · 실수 위험)</span>':''}`)}</div>
@@ -4081,11 +4101,13 @@ function fanSheet(){const p=S.p,v=(1+p.fans/250);
     <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`}
 
 // which stat moves results the most: race-formula weight x room to grow, plus last season's problems
-function recStats(n=1,ex=[]){const p=S.p,st=p.stats,dry=B.race.skill.dry,wet=B.race.skill.wet,q=B.race.skill.quali,L=p.history.at(-1)||{};
+function statScore(){const p=S.p,st=p.stats,dry=B.race.skill.dry,wet=B.race.skill.wet,q=B.race.skill.quali,L=p.history.at(-1)||{};
   const dnf=(L.dnf||0)>=2,qBad=L.h2h&&L.h2h.q[0]<L.h2h.q[1];
-  const sc=STATS.map(k=>{let w=.85*(dry[k]||0)+.15*(wet[k]||0)+.15*(q[k]||0);
+  return Object.fromEntries(STATS.map(k=>{let w=.85*(dry[k]||0)+.15*(wet[k]||0)+.15*(q[k]||0);
     if(dnf&&(k==='consistency'||k==='mental'))w+=.12;if(qBad&&k==='quali')w+=.1;
-    return{k,v:w*Math.max(0,97-st[k])}}).filter(x=>!ex.includes(x.k)&&st[x.k]<99).sort((a,b)=>b.v-a.v);
+    return[k,st[k]>=99?0:w*Math.max(0,97-st[k])]}))}
+function recStats(n=1,ex=[]){const p=S.p,st=p.stats,L=p.history.at(-1)||{},dnf=(L.dnf||0)>=2,qBad=L.h2h&&L.h2h.q[0]<L.h2h.q[1],SC=statScore();
+  const sc=STATS.map(k=>({k,v:SC[k]})).filter(x=>!ex.includes(x.k)&&st[x.k]<99).sort((a,b)=>b.v-a.v);
   const why=k=>k==='race'?'결선에서 가장 중요한데 아직 낮아요':k==='tyre'?'레이스 후반 페이스를 지켜 줘요':k==='quali'?(qBad?'예선에서 팀메이트에게 밀렸어요':'출발 위치가 좋아져요'):
     k==='wet'?'비 오는 경기에서 크게 유리해요':k==='consistency'?(dnf?'리타이어가 잦았어요. 실수를 줄여 줘요':'매 랩 실수를 줄여 줘요'):(dnf?'리타이어가 잦았어요. 사고를 줄여 줘요':'압박 속에서도 흔들리지 않아요');
   return sc.slice(0,n).map(x=>({k:x.k,why:why(x.k)}))}
@@ -4140,11 +4162,11 @@ function sheetView(){
       ${e.choices.map((c,j)=>`<button class="choice" type="button" data-choose="${i}:${j}" aria-pressed="${evPick===j}" style="background:var(--surface-2)"><span class="row"><span class="h3">${esc(c.label)}</span><span class="tick">✓</span></span>${effChips(c.eff)}${c.risk?`<span class="muted" style="font-size:12px;color:var(--bad)">⚠ ${Math.round(c.risk.p*100)}% 확률로 사고</span>`:''}</button>`).join('')}
       <button class="btn" type="button" id="evNext" data-i="${i}" ${evPick==null?'disabled':''}>${chain?'다음':'결정하기'}</button>
       ${chain?'':'<button class="btn ghost" type="button" id="closeSheet">닫기</button>'}</section></div>`}
-  if(sheet==='train'){const p=S.p,can=S.phase==='ready',rest=S.train==='rest',RS=recStats(),C='font-size:11px;padding:2px 7px';
-    return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">${esc(p.name)} · 프리시즌</div><h3 class="h2">훈련 계획</h3><p class="muted" style="margin:0">${can?`키울 능력치를 ${B.driver.max_focus_stats}개까지 골라요. 고른 능력치가 훨씬 빨리 자라요. 다음 시즌에도 그대로 이어져요.`:'시즌 준비 단계에서 바꿀 수 있어요.'}</p>
-      <div class="list">${STATS.map(k=>{const r=RS.find(x=>x.k===k),mx=p.stats[k]>=99,on=!rest&&p.focus.includes(k);return`<button class="item" type="button" data-focus2="${k}" aria-pressed="${on}" ${can&&(!mx||on)?'':'disabled'}><span class="body"><b>${LBL[k]}${mx?` <span class="chip red" style="${C}">최대</span>`:r?` <span class="chip blue" style="${C}">추천</span>`:''}</b>${mx?'<span>더 오르지 않아요. 다른 능력치를 골라 보세요</span>':r?`<span>${r.why}</span>`:''}<span class="bar"><i style="width:${p.stats[k]}%"></i></span></span><span class="num" style="font-size:20px;color:var(--muted)">${p.stats[k]}</span><span class="tick"></span></button>`}).join('')}
+  if(sheet==='train'){const p=S.p,can=S.phase==='ready',open=can&&trOpen(),rest=S.train==='rest',RG=recProg(),RS=recStats()[0],C='font-size:11px;padding:2px 7px';
+    return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">${esc(p.name)} · 프리시즌</div><h3 class="h2">훈련 계획</h3><p class="muted" style="margin:0">${!can?'시즌 준비 단계에서 바꿀 수 있어요.':open?`${S.progFree==='stage'?'새 무대에 왔어요. ':S.progFree==='max'?'최대치를 찍은 능력치가 있어요. ':''}고른 프로그램의 능력치가 빨리 자라요. ${PROG_LOCK}시즌 동안 이어져요.`:`지금 프로그램은 ${S.progYear+PROG_LOCK}년에 바꿀 수 있어요. 휴식은 언제든 고를 수 있어요.`}</p>
+      <div class="list">${PROGS.map(g=>{const on=!rest&&S.prog===g.id,mx=g.st.every(k=>p.stats[k]>=99),half=g.st.find(k=>p.stats[k]>=99);return`<button class="item" type="button" data-prog="${g.id}" aria-pressed="${on}" ${open&&!mx||on&&can?'':'disabled'}><span class="body"><b>${g.name}${mx?` <span class="chip red" style="${C}">최대</span>`:g===RG?` <span class="chip blue" style="${C}">추천</span>`:''}</b><span>${g.st.map(k=>`${LBL[k]} <b class="num">${p.stats[k]}</b>`).join(' · ')}</span>${half&&!mx?`<span>${LBL[half]}${josa2(LBL[half])} 최대치예요</span>`:g===RG&&RS?`<span>${LBL[RS.k]}: ${RS.why}</span>`:''}</span><span class="tick"></span></button>`}).join('')}
         <button class="item" type="button" data-rest="1" aria-pressed="${rest}" ${can?'':'disabled'}><span class="body"><b>이번 시즌은 휴식</b><span>성장이 조금 느려지고, 다음 프리시즌에 체력 +15 (지금 ${p.morale})</span></span><span class="tick"></span></button></div>
-      <div class="stick">${chain?`<button class="btn" type="button" id="trNext" ${rest||p.focus.length?'':'disabled'}>다음</button>`:'<button class="btn" type="button" id="closeSheet">완료</button>'}</div></section></div>`}
+      <div class="stick">${chain&&sheetBack!=='go'?`<button class="btn" type="button" id="trNext">다음</button>`:'<button class="btn" type="button" id="closeSheet">완료</button>'}</div></section></div>`}
   if(sheet==='ch'&&S.challenge){const ovr=ovrOf(S.p.stats);
     return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">도전 이벤트 · 선택 사항</div>${PEEK}<h3 class="h2">${S.challenge.name} 출전 제안</h3>
       <p class="muted" style="margin:0">F1 시즌 사이에 한 번 출전해요. 체력이 꽤 깎이지만 인기와 평판이 올라요. ${S.challenge.id==='LEMANS'?'모나코, 인디 500과 함께 트리플 크라운의 한 조각이에요.':'르망, 모나코와 함께 트리플 크라운의 한 조각이에요.'}</p>
@@ -4207,32 +4229,29 @@ async function saveFile(filename,data){
 root.addEventListener('input',e=>{
   if(e.target.id==='fbText'){fbText=e.target.value;return}
   if(!ob||S)return;
-  if(e.target.id==='obName'){ob.name=e.target.value;const t=document.querySelector('.obname');if(t)t.textContent=ob.name.trim()||'이름 없음';const b=document.getElementById('obNext1');if(b)b.disabled=!ob.name.trim()}
+  if(e.target.id==='obName'){ob.name=e.target.value;ob.nameAuto=false;const t=document.querySelector('.obname');if(t)t.textContent=ob.name.trim()||'이름 없음';const b=document.getElementById('obNext1');if(b)b.disabled=!ob.name.trim()}
   if(e.target.id==='obNum'){ob.num=clamp(parseInt(e.target.value)||2,2,99)}
 });
-root.addEventListener('change',e=>{if(e.target.id==='obNat'){ob.nat=e.target.value;if(!ob.avPick)ob.av=avDefault(ob.nat);render()}if(e.target.id==='obNum'){ob.num=clamp(parseInt(e.target.value)||2,2,99);render()}});
+root.addEventListener('change',e=>{if(e.target.id==='obNat'){ob.nat=e.target.value;if(!ob.avPick)ob.av=avDefault(ob.nat);if(ob.nameAuto)ob.name=genName(ob.nat);render()}if(e.target.id==='obNum'){ob.num=clamp(parseInt(e.target.value)||2,2,99);render()}});
 root.addEventListener('click',e=>{
   {const ib=e.target.closest('span.ibtn[data-sheet]');if(ib){openSheet(ib.dataset.sheet);return}}
   const t=e.target.closest('button,#sheetBg');if(!t)return;
   if(t.id==='sheetBg'&&e.target===t){if(sheetBack){sheet=sheetBack;sheetBack=null;render();return}if(PRE(sheet)||sheet&&sheet.type==='chres')return;sheet=null;chain=false;evPick=null;render();return}
   const id=t.id,d=t.dataset;
   // onboarding
-  if(id==='obRandom'){if(ob.step===1)ob.helmet=randomHelmet();else{ob.nat=pick(Object.keys(K.nationalities));ob.name=genName(ob.nat);ob.num=ri(2,99);ob.av=avDefault(ob.nat);ob.avPick=false}render();return}
+  if(id==='obRandom'){ob.helmet=randomHelmet();ob.nat=pick(Object.keys(K.nationalities));ob.name=genName(ob.nat);ob.nameAuto=true;ob.num=ri(2,99);ob.av=avDefault(ob.nat);ob.avPick=false;render();return}
   if(d.htab){hedTab=d.htab;render();return}
   if(d.av!=null&&ob){ob.av=+d.av;ob.avPick=true;render();return}
   if(d.hb||d.hs||d.hp||d.hv){const tgt=S&&!S.p.retired?S.p:ob;if(!tgt)return;const h=normHelmet(tgt.helmet);
     if(d.hb)h.base=d.hb;if(d.hs)h.sec=d.hs;if(d.hp)h.pat=d.hp;if(d.hv)h.vis=d.hv;tgt.helmet=h;if(S)save();render();return}
   if(id==='hRandom'&&S){S.p.helmet=randomHelmet();save();render();return}
-  if(id==='obNextH'){ob.step=2;render();window.scrollTo(0,0);return}
-  if(id==='obNext1'){ob.step=3;render();window.scrollTo(0,0);if(badName(ob.name))toast('이 이름은 랭킹에 올라가지 않아요. 게임은 그대로 할 수 있어요.');return}
+  if(id==='obNext1'){ob.step=2;render();window.scrollTo(0,0);if(badName(ob.name))toast('이 이름은 랭킹에 올라가지 않아요. 게임은 그대로 할 수 있어요.');return}
   if(id==='obBack'){ob.step--;render();return}
   if(d.style){ob.style=d.style;render();return}
-  if(id==='obNext2'){ob.step=4;render();window.scrollTo(0,0);return}
-  if(d.focus){const k=d.focus;if(ob.focus.includes(k))ob.focus=ob.focus.filter(x=>x!==k);else if(ob.focus.length<B.driver.max_focus_stats)ob.focus.push(k);render();return}
-  if(id==='obDone'){newGame({name:ob.name.trim(),num:ob.num,nat:ob.nat,avatar:ob.av,helmet:ob.helmet,style:ob.style,stats:ob.cands[ob.style],focus:ob.focus});ob=null;tab='home';render();window.scrollTo(0,0);return}
+  if(id==='obDone'){newGame({name:ob.name.trim(),num:ob.num,nat:ob.nat,avatar:ob.av,helmet:ob.helmet,style:ob.style,stats:ob.cands[ob.style]});ob=null;tab='home';render();window.scrollTo(0,0);return}
   // game
   if(id==='playBtn'){chain=true;chainSeen={};nextStep();return}
-  if(id==='goSeason'){chain=false;sheet=null;S.logPre={morale:S.p.morale,ch:S.challenge?S.challenge.id+':'+(S.chTxt?'go':'no'):null};S.chTxt=null;startSeason();render();window.scrollTo(0,0);return}
+  if(id==='goSeason'){if(trOpen()){S.progYear=S.year;S.progFree=null}chain=false;sheet=null;S.logPre={morale:S.p.morale,ch:S.challenge?S.challenge.id+':'+(S.chTxt?'go':'no'):null};S.chTxt=null;startSeason();render();window.scrollTo(0,0);return}
   if(id==='xferNo'){if(chain){nextStep();return}sheet=null;render();return}
   if(false){startSeason();render();window.scrollTo(0,0);return}
   if(d.gacha&&S.phase==='progress'&&S.season.gacha&&!S.season.gacha.done){
@@ -4262,7 +4281,7 @@ root.addEventListener('click',e=>{
   if(id==='chDone'){sheet=null;if(chain){nextStep();return}render();return}
   if(id==='declineCh'){S.challenge=null;save();if(chain){nextStep();return}sheet=null;render();return}
   if(d.rest&&S.phase==='ready'){S.train=S.train==='rest'?'focus':'rest';save();render();return}
-  if(d.focus2&&S.phase==='ready'){const k=d.focus2,p=S.p;if(S.train==='rest'){S.train='focus';if(!p.focus.includes(k))p.focus.push(k);if(p.focus.length>B.driver.max_focus_stats)p.focus.shift()}else if(p.focus.includes(k))p.focus=p.focus.filter(x=>x!==k);else{if(p.focus.length>=B.driver.max_focus_stats){const out=p.focus.shift();toast(`${LBL[out]} 대신 ${LBL[k]}에 집중해요`)}p.focus.push(k)}save();render();return}
+  if(d.prog&&S.phase==='ready'){if(S.train==='rest')S.train='focus';if(trOpen())setProg(d.prog);save();render();return}
   if(id==='askRetire'){sheet='retire';render();return}
   if(id==='confirmRetire'){sheet=null;retireNow();render();window.scrollTo(0,0);return}
   if(id==='skipProg'){finishProgress();return}
@@ -4304,7 +4323,10 @@ document.getElementById('importFile').addEventListener('change',e=>{
   rd.readAsText(f);e.target.value='';
 });
 
-S=load();if(S){const p=S.p;if(S.train!=='rest')S.train='focus';avatarCanvas(pAv(p),p.helmet,true);if(S.jr===undefined){if(S.year<=K.start_year+1&&!p.retired)initJrPool();else S.jr=[]}S.f1.forEach(d=>{if(d.name==='이삭 하자르')d.name='아이작 하자르'});if(S.rival&&!S.rival.nm2){const nn=genName(S.rival.nat);S.f1.forEach(d=>{if(d.id==='rival')d.name=nn});S.rival.name=nn;S.rival.nm2=1}
+S=load();if(S){const p=S.p;if(S.train!=='rest')S.train='focus';
+  // saves from before training programs: take the closest program, open to change this preseason
+  if(!S.prog){const g=[...PROGS].sort((a,b)=>b.st.filter(k=>p.focus.includes(k)).length-a.st.filter(k=>p.focus.includes(k)).length)[0];setProg(g.id);S.progYear=S.year-PROG_LOCK;S.progFree=null}
+  avatarCanvas(pAv(p),p.helmet,true);if(S.jr===undefined){if(S.year<=K.start_year+1&&!p.retired)initJrPool();else S.jr=[]}S.f1.forEach(d=>{if(d.name==='이삭 하자르')d.name='아이작 하자르'});if(S.rival&&!S.rival.nm2){const nn=genName(S.rival.nat);S.f1.forEach(d=>{if(d.id==='rival')d.name=nn});S.rival.name=nn;S.rival.nm2=1}
   S.f1.forEach(d=>{if(d.rookie&&!d.nm2){d.name=genName(d.nationality);d.nm2=1}});[...S.f1,...(S.jr||[]),...(S.rival?[S.rival]:[])].forEach(d=>{if(/니에미/.test(d.name))d.name=genName(d.nationality||d.nat)});if(!p.scout&&!p.retired)scoutInit(p);{const rd=S.f1.find(d=>d.id==='rival');if(rd)rd.id='ex'+Date.now()}S.rival=null;p.fans??=10;p.morale??=60;p.repBonus??=0;if(p.val==null){p.val=0;p.valPeak=0}p.challenges??=[];p.monaco??=false;S.events??=[];S.challenge??=null;S.news??=null;S.train??=null;S.react??=null;S.vacancies??=[];if(S.phase==='progress'&&!S.season)S.phase='result';if(S.news&&!S.news.heads)S.news=null;S.notice??=null;p.contract??=null;p.helmet=normHelmet(p.helmet)}render();
 (async()=>{try{if(window.claude&&window.claude.use){DL=await window.claude.use('downloads');if(DL)render()}}catch(_){}})();
 document.fonts&&document.fonts.ready.then(()=>{if(S&&S.p.retired)render()});
