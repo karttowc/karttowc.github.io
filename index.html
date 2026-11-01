@@ -3737,10 +3737,11 @@ function obView(){
     <div><h2 class="h2">어떤 드라이버로 살아볼까요?</h2></div>
     ${hero}
     <section class="card"><div class="avgrid">${AVATAR.map((_,i)=>`<button class="avopt" type="button" data-av="${i}" aria-pressed="${i===ob.av}" aria-label="드라이버 ${i+1}">${avatar(i,ob.helmet,64)}</button>`).join('')}</div></section>
+    <section class="card">${helmetEditor(ob.helmet)}</section>
     <section class="card"><div class="grid2"><label class="lbl" for="obName">이름<input class="field" id="obName" maxlength="12" placeholder="이름" value="${esc(ob.name)}"></label>
       <label class="lbl" for="obNum">차량 번호<input class="field num" id="obNum" type="number" min="2" max="99" value="${ob.num}"></label></div>
       <label class="lbl" for="obNat">국적<select class="field" id="obNat">${Object.entries(K.nationalities).map(([k,v])=>`<option value="${k}"${k===ob.nat?' selected':''}>${v}</option>`).join('')}</select></label></section>
-    <button class="btn" type="button" id="obNext1" ${ob.name.trim()?'':'disabled'}>다음</button><p class="muted" style="margin:0;font-size:12px;text-align:center">헬멧은 나중에 드라이버 탭에서 꾸밀 수 있어요.</p><p class="muted" style="margin:4px 0 0;font-size:12px;text-align:center">비공식 팬 게임이에요. 수익을 내지 않으며 F1·FIA·각 팀과 관련이 없어요. 팀명·로고·선수명 등 상표는 각 소유자의 것이에요.</p>`;
+    <button class="btn" type="button" id="obNext1" ${ob.name.trim()?'':'disabled'}>다음</button><p class="muted" style="margin:4px 0 0;font-size:12px;text-align:center">비공식 팬 게임이에요. 수익을 내지 않으며 F1·FIA·각 팀과 관련이 없어요. 팀명·로고·선수명 등 상표는 각 소유자의 것이에요.</p>`;
   return`<header class="top"><button class="iconbtn" type="button" id="obBack">이전</button>${steps}<span style="width:56px"></span></header>
     <div><div class="eyebrow">네 후보 모두 능력치 합은 ${B.driver.start_stat_sum}이고, 분포만 달라요.</div><h2 class="h2">드라이버 스타일을 골라 주세요</h2></div>
     ${B.styles.map(s=>{const st=ob.cands[s.id],top=[...STATS].sort((a,b)=>st[b]-st[a]).slice(0,2);return`<button class="choice" type="button" data-style="${s.id}" aria-pressed="${ob.style===s.id}">
@@ -4273,7 +4274,7 @@ root.addEventListener('click',e=>{
   if(id==='obRandom'){ob.helmet=randomHelmet();ob.nat=pick(Object.keys(K.nationalities));ob.name=genName(ob.nat);ob.nameAuto=true;ob.num=ri(2,99);ob.av=avDefault(ob.nat);ob.avPick=false;render();return}
   if(d.htab){hedTab=d.htab;render();return}
   if(d.av!=null&&ob){ob.av=+d.av;ob.avPick=true;render();return}
-  if(d.hb||d.hs||d.hp||d.hv){const tgt=S&&!S.p.retired?S.p:ob;if(!tgt)return;const h=normHelmet(tgt.helmet);
+  if(d.hb||d.hs||d.hp||d.hv){const tgt=ob||(S&&!S.p.retired?S.p:null);if(!tgt)return;const h=normHelmet(tgt.helmet);
     if(d.hb)h.base=d.hb;if(d.hs)h.sec=d.hs;if(d.hp)h.pat=d.hp;if(d.hv)h.vis=d.hv;tgt.helmet=h;if(S)save();render();return}
   if(id==='hRandom'&&S){S.p.helmet=randomHelmet();save();render();return}
   if(id==='obNext1'){ob.step=2;render();window.scrollTo(0,0);if(badName(ob.name))toast('이 이름은 랭킹에 올라가지 않아요. 게임은 그대로 할 수 있어요.');return}
