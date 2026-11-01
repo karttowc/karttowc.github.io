@@ -7,3 +7,6 @@ __pycache__/
 play_logs.json
 play_logs_state.json
 !og.png
+!favicon.png
+!favicon-32.png
+!apple-touch-icon.png
