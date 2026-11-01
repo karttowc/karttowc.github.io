@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>F1 커리어 육성 게임 가이드 - 카트부터 월챔까지</title>
+<meta name="description" content="카트부터 월챔까지 게임 가이드. 14살 카트에서 시작해 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언에 도전하는 F1 드라이버 육성 게임의 무대, 훈련, 계약, 슈퍼 라이선스, 자주 묻는 질문을 정리했어요.">
+<meta name="keywords" content="F1 게임, F1 육성 게임, F1 커리어 게임, F1 드라이버 키우기, 레이싱 육성 게임, 모바일 레이싱 게임, 웹게임, 카트부터 월챔까지">
+<link rel="canonical" href="https://karttowc.github.io/guide.html">
+<meta name="theme-color" content="#0E0F12">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="카트부터 월챔까지">
+<meta property="og:title" content="F1 커리어 육성 게임 가이드 - 카트부터 월챔까지">
+<meta property="og:description" content="카트에서 F1 월드 챔피언까지, 내 드라이버를 키우는 법을 정리한 가이드.">
+<meta property="og:url" content="https://karttowc.github.io/guide.html">
+<meta property="og:image" content="https://karttowc.github.io/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="F1 커리어 육성 게임 가이드 - 카트부터 월챔까지">
+<meta name="twitter:description" content="카트에서 F1 월드 챔피언까지, 내 드라이버를 키우는 법을 정리한 가이드.">
+<meta name="twitter:image" content="https://karttowc.github.io/og.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"카트부터 월챔까지는 어떤 게임인가요?","acceptedAnswer":{"@type":"Answer","text":"14살 카트 드라이버로 시작해 F4, FRECA, F3, F2를 거쳐 F1 월드 챔피언에 도전하는 F1 드라이버 커리어 육성 게임이에요."}},
+{"@type":"Question","name":"무료인가요? 설치해야 하나요?","acceptedAnswer":{"@type":"Answer","text":"완전히 무료이고 설치도 필요 없어요. 휴대폰이나 PC 브라우저에서 karttowc.github.io에 들어가면 바로 플레이할 수 있어요."}},
+{"@type":"Question","name":"저장은 어떻게 되나요?","acceptedAnswer":{"@type":"Answer","text":"진행 상황은 플레이하는 브라우저에 자동으로 저장돼요. 브라우저 데이터를 지우거나 다른 기기로 바꾸면 이어서 할 수 없어요."}},
+{"@type":"Question","name":"F1에 꼭 갈 수 있나요?","acceptedAnswer":{"@type":"Answer","text":"아니요. 성적, 능력치, 슈퍼 라이선스 포인트, 팀의 관심도에 따라 F1 시트를 못 얻을 수도 있어요. 그때는 WEC, 인디카, 포뮬러E 같은 다른 무대에서 커리어를 이어갈 수 있어요."}},
+{"@type":"Question","name":"실제 F1 팀과 선수가 나오나요?","acceptedAnswer":{"@type":"Answer","text":"네, 실제 팀과 선수 이름을 쓰는 비수익 팬 게임이에요. 공식 게임이 아니며 F1, FIA, 각 팀과는 관계가 없어요."}}
+]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<script data-goatcounter="https://lchanwoo05.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<style>
+:root{
+  --bg:#0E0F12; --surface:#1B1D22; --surface-2:#25282F; --line:#30333B;
+  --fg:#F2F3F6; --muted:#8D929D; --accent:#3182F6; --gold:#F2C14E;
+  --body:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --num:"Barlow Condensed","IBM Plex Sans KR",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg);margin:0}
+body{font-family:var(--body);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
+main{max-width:640px;margin:0 auto;padding:28px 16px 64px;display:flex;flex-direction:column;gap:16px}
+header{padding:8px 4px 4px}
+.eyebrow{font-family:var(--num);color:var(--accent);font-size:15px;letter-spacing:.08em;font-weight:700}
+h1{font-size:30px;line-height:1.3;margin:6px 0 10px;letter-spacing:-.02em;text-wrap:balance}
+h2{font-size:21px;margin:0;letter-spacing:-.01em}
+h3{font-size:17px;margin:0}
+p{margin:0}
+.lead{color:var(--muted)}
+section{background:var(--surface);border-radius:22px;padding:22px 20px;display:flex;flex-direction:column;gap:12px}
+.muted{color:var(--muted)}
+.btn{display:block;text-align:center;background:var(--accent);color:#fff;text-decoration:none;border-radius:16px;padding:16px;font-size:17px;font-weight:700}
+.btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+ol.path{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+ol.path li{display:flex;gap:12px;align-items:flex-start;background:var(--surface-2);border-radius:14px;padding:12px 14px}
+ol.path .tag{font-family:var(--num);font-weight:700;font-size:18px;min-width:64px;color:var(--fg)}
+ol.path li.f1 .tag{color:var(--gold)}
+ol.path small{display:block;color:var(--muted);font-size:14px;line-height:1.5}
+ul{margin:0;padding-left:20px}
+li{margin:2px 0}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stats div{background:var(--surface-2);border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.5}
+.stats b{display:block;font-size:15px}
+details{background:var(--surface-2);border-radius:14px;padding:12px 14px}
+summary{font-weight:700;cursor:pointer}
+details p{margin-top:8px;color:var(--muted)}
+footer{color:var(--muted);font-size:13px;text-align:center;padding:8px 4px;line-height:1.6}
+footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="eyebrow">KART TO WC · GUIDE</div>
+  <h1>카트부터 월챔까지<br>F1 커리어 육성 게임 가이드</h1>
+  <p class="lead">14살 카트 드라이버가 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언이 되기까지. 설치 없이 브라우저에서 무료로 하는 모바일 F1 드라이버 육성 게임이에요.</p>
+</header>
+
+<a class="btn" href="/">지금 바로 플레이하기</a>
+
+<section>
+  <h2>어떤 게임인가요?</h2>
+  <p>내 드라이버를 만들고 시즌마다 훈련 방향을 정하고, 레이스 중 사건에 대응하고, 팀 제안 중에서 다음 시트를 고르며 커리어를 이어가는 <b>F1 커리어 시뮬레이션</b>이에요.</p>
+  <p>레이스를 직접 운전하는 게임이 아니라, 축구 육성 게임처럼 <b>선택과 성장</b>으로 커리어를 만들어 가요. 한 시즌은 몇 분이면 끝나고, 은퇴하면 커리어 결산과 닮은 실제 드라이버를 보여 줘요.</p>
+</section>
+
+<section>
+  <h2>F1까지 가는 길</h2>
+  <p class="muted">실제 F1 드라이버들이 밟는 주니어 사다리를 그대로 따라가요.</p>
+  <ol class="path">
+    <li><span class="tag">KART</span><span>유럽 카트 챔피언십<small>14살 데뷔. 여기서 눈에 띄어야 싱글시터로 올라가요.</small></span></li>
+    <li><span class="tag">F4</span><span>이탈리아 F4<small>첫 포뮬러 카. 슈퍼 라이선스 포인트가 쌓이기 시작해요.</small></span></li>
+    <li><span class="tag">FRECA</span><span>포뮬러 리저널 유럽<small>F3로 가는 관문. F1 팀 아카데미가 지켜봐요.</small></span></li>
+    <li><span class="tag">F3</span><span>FIA F3<small>F1 주말에 함께 열리는 무대. 육성 계약을 받으면 FP1에도 나가요.</small></span></li>
+    <li><span class="tag">F2</span><span>FIA F2<small>F1 바로 아래. 상위권이면 F1 팀의 제안이 와요.</small></span></li>
+    <li class="f1"><span class="tag">F1</span><span>포뮬러 1<small>실제 F1 팀과 드라이버들 사이에서 월드 챔피언에 도전해요.</small></span></li>
+  </ol>
+</section>
+
+<section>
+  <h2>F1 시트를 못 받으면?</h2>
+  <p>커리어는 끝나지 않아요. 리저브 드라이버로 기회를 기다리거나 다른 무대로 갈 수 있어요.</p>
+  <ul>
+    <li><b>WEC 하이퍼카</b>: 르망 24시에 도전</li>
+    <li><b>인디카</b>: 인디 500 우승 상금은 무려 50억</li>
+    <li><b>포뮬러E</b>, <b>일본 슈퍼포뮬러</b>, <b>DTM (GT3)</b></li>
+  </ul>
+  <p class="muted">모나코 GP·르망 24시·인디 500을 모두 이기면 트리플 크라운이에요.</p>
+</section>
+
+<section>
+  <h2>드라이버 능력치 6가지</h2>
+  <div class="stats">
+    <div><b>예선 페이스</b>한 바퀴 최고 속도</div>
+    <div><b>휠투휠</b>레이스 중 추월과 방어</div>
+    <div><b>타이어 관리</b>긴 스틴트를 버티는 힘</div>
+    <div><b>우천</b>비 오는 날의 실력</div>
+    <div><b>일관성</b>실수 없이 꾸준한 주행</div>
+    <div><b>멘탈</b>압박 속에서 버티는 힘</div>
+  </div>
+</section>
+
+<section>
+  <h2>플레이 팁</h2>
+  <h3>훈련 계획</h3>
+  <p>스피드 특훈, 시뮬레이터 집중, 휠투휠 세션, 롱런 프로그램, 빗길 특훈, 멘탈 코칭 중 하나를 골라 능력치 2개를 집중적으로 키워요. 한 번 고르면 3시즌 동안 이어가고, 무대가 바뀌면 다시 고를 수 있어요. 체력이 떨어졌다면 한 시즌 쉬어 가는 것도 방법이에요.</p>
+  <h3>체력 · 인기 · 평판</h3>
+  <p>체력이 낮으면 성적이 흔들려요. 인기는 팬과 스폰서, 평판은 최근 성적으로 팀들이 나를 보는 눈이에요.</p>
+  <h3>팀 관심도와 아카데미</h3>
+  <p>F1 팀마다 나에 대한 관심도가 있어요. 레드불, 페라리, 메르세데스, 맥라렌 같은 팀 아카데미에 들어가면 F1으로 가는 길이 가까워져요.</p>
+  <h3>슈퍼 라이선스</h3>
+  <p>F1에 나가려면 18살 이상, 최근 3년 슈퍼 라이선스 포인트 40점이 필요해요. 주니어 무대에서 상위권에 들어야 포인트가 쌓여요.</p>
+  <h3>첫 시즌은 적응기</h3>
+  <p>새 무대 첫 시즌 초반에는 적응 핸디캡이 있어요. 초반 성적이 안 좋아도 너무 걱정하지 마세요.</p>
+</section>
+
+<section>
+  <h2>자주 묻는 질문</h2>
+  <details><summary>무료인가요? 설치해야 하나요?</summary><p>완전히 무료이고 설치도 필요 없어요. 휴대폰이나 PC 브라우저에서 바로 플레이할 수 있어요.</p></details>
+  <details><summary>저장은 어떻게 되나요?</summary><p>진행 상황은 플레이하는 브라우저에 자동으로 저장돼요. 브라우저 데이터를 지우거나 다른 기기로 바꾸면 이어서 할 수 없어요.</p></details>
+  <details><summary>F1에 꼭 갈 수 있나요?</summary><p>아니요. 성적, 능력치, 슈퍼 라이선스 포인트, 팀의 관심도에 따라 F1 시트를 못 얻을 수도 있어요. 그때는 다른 무대에서 커리어를 이어갈 수 있어요.</p></details>
+  <details><summary>한 커리어는 얼마나 걸려요?</summary><p>은퇴할 때까지 시즌을 이어가요. 은퇴하면 커리어 결산 카드와 랭킹에 기록이 남아요.</p></details>
+  <details><summary>실제 F1 팀과 선수가 나오나요?</summary><p>네, 실제 팀과 선수 이름을 쓰는 비수익 팬 게임이에요. 공식 게임이 아니며 F1, FIA, 각 팀과는 관계가 없어요.</p></details>
+</section>
+
+<a class="btn" href="/">카트에 올라타기</a>
+
+<footer>
+  카트부터 월챔까지 · 비수익 F1 팬 게임<br>
+  공식 F1 게임이 아니며 Formula 1, FIA, 각 팀과 관계가 없습니다.<br>
+  <a href="/">게임 하러 가기</a>
+</footer>
+</main>
+</body>
+</html>
