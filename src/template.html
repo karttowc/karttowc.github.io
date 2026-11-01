@@ -2386,13 +2386,12 @@ function showIncident(inc){
   const d=INC.find(x=>x.id===inc.id),box=document.getElementById('pInc');if(!box)return;
   document.getElementById('pBar').style.width=((inc.r+1)/S.season.races*100)+'%';
   document.getElementById('pRound').textContent=`${inc.r+1} / ${S.season.races} 라운드 · ${roundName(inc.r)}`;
-  box.innerHTML=`<div class="sheet"><section class="card"><div class="eyebrow">${roundName(inc.r)} · 레이스 중 상황</div><h3 class="h2">${esc(d.title)}</h3><p class="muted" style="margin:0">${esc(d.desc)}</p>
-    <details class="incinfo"><summary>${ISVG} 관련 능력이 확률에 영향을 줘요</summary><p>관련 능력이 이 리그 평균(${incMean()})보다 높을수록 성공 확률이 올라가요. 평균과 같으면 50%, 10 높으면 약 75%예요. 위험한 선택은 확률이 조금 더 낮고, 어떤 경우든 15~85% 사이예요.</p></details>
+  box.innerHTML=`<div class="sheet"><section class="card"><div class="eyebrow">${roundName(inc.r)} · 레이스 중 상황</div><h3 class="h2">${esc(d.title)}</h3>
     ${d.choices.map((c,j)=>{const R='font-size:13px',E=e=>e?effChips(e).replace(/^<span class="chips">|<\/span>$/g,''):'';
       const top=c.fixed?'<span class="muted" style="font-size:13px">확정</span>':`<b class="num" style="font-size:22px;color:#8CB8FF">${Math.round(incChance(c)*100)}%</b>`;
       const body=c.fixed?`<span class="chip ${c.fixed.delta>0?'down':''}" style="${R}">${c.fixed.delta>0?c.fixed.delta+'그리드 하락':'순위 유지'}</span>${E(c.fixed.eff)}`
         :`<span class="chip up" style="${R}">성공 ${-c.good[0]>0?'최대 ▲'+(-c.good[0])+'그리드':'순위 유지'}</span><span class="chip down" style="${R}">실패 최대 ▼${c.bad[1]}그리드${c.dnf?' · 리타이어 위험':''}</span>${E(c.eff)}`;
-      return`<button class="choice" type="button" data-inc="${j}" style="background:var(--surface-2)"><span class="row"><span class="h3">${esc(c.label)}</span>${top}</span><span class="chips">${body}</span>${c.fixed?'':`<span class="muted" style="font-size:12px">${c.stat?LBL[c.stat]+' '+S.p.stats[c.stat]+'로 판정':'운에 맡겨요'}</span>`}</button>`}).join('')}</section></div>`;
+      return`<button class="choice" type="button" data-inc="${j}" style="background:var(--surface-2)"><span class="row"><span class="h3">${esc(c.label)}</span>${top}</span><span class="chips">${body}</span></button>`}).join('')}</section></div>`;
 }
 function finishProgress(){
   clearTimeout(progTimer);if(!S||S.phase!=='progress')return;
@@ -2870,7 +2869,7 @@ function sheetView(){
   if(sheet&&sheet.type==='tbrief')return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">${S.year} 시즌 팀 브리핑</div>${teamBrief(sheet.id,S.offers.find(o=>o.teamId===sheet.id)||null)}
       <button class="btn" type="button" data-sheet="news">소식으로 돌아가기</button></section></div>`;
   if(typeof sheet==='string'&&sheet.startsWith('ev')){const i=+sheet.slice(2),e=evDef(S.events[i].id);
-    return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">${esc(S.p.name)} · ${e.cat||'선택의 기로'}</div>${gauges('mini')}${PEEK}<h3 class="h2">${esc(e.title)}</h3><p class="muted" style="margin:0">${esc(e.desc)}</p>
+    return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">${esc(S.p.name)} · ${e.cat||'선택의 기로'}</div>${gauges('mini')}${PEEK}<h3 class="h2">${esc(e.title)}</h3>
       ${e.choices.map((c,j)=>`<button class="choice" type="button" data-choose="${i}:${j}" aria-pressed="${evPick===j}" style="background:var(--surface-2)"><span class="row"><span class="h3">${esc(c.label)}</span><span class="tick">✓</span></span>${effChips(c.eff)}${c.risk?`<span class="muted" style="font-size:12px;color:var(--bad)">⚠ ${Math.round(c.risk.p*100)}% 확률로 사고</span>`:''}</button>`).join('')}
       <button class="btn" type="button" id="evNext" data-i="${i}" ${evPick==null?'disabled':''}>${chain?'다음':'결정하기'}</button>
       ${chain?'':'<button class="btn ghost" type="button" id="closeSheet">닫기</button>'}</section></div>`}
