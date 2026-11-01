@@ -2136,27 +2136,50 @@ function cardTrophies(p,F){
   return{TI,s,tot,rowH,imOK}}
 function drawCard(){
   const D=cardData(),p=D.p,W=1080,CT=cardTrophies(p,'"IBM Plex Sans KR",sans-serif'),TI=CT.TI,imOK=CT.imOK,sep=TI.length?1100+CT.rowH+70:1100,H=sep+240,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
-  const grd=g.createLinearGradient(0,0,W,H);grd.addColorStop(0,'#1A2440');grd.addColorStop(1,'#0B0F1C');g.fillStyle=grd;rr(g,0,0,W,H,56);g.fill();
-  g.save();rr(g,0,0,W,H,56);g.clip();g.strokeStyle='rgba(255,255,255,.035)';g.lineWidth=26;for(let x=-H;x<W;x+=70){g.beginPath();g.moveTo(x,H);g.lineTo(x+H,0);g.stroke()}
-  g.fillStyle='#F2C14E';g.fillRect(0,0,W,14);g.restore();
+  const GOLD=(y0,y1)=>{const q=g.createLinearGradient(0,y0,0,y1);q.addColorStop(0,'#FFE7A3');q.addColorStop(.45,'#F2C14E');q.addColorStop(1,'#B8862B');return q},
+    LINE=(y)=>{const q=g.createLinearGradient(80,0,W-80,0);q.addColorStop(0,'rgba(242,193,78,0)');q.addColorStop(.5,'rgba(242,193,78,.55)');q.addColorStop(1,'rgba(242,193,78,0)');
+      g.strokeStyle=q;g.lineWidth=2;g.beginPath();g.moveTo(80,y);g.lineTo(W-80,y);g.stroke();g.fillStyle='#F2C14E';g.save();g.translate(W/2,y);g.rotate(Math.PI/4);g.fillRect(-6,-6,12,12);g.restore()};
+  // base: deep navy → near-black, warm glow behind the photo, cool glow at the bottom, vignette
+  const grd=g.createLinearGradient(0,0,W*.4,H);grd.addColorStop(0,'#161E36');grd.addColorStop(.55,'#0C1122');grd.addColorStop(1,'#07090F');g.fillStyle=grd;rr(g,0,0,W,H,56);g.fill();
+  g.save();rr(g,0,0,W,H,56);g.clip();
+  let rg=g.createRadialGradient(725,300,20,725,300,560);rg.addColorStop(0,'rgba(242,193,78,.20)');rg.addColorStop(1,'rgba(242,193,78,0)');g.fillStyle=rg;g.fillRect(0,0,W,H);
+  rg=g.createRadialGradient(W/2,H+120,40,W/2,H+120,760);rg.addColorStop(0,'rgba(80,120,220,.16)');rg.addColorStop(1,'rgba(80,120,220,0)');g.fillStyle=rg;g.fillRect(0,0,W,H);
+  // fine carbon weave
+  g.fillStyle='rgba(255,255,255,.022)';for(let y=0;y<H;y+=12)for(let x=(y/12%2)*6;x<W;x+=12)g.fillRect(x,y,6,6);
+  // faint chequered flag fading in from the top-left corner
+  for(let y=0;y<8;y++)for(let x=0;x<8;x++){if((x+y)%2)continue;const a=.07*(1-Math.hypot(x,y)/10);if(a>0){g.fillStyle=`rgba(255,255,255,${a})`;g.fillRect(x*34,y*34,34,34)}}
+  // speed lines sweeping across the name band
+  g.strokeStyle='rgba(242,193,78,.06)';g.lineWidth=3;for(let i=0;i<7;i++){const y=520+i*22;g.beginPath();g.moveTo(-40,y+60);g.lineTo(W+40,y-90);g.stroke()}
+  rg=g.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,H*.8);rg.addColorStop(0,'rgba(0,0,0,0)');rg.addColorStop(1,'rgba(0,0,0,.45)');g.fillStyle=rg;g.fillRect(0,0,W,H);
+  // gold top band
+  const tb=g.createLinearGradient(0,0,W,0);tb.addColorStop(0,'#B8862B');tb.addColorStop(.5,'#FFE7A3');tb.addColorStop(1,'#B8862B');g.fillStyle=tb;g.fillRect(0,0,W,14);g.restore();
+  // double gold frame
+  g.strokeStyle='rgba(242,193,78,.55)';g.lineWidth=3;rr(g,24,32,W-48,H-56,40);g.stroke();
+  g.strokeStyle='rgba(242,193,78,.18)';g.lineWidth=1.5;rr(g,36,44,W-72,H-80,32);g.stroke();
   const F='"IBM Plex Sans KR",sans-serif',N='"Barlow Condensed","IBM Plex Sans KR",sans-serif';
-  g.fillStyle='#AEB4C2';g.font=`500 34px ${F}`;g.fillText('카트부터 월챔까지',80,110);g.textAlign='right';g.fillText(`${D.first}–${D.last}`,W-80,110);g.textAlign='left';
-  g.fillStyle='#F2C14E';g.font=`700 190px ${N}`;g.fillText(String(p.peak),76,330);g.font=`700 34px ${N}`;g.fillText('PEAK OVR',84,380);
+  g.fillStyle='#C9B98F';g.font=`500 34px ${F}`;g.fillText('카트부터 월챔까지',80,110);g.textAlign='right';g.fillText(`${D.first}–${D.last}`,W-80,110);g.textAlign='left';
+  g.save();g.shadowColor='rgba(242,193,78,.35)';g.shadowBlur=40;g.fillStyle=GOLD(170,330);g.font=`700 190px ${N}`;g.fillText(String(p.peak),76,330);g.restore();
+  g.fillStyle='#F2C14E';g.font=`700 34px ${N}`;g.fillText('P E A K   O V R',84,380);
   g.fillStyle='#fff';g.font=`700 52px ${N}`;g.fillText('#'+p.num,84,450);g.fillStyle='#AEB4C2';g.font=`500 32px ${F}`;g.fillText(natName(p.nat),84,500);
   // driver ID photo (top of the standing sprite, like .avface); helmet only if the sprite isn't ready
   const av=avatarCanvas(pAv(p),p.helmet);
   if(av){const bx=560,by=150,bs=330,iw=bs*.84,ih=iw*av.h/av.w;
-    g.save();rr(g,bx,by,bs,bs,44);g.fillStyle='#25282F';g.fill();g.clip();g.imageSmoothingQuality='high';g.drawImage(av.canvas,bx+(bs-iw)/2,by+bs*.05,iw,ih);g.restore()}
+    g.save();g.shadowColor='rgba(0,0,0,.55)';g.shadowBlur=50;g.shadowOffsetY=18;rr(g,bx-6,by-6,bs+12,bs+12,50);g.fillStyle=GOLD(by,by+bs);g.fill();g.restore();
+    g.save();rr(g,bx,by,bs,bs,44);const pb=g.createLinearGradient(0,by,0,by+bs);pb.addColorStop(0,'#2E3446');pb.addColorStop(1,'#161A26');g.fillStyle=pb;g.fill();g.clip();g.imageSmoothingQuality='high';g.drawImage(av.canvas,bx+(bs-iw)/2,by+bs*.05,iw,ih);
+    const sh=g.createLinearGradient(bx,by,bx+bs,by+bs);sh.addColorStop(0,'rgba(255,255,255,.10)');sh.addColorStop(.4,'rgba(255,255,255,0)');g.fillStyle=sh;g.fillRect(bx,by,bs,bs);g.restore()}
   else{g.fillStyle='rgba(255,255,255,.06)';rr(g,500,150,420,330,40);g.fill();drawHelmet(g,p.helmet,p.num,530,180,15)}
   g.fillStyle='#fff';g.textAlign='center';
-  g.font=`700 92px ${F}`;g.fillText(p.name,W/2,620);
+  g.save();g.shadowColor='rgba(0,0,0,.6)';g.shadowBlur=24;g.shadowOffsetY=6;g.font=`700 92px ${F}`;g.fillText(p.name,W/2,620);g.restore();
   g.fillStyle='#AEB4C2';g.font=`500 34px ${F}`;g.fillText(`${D.seasons}시즌 · F1 ${D.teams.length}개 팀 · ${p.age}세 은퇴 · 통산 수익 ${won(p.earn||0)}`,W/2,680);
-  g.strokeStyle='rgba(255,255,255,.12)';g.lineWidth=2;g.beginPath();g.moveTo(80,740);g.lineTo(W-80,740);g.stroke();
-  const big=[[p.tot.titles,'월드 챔피언','#F2C14E'],[p.tot.wins,'우승','#fff'],[p.tot.podiums,'포디움','#fff']];
-  big.forEach((b,i)=>{const x=W/6+i*W/3;g.fillStyle=b[2];g.font=`700 120px ${N}`;g.fillText(String(b[0]),x,870);g.fillStyle='#F2C14E';g.font=`700 32px ${F}`;g.fillText(b[1],x,915)});
+  LINE(740);
+  // stats panel (glass)
+  g.save();rr(g,70,770,W-140,310,36);const gp=g.createLinearGradient(0,770,0,1080);gp.addColorStop(0,'rgba(255,255,255,.06)');gp.addColorStop(1,'rgba(255,255,255,.015)');g.fillStyle=gp;g.fill();g.strokeStyle='rgba(255,255,255,.08)';g.lineWidth=1.5;g.stroke();
+  g.strokeStyle='rgba(255,255,255,.07)';g.lineWidth=1.5;[1,2].forEach(i=>{const x=i*W/3;g.beginPath();g.moveTo(x,800);g.lineTo(x,1050);g.stroke()});g.restore();
+  const big=[[p.tot.titles,'월드 챔피언',1],[p.tot.wins,'우승',0],[p.tot.podiums,'포디움',0]];
+  big.forEach((b,i)=>{const x=W/6+i*W/3;g.save();if(b[2]){g.shadowColor='rgba(242,193,78,.45)';g.shadowBlur=30;g.fillStyle=GOLD(780,870)}else g.fillStyle='#fff';g.font=`700 120px ${N}`;g.fillText(String(b[0]),x,870);g.restore();g.fillStyle='#F2C14E';g.font=`700 32px ${F}`;g.fillText(b[1],x,915)});
   const small=[[p.tot.poles,'폴'],[p.tot.starts,'출전'],[p.tot.points,'포인트']];
-  small.forEach((b,i)=>{const x=W/6+i*W/3;g.fillStyle='#fff';g.font=`700 64px ${N}`;g.fillText(String(b[0]),x,1020);g.fillStyle='#AEB4C2';g.font=`500 28px ${F}`;g.fillText(b[1],x,1060)});
-  g.beginPath();g.moveTo(80,1100);g.lineTo(W-80,1100);g.stroke();
+  small.forEach((b,i)=>{const x=W/6+i*W/3;g.fillStyle='#fff';g.font=`700 64px ${N}`;g.fillText(String(b[0]),x,1020);g.fillStyle='#8E95A6';g.font=`500 28px ${F}`;g.fillText(b[1],x,1060)});
+  LINE(1100);
   // trophy cabinet, in order of prestige
   if(TI.length){
     TI.forEach(x=>{const s=x.s,w=x.w*s,tx=x.tx,base=x.base;
@@ -2165,9 +2188,9 @@ function drawCard(){
         if(x.k==='F1'){const gl=g.createRadialGradient(tx+w/2,base-h*.3,4,tx+w/2,base-h*.3,h*.8);gl.addColorStop(0,'rgba(242,193,78,.35)');gl.addColorStop(1,'rgba(242,193,78,0)');g.fillStyle=gl;g.beginPath();g.arc(tx+w/2,base-h*.3,h*.8,0,Math.PI*2);g.fill()}
         if(x.jr)drawJr(g,x.jr,tx,base,h);
         else if(imOK(x.k))g.drawImage(TROPHY_IMG[x.k],tx,base-h,w,h);
-        g.fillStyle=x.k==='F1'?'#F2C14E':'#AEB4C2';g.textAlign='center';g.font=`700 ${Math.round((x.k==='F1'?34:28)*Math.max(s,.75))}px ${N}`;g.fillText(String(x.y),tx+w/2,base+38)}
+        g.fillStyle=x.k==='F1'?'#F2C14E':'#C9CDD6';g.textAlign='center';g.font=`700 ${Math.round((x.k==='F1'?34:28)*Math.max(s,.75))}px ${N}`;g.fillText(String(x.y),tx+w/2,base+38)}
       });
-    g.strokeStyle='rgba(255,255,255,.12)';g.lineWidth=2;g.beginPath();g.moveTo(80,sep);g.lineTo(W-80,sep);g.stroke()}
+    LINE(sep)}
   // teams
   const ts=D.teams.slice(0,5),tw=180,tx0=(W-ts.length*tw)/2;
   ts.forEach((t,i)=>{const x=tx0+i*tw+tw/2,im=LOGO_IMG[t.id];
