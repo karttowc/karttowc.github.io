@@ -2772,54 +2772,53 @@ const EVENTS=[
  {id:'kartschool',cat:'팬',stage:'f1',title:'내 이름을 건 카트 아카데미',desc:'어린 선수들을 위한 카트 아카데미를 열자는 제안이 왔어요.',choices:[{label:'연다',desc:'업계의 존경을 받아요',eff:{fans:6,rep:2,morale:-3}},{label:'은퇴 후로 미룬다',desc:'지금은 레이스가 먼저',eff:{morale:1}}]}
 ];
 
-// every option costs something: rest costs sharpness, work costs stamina, fame costs focus
+// one gain + one cost (mostly stamina), or a plain rest option. never fans<->rep on one choice. values as shown in game.
 const EV_FIX={
- sign:[{fans:6,morale:-4},{stats:{consistency:1},fans:-3}],
- wedding:[{morale:5,rep:-3},{stats:{consistency:1},morale:-6}],
- move:[{morale:4,stats:{quali:-1}},{stats:{quali:1},morale:-4}],
- sim:[{stats:{quali:2},morale:-3},{stats:{race:1},morale:-1}],
- wet:[{stats:{wet:3},morale:-5},{morale:3,stats:{wet:-1}}],
- press:[{fans:5,morale:-3},{rep:3,morale:-2}],
- sns:[{fans:7,morale:-3},{stats:{mental:1},fans:-2}],
- coach:[{stats:{consistency:2},morale:-6},{morale:2,stats:{consistency:-1}}],
- setup:[{stats:{tyre:3,quali:-2}},{stats:{quali:1,tyre:-1}}],
- home:[{morale:4,stats:{race:-1}},{stats:{race:1},fans:-2}],
- school:[{morale:3,stats:{consistency:-1}},{stats:{consistency:2},morale:-5}],
- mate:[{rep:3,stats:{mental:-1}},{fans:5,stats:{consistency:-1}}],
- sponsor:[{rep:4,morale:-5},{rep:-4,morale:3}],
- fitness:[{stats:{consistency:2},morale:-5},{morale:2,stats:{consistency:-1}}],
- slump:[{morale:6,stats:{quali:-1}},{stats:{mental:2},morale:-5}],
- friends:[{morale:6,stats:{consistency:-2}},{stats:{consistency:1},morale:-4}],
- routine:[{morale:3,stats:{consistency:-1}},{stats:{mental:2},morale:-2}],
- fanclub:[{fans:8,morale:-4},{morale:1,fans:-3}],
- kidfan:[{fans:6,morale:-3},{fans:2,morale:-1}],
- dad:[{morale:5,stats:{quali:-1}},{stats:{quali:1},morale:-4}],
- sibling:[{morale:4,stats:{race:-1}},{stats:{race:1},morale:-4}],
- charity:[{fans:6,morale:-4},{morale:1,fans:-2}],
- esports:[{stats:{quali:1},morale:-5},{stats:{consistency:1},morale:-2}],
- gt3ring:[{stats:{race:1},rep:-4},{rep:3,morale:-2}],
- rally:[{stats:{wet:2},morale:-4},{morale:2,fans:-1}],
- docu:[{fans:10,morale:-5},{rep:1,morale:-1}],
- leaveme:[{stats:{mental:2},rep:-4},{rep:2,stats:{mental:-1}}],
- starmate:[{stats:{race:1},rep:-3},{stats:{tyre:1},morale:-2}],
- legend:[{stats:{mental:2},morale:-5},{morale:2,stats:{mental:-1}}],
- engineer:[{stats:{tyre:1,consistency:-1}},{morale:1,rep:-4}],
- upgrade:[{stats:{quali:2,consistency:-2}},{stats:{consistency:1,quali:-1}}],
- hate:[{fans:3,morale:-6},{morale:3,fans:-4}],
- tvshow:[{fans:10,morale:-5},{stats:{consistency:1},fans:-2}],
- rookietest:[{rep:4,morale:-5},{stats:{consistency:2},rep:-2}],
+ sign:[{fans:4,morale:-4},{stats:{consistency:1},morale:-2}],
+ wedding:[{morale:5},{stats:{consistency:1},morale:-5}],
+ move:[{morale:4},{stats:{quali:1},morale:-3}],
+ sim:[{stats:{quali:2},morale:-4},{stats:{race:1},morale:-2}],
+ wet:[{stats:{wet:3},morale:-5},{morale:3}],
+ press:[{fans:3,morale:-3},{rep:2,morale:-2}],
+ sns:[{fans:4,morale:-3},{stats:{mental:1},morale:-2}],
+ coach:[{stats:{consistency:2},morale:-6},{morale:3}],
+ setup:[{stats:{tyre:3,quali:-1}},{stats:{quali:1},morale:-2}],
+ home:[{morale:4},{stats:{race:1},morale:-2}],
+ school:[{morale:3},{stats:{consistency:2},morale:-5}],
+ mate:[{rep:3,morale:-2},{fans:3,morale:-3}],
+ sponsor:[{rep:4,morale:-5},{morale:3}],
+ fitness:[{stats:{consistency:2},morale:-5},{morale:2}],
+ slump:[{morale:6},{stats:{mental:2},morale:-5}],
+ friends:[{morale:6},{stats:{consistency:1},morale:-3}],
+ routine:[{morale:3},{stats:{mental:2},morale:-3}],
+ fanclub:[{fans:5,morale:-4},{fans:2,morale:-1}],
+ kidfan:[{fans:4,morale:-3},{fans:1}],
+ dad:[{morale:5},{stats:{quali:1},morale:-3}],
+ sibling:[{morale:4},{stats:{race:1},morale:-3}],
+ charity:[{fans:4,morale:-4},{morale:2}],
+ esports:[{stats:{quali:2},morale:-5},{stats:{consistency:1},morale:-2}],
+ gt3ring:[{stats:{race:2},rep:-3},{rep:2,morale:-1}],
+ rally:[{stats:{wet:2},morale:-4},{morale:2}],
+ docu:[{fans:6,morale:-5},{morale:2}],
+ leaveme:[{stats:{mental:2},rep:-3},{rep:2,morale:-2}],
+ starmate:[{stats:{race:2},morale:-5},{stats:{tyre:1},morale:-2}],
+ legend:[{stats:{mental:2},morale:-5},{morale:2}],
+ engineer:[{stats:{tyre:1},morale:-3},{morale:2,rep:-3}],
+ upgrade:[{stats:{quali:2,consistency:-1}},{stats:{consistency:1},morale:-2}],
+ hate:[{fans:2,morale:-5},{morale:3}],
+ tvshow:[{fans:6,morale:-5},{stats:{consistency:1},morale:-2}],
+ rookietest:[{rep:4,morale:-5},{stats:{consistency:2},morale:-3}],
  rivalacad:[{stats:{mental:1},rep:-3},{rep:3,morale:-2}],
  paydriver:[{fans:3,morale:-5},{morale:2,stats:{race:-1}}],
  cycling:[{stats:{consistency:2},morale:-3},{stats:{consistency:1},morale:-1}],
- heat:[{stats:{consistency:2},morale:-5},{morale:2,stats:{consistency:-1}}],
- bosspress:[{fans:4,morale:-3},{stats:{mental:2},morale:-4}],
- helmetvote:[{fans:7,morale:-3},{stats:{mental:1},fans:-2}],
- mechanic:[{rep:4,stats:{mental:-1}},{stats:{mental:1},rep:-5}],
- simdev:[{rep:4,morale:-6},{morale:2,rep:-3}],
- kartschool:[{fans:6,morale:-5},{morale:1,fans:-2}]
+ heat:[{stats:{consistency:2},morale:-5},{morale:2}],
+ bosspress:[{fans:3,morale:-3},{stats:{mental:2},morale:-4}],
+ helmetvote:[{fans:4,morale:-3},{stats:{mental:1},morale:-1}],
+ mechanic:[{rep:3,morale:-1},{stats:{mental:1},rep:-4}],
+ simdev:[{rep:4,morale:-6},{morale:2}],
+ kartschool:[{fans:4,morale:-5},{morale:2}]
 };
 EVENTS.forEach(e=>{const f=EV_FIX[e.id];if(f)f.forEach((x,i)=>{if(e.choices[i])e.choices[i].eff=x})});
-EVENTS.forEach(e=>e.choices.forEach(c=>{if(c.eff&&c.eff.fans>0)c.eff.fans=Math.max(1,Math.round(c.eff.fans*.6))}));
 // who can get which event: a 14-year-old karter has no fan club, mechanics crew or press pack
 const EV_REQ={sign:{fans:15},fanclub:{fans:25},kidfan:{fans:12},press:{min:'F3'},tvshow:{fans:30},helmetvote:{fans:20},hate:{fans:15},
   mechanic:{min:'F3'},coach:{min:'F4'},setup:{min:'F4'},legend:{min:'F3'},rally:{age:17},school:{maxAge:18},home:{min:'F4'},
@@ -3646,7 +3645,11 @@ function showIncident(inc){
   document.getElementById('pRound').textContent=`${inc.r+1} / ${S.season.races} 라운드 · ${roundName(inc.r)}`;
   box.innerHTML=`<div class="sheet"><section class="card"><div class="eyebrow">${roundName(inc.r)} · 레이스 중 상황</div><h3 class="h2">${esc(d.title)}</h3><p class="muted" style="margin:0">${esc(d.desc)}</p>
     <details class="incinfo"><summary>${ISVG} 관련 능력이 확률에 영향을 줘요</summary><p>관련 능력이 이 리그 평균(${incMean()})보다 높을수록 성공 확률이 올라가요. 평균과 같으면 50%, 10 높으면 약 75%예요. 위험한 선택은 확률이 조금 더 낮고, 어떤 경우든 15~85% 사이예요.</p></details>
-    ${d.choices.map((c,j)=>`<button class="choice" type="button" data-inc="${j}" style="background:var(--surface-2)"><span class="h3">${esc(c.label)}</span><span class="chips">${c.fixed?`<span class="chip ${c.fixed.delta>0?'down':''}" style="font-size:13px">순위 ${c.fixed.delta>0?'-'+c.fixed.delta:'유지'}</span>`+effChips(c.fixed.eff).replace(/^<span class="chips">|<\/span>$/g,''):`<span class="chip" style="font-size:13px">관련 능력: ${c.stat?LBL[c.stat]+' '+S.p.stats[c.stat]:'운'}</span><span class="chip blue" style="font-size:13px">성공 확률 ${Math.round(incChance(c)*100)}%</span><span class="chip up" style="font-size:13px">성공 시 최대 ${-c.good[0]>0?-c.good[0]+'계단 상승':'순위 유지'}</span><span class="chip down" style="font-size:13px">실패 시 최대 ${c.bad[1]}계단 하락${c.dnf?' · 리타이어 위험':''}</span>`}</span></button>`).join('')}</section></div>`;
+    ${d.choices.map((c,j)=>{const R='font-size:13px',E=e=>e?effChips(e).replace(/^<span class="chips">|<\/span>$/g,''):'';
+      const top=c.fixed?'<span class="muted" style="font-size:13px">확정</span>':`<b class="num" style="font-size:22px;color:#8CB8FF">${Math.round(incChance(c)*100)}%</b>`;
+      const body=c.fixed?`<span class="chip ${c.fixed.delta>0?'down':''}" style="${R}">${c.fixed.delta>0?c.fixed.delta+'계단 하락':'순위 유지'}</span>${E(c.fixed.eff)}`
+        :`<span class="chip up" style="${R}">성공 ${-c.good[0]>0?'최대 ▲'+(-c.good[0]):'순위 유지'}</span><span class="chip down" style="${R}">실패 최대 ▼${c.bad[1]}${c.dnf?' · 리타이어 위험':''}</span>${E(c.eff)}`;
+      return`<button class="choice" type="button" data-inc="${j}" style="background:var(--surface-2)"><span class="row"><span class="h3">${esc(c.label)}</span>${top}</span><span class="chips">${body}</span>${c.fixed?'':`<span class="muted" style="font-size:12px">${c.stat?LBL[c.stat]+' '+S.p.stats[c.stat]+'로 판정':'운에 맡겨요'}</span>`}</button>`}).join('')}</section></div>`;
 }
 function finishProgress(){
   clearTimeout(progTimer);if(!S||S.phase!=='progress')return;
