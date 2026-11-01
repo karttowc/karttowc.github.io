@@ -1405,19 +1405,19 @@ const GACHA=[
  {id:'boxing',title:'복싱으로 반사신경 키우기',ev:'복싱 훈련',p:.65,win:{stats:{mental:3,race:2}},inj:[1,1]},
  {id:'mtb',title:'산악자전거로 지구력 훈련',ev:'산악자전거 훈련',p:.65,win:{stats:{consistency:3,tyre:2}},inj:[1,2]},
  {id:'kart',title:'옛 라이벌들과 카트 레이스!',ev:'카트 레이스',p:.6,win:{stats:{race:3,quali:1}},inj:[1,1]},
- {id:'simnight',title:'시뮬레이터로 밤샘 예선 연습',p:.6,win:{stats:{quali:3}},slump:6},
+ {id:'simnight',title:'시뮬레이터로 밤샘 예선 연습',p:.6,win:{stats:{quali:3}},slump:6,fm:7},
  {id:'skydive',title:'스폰서랑 스카이다이빙 이벤트!',ev:'스카이다이빙',p:.75,win:{fans:15,morale:5,rep:3},inj:[1,2]},
  {id:'rainold',title:'구형 머신으로 빗길 테스트',ev:'빗길 테스트',p:.6,win:{stats:{wet:4}},inj:[1,1]},
- {id:'padel',title:'드라이버들과 파델 테니스',ev:'파델 테니스',p:.7,win:{morale:8,fans:3},inj:[1,1]},
+ {id:'padel',title:'드라이버들과 파델 테니스',ev:'파델 테니스',p:.7,win:{fans:8,rep:3},inj:[1,1]},
  {id:'gt3',title:'가명으로 몰래 GT3 레이스 출전',p:.6,win:{stats:{race:2,wet:1},fans:6},slump:5},
  {id:'esports',title:'프로게이머들과 24시간 심레이싱',p:.65,win:{stats:{quali:2},fans:5},slump:5},
  {id:'rallyx',title:'주말에 랠리 출전!',ev:'랠리',p:.6,win:{stats:{wet:3,consistency:2,race:1}},inj:[1,2]},
  {id:'cycle',title:'알프스 사이클 투어',ev:'사이클 투어',p:.7,win:{stats:{consistency:2},morale:4},inj:[1,1]},
- {id:'surf',title:'친구들과 서핑 여행',ev:'서핑',p:.75,win:{morale:10,stats:{mental:1}},inj:[1,1]},
- {id:'football',title:'학교 친구들과 축구 시합',ev:'축구 시합',p:.7,win:{morale:8,stats:{consistency:1}},inj:[1,1]},
- {id:'rentkart',title:'카트 동호회 형들이랑 레이스 연습!',ev:'카트 연습',p:.65,win:{stats:{race:2}},inj:[1,1]},
- {id:'gamenight',title:'친구들이랑 밤새 레이싱 게임 대회',p:.65,win:{stats:{quali:2}},slump:3},
- {id:'trampoline',title:'트램펄린 파크에서 균형 훈련',ev:'트램펄린',p:.7,win:{stats:{mental:2,consistency:1}},inj:[1,1]}
+ {id:'surf',title:'친구들과 서핑 여행',ev:'서핑',p:.75,win:{stats:{mental:3},fans:3},inj:[1,1]},
+ {id:'football',title:'학교 친구들과 축구 시합',ev:'축구 시합',p:.7,win:{stats:{consistency:2,race:1}},inj:[1,1]},
+ {id:'rentkart',title:'카트 동호회 형들이랑 레이스 연습!',ev:'카트 연습',p:.65,win:{stats:{race:2}},inj:[1,1],fm:5},
+ {id:'gamenight',title:'친구들이랑 밤새 레이싱 게임 대회',p:.65,win:{stats:{quali:2}},slump:3,fm:5},
+ {id:'trampoline',title:'트램펄린 파크에서 균형 훈련',ev:'트램펄린',p:.7,win:{stats:{mental:2,consistency:1}},inj:[1,1],fm:7}
 ];
 // who can do which break: a 14-year-old karter doesn't play padel with F1 drivers
 const GA_REQ={boxing:{age:16},esports:{age:16},simnight:{age:15},kart:{min:'F3'},skydive:{min:'F2',age:18},rainold:{min:'F3'},padel:{min:'F1'},gt3:{min:'F2',age:18},rallyx:{age:17},cycle:{age:16},surf:{age:15},
@@ -1438,11 +1438,11 @@ function resolveGacha(go){
   if(Math.random()<gachaP(g)){G.res='win';const m=applyEff(g.win);save();return{ok:true,t:`성공! ${m}`}}
   G.res=g.slump?'slump':'inj';
   if(g.slump){const o=Z.orders[G.r],i=o.fin.indexOf('me');if(i>=0){const ni=Math.min(o.fin.length-1,i+g.slump);o.fin.splice(i,1);o.fin.splice(ni,0,'me')}
-    applyEff({morale:-10});save();return{ok:false,t:`실패… 피로가 쌓여 다음 레이스 페이스가 떨어져요 · 체력 -10`}}
+    applyEff({morale:-(g.fm||10)});save();return{ok:false,t:`실패… 피로가 쌓여 다음 레이스 페이스가 떨어져요 · 체력 -${g.fm||10}`}}
   const k=ri(...g.inj);let miss=0;
   for(let r=G.r;r<Math.min(Z.races,G.r+k);r++){const o=Z.orders[r];o.fin=o.fin.filter(x=>x!=='me');o.dnf=o.dnf.filter(x=>x!=='me');o.q=o.q.filter(x=>x!=='me');if(!Z.meAbsent.includes(r)){Z.meAbsent.push(r);miss++}}
-  applyEff({morale:-11});Z.ctx.ev.push(`${g.ev} 중 부상으로 ${miss}경기를 결장했어요.`);save();
-  return{ok:false,t:`부상! ${miss}경기 결장 · 체력 -11`};
+  applyEff({morale:-(g.fm||11)});Z.ctx.ev.push(`${g.ev} 중 부상으로 ${miss}경기를 결장했어요.`);save();
+  return{ok:false,t:`부상! ${miss}경기 결장 · 체력 -${g.fm||11}`};
 }
 function showGacha(){
   const Z=S.season,G=Z.gacha,g=GACHA.find(x=>x.id===G.id),box=document.getElementById('pInc');if(!box)return;
@@ -1450,7 +1450,7 @@ function showGacha(){
   box.innerHTML=`<div class="sheet"><section class="card"><div class="eyebrow">${f1?'여름 휴식기':'시즌 중반 휴식기'} · 한 번의 도전</div><h3 class="h2">${esc(g.title)}</h3>
     <div class="kv"><div class="row"><span>성공 확률</span><span class="num" style="font-size:22px;color:var(--gold)">${pct}%</span></div>
     <div class="row"><span>성공하면</span><span class="up">${esc(effText(g.win))}</span></div>
-    <div class="row"><span>실패하면</span><span class="down">${g.slump?'다음 레이스 부진 · 체력 -10':`부상 ${g.inj[0]===g.inj[1]?g.inj[0]:g.inj[0]+'~'+g.inj[1]}경기 결장 · 체력 -11`}</span></div></div>
+    <div class="row"><span>실패하면</span><span class="down">${g.slump?`다음 레이스 부진 · 체력 -${g.fm||10}`:`부상 ${g.inj[0]===g.inj[1]?g.inj[0]:g.inj[0]+'~'+g.inj[1]}경기 결장 · 체력 -${g.fm||11}`}</span></div></div>
     <button class="btn" type="button" data-gacha="go">도전한다</button><button class="btn ghost" type="button" data-gacha="rest">안전하게 쉰다</button></section></div>`;
 }
 function effChips(e){const a=[];const add=(l,v)=>a.push([v,`<span class="chip ${v>0?'up':'down'}" style="font-size:13px">${l} ${v>0?'+':''}${v}</span>`]);
