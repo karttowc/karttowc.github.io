@@ -5,8 +5,8 @@ import pathlib
 from playwright.sync_api import sync_playwright
 R=pathlib.Path(__file__).resolve().parent.parent
 RED={'base':'#E10600','sec':'#F5F5F5','pat':'visor','vis':'dark'}
-JS="""async h=>{for(let t=0;t<50;t++){if(avatarCanvas(3,h,true)&&helmetCanvas(h))break;await new Promise(r=>setTimeout(r,100))}
- return{av:avatarCanvas(3,h,true).url,hel:helmetCanvas(h).url,title:TITLE_IMG,tro:TROPHY.F1}}"""
+JS="""async h=>{for(let t=0;t<50;t++){if(avatarCanvas(1,h,true)&&helmetCanvas(h))break;await new Promise(r=>setTimeout(r,100))}
+ return{av:avatarCanvas(1,h,true).url,hel:helmetCanvas(h).url,title:TITLE_IMG,tro:TROPHY.F1}}"""
 OG="""<html><head><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans+KR:wght@700&display=swap">
 <style>*{margin:0;box-sizing:border-box}body{width:1200px;height:630px;overflow:hidden;background:linear-gradient(180deg,#070914 0%,#10142A 45%,#1A1838 75%,#0B0D16 100%);position:relative;font-family:'Barlow Condensed',sans-serif}
 .st{position:absolute;width:3px;height:3px;background:#fff;opacity:.6}
