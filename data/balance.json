@@ -300,7 +300,7 @@
   "debut_age_penalty_per_year": 2,
   "rookie_adapt": 3,
   "first_kart_easy": 5,
-  "champ_hunt": {"cars": 2, "chance": 0.5}
+  "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 3, "dev_max": 9, "window": 4}
  },
  "super_licence": {
   "min_age": 18,

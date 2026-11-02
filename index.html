@@ -886,7 +886,7 @@ const B = {
   "debut_age_penalty_per_year": 2,
   "rookie_adapt": 3,
   "first_kart_easy": 5,
-  "champ_hunt": {"cars": 2, "chance": 0.5}
+  "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 3, "dev_max": 9, "window": 4}
  },
  "super_licence": {
   "min_age": 18,
@@ -2327,14 +2327,20 @@ function newcomer(teamId){const c=(S.jr||[]).filter(d=>d.st==='on'&&d.series==='
   return{id:c.id,name:c.name,nationality:c.nationality,birth_year:0,age:c.age,team:teamId,style:c.style,potential:c.potential,stats:{...c.stats},rookie:true,nm2:1}}
 function fillVacancies(){for(const t of S.teams)for(let i=seatsTaken(t.id);i<2;i++){const r=newcomer(t.id);S.f1.push(r);if(r.prodigy)S.p.rivalNote=`${r.name}, ${t.name}에서 데뷔하는 천재 신인`};S.vacancies=[]}
 // the defending F1 champion gets hunted: the strongest AI drivers move into the fastest cars
-function champHunt(){const H=B.career.champ_hunt,p=S.p;if(!H)return;
+function champHunt(fresh){const H=B.career.champ_hunt,p=S.p;if(!H)return;
+  if(fresh){
   const fast=[...S.teams].sort((a,b)=>b.machine-a.machine).slice(0,H.cars).map(t=>t.id);
   const stars=[...S.f1].sort((a,b)=>ovrOf(b.stats)-ovrOf(a.stats));
   for(const tid of fast){for(const d of S.f1.filter(x=>x.team===tid)){
     const best=stars.find(x=>!fast.includes(x.team)&&ovrOf(x.stats)>ovrOf(d.stats));
     if(!best||Math.random()>=H.chance)continue;
     const from=best.team;best.team=tid;d.team=from;
-    if(S.news&&S.news.heads)S.news.heads.unshift({t:`챔피언 ${p.name}${josa(p.name)} 잡아라! ${best.name}, ${teamDef(tid).name}${ro(teamDef(tid).name)} 이적`,c:''})}}}
+    if(S.news&&S.news.heads)S.news.heads.unshift({t:`챔피언 ${p.name}${josa(p.name)} 잡아라! ${best.name}, ${teamDef(tid).name}${ro(teamDef(tid).name)} 이적`,c:''})}}
+  }
+  // rivals pour development into catching the champion: the car drops more with every F1 title in the last few seasons
+  if(H.dev){const n=p.history.slice(-(H.window||1)).filter(h=>h.sid==='F1'&&h.titled).length;
+    const t=S.teams.find(x=>x.id===p.team.id),d=Math.min(H.dev*n,H.dev_max||99);
+    if(t&&d>0){t.machine=r1(t.machine-d);if(S.news&&S.news.heads)S.news.heads.unshift({t:`라이벌 팀들, ${p.name} 타도에 개발 총력… ${t.name} 머신 우위 줄어`,c:''})}}}
 function fillSeat(teamId){const n=S.f1.filter(d=>d.team===teamId).length;for(let i=n;i<2;i++)S.f1.push(newcomer(teamId))}
 
 /* ---------- paddock news ---------- */
@@ -2592,7 +2598,7 @@ function applyOffer(o){
   }else if(o.kind==='reserve'){p.contract=null;p.series='F1';p.role='reserve';p.team={id:o.teamId};if(leavingF1Seat)fillSeat(oldTeam)}
   else if(o.kind==='alt'){p.contract=null;p.seriesSeasons=p.series==='ALT'&&p.alt===o.altId?p.seriesSeasons+1:1;p.series='ALT';p.alt=o.altId;p.team={name:o.altTeam||altDef(o.altId).name,tier:o.tier,f1:o.altF1||null};p.role='race';if(leavingF1Seat)fillSeat(oldTeam)}
   fillVacancies();
-  if(S.last&&S.last.rec&&S.last.rec.titled&&S.last.rec.sid==='F1'&&p.series==='F1'&&p.role==='race')champHunt();
+  if(p.series==='F1'&&p.role==='race'&&p.history.some(h=>h.sid==='F1'&&h.titled))champHunt(!!(S.last&&S.last.rec&&S.last.rec.titled&&S.last.rec.sid==='F1'));
   {const tgt=p.age>=36?70:p.age>=33?78:85;p.morale=Math.round(p.morale+(tgt-p.morale)*.45)}
   if(S.train==='rest'){p.morale=Math.min(100,p.morale+15);S.train='focus'}
   // the plan carries over; moving up a stage or maxing one of its stats opens it again
@@ -3769,7 +3775,7 @@ function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.r
     peak:p.peak,jr:p.jr.length,trs:[...altTrophies(p).map(t=>t.n),...p.jr.map(j=>`${j.name} 챔피언`)]});
   hofSave(rkSort(a));rkPush()}
 /* ---------- anonymous play log (Google Apps Script -> Sheet) ---------- */
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='0.29.12',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='0.30.0',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
