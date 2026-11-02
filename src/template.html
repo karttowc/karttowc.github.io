@@ -678,9 +678,9 @@ function scoutUpdate(pos,field,titled,ev){const p=S.p;if(!p.scout)scoutInit(p);
     if(myAc){if(myAc.teams.includes(tm.id))d=Math.max(d,-2)+2;else d-=1}
     const v0=p.scout[tm.id]||0,v=clamp(Math.round(v0+d),0,100);p.scout[tm.id]=v;p.scoutD[tm.id]=v-v0;
     const M=p.scoutM[tm.id]||0;
-    if(v>=40&&M<40&&!inF1){p.scoutM[tm.id]=40;ev.push(`${tm.name}이(가) 당신을 지켜보기 시작했어요 (관심도 ${v})`)}
+    if(v>=40&&M<40&&!inF1){p.scoutM[tm.id]=40;ev.push(`${jo(tm.name,'이','가')} 당신을 지켜보기 시작했어요 (관심도 ${v})`)}
     if(v>=60&&M<60){p.scoutM[tm.id]=60;ev.push(`${tm.name}의 관심이 뜨거워요! (관심도 ${v})`)}
-    if(v>=90&&M<90){p.scoutM[tm.id]=90;ev.push(`${tm.name}이(가) 당신을 원해요! (관심도 ${v})`)}
+    if(v>=90&&M<90){p.scoutM[tm.id]=90;ev.push(`${jo(tm.name,'이','가')} 당신을 원해요! (관심도 ${v})`)}
   });
   // FP1: academy drivers in F3/F2 get a Friday run in their team's F1 car
   if(myAc&&(p.series==='F3'||p.series==='F2')){const id=[...myAc.teams].sort((a,b)=>(p.scout[b]||0)-(p.scout[a]||0))[0];
@@ -766,7 +766,7 @@ function updateMachines(ev){
   }
   S.teams.forEach(t=>{if(t.tier!==before[t.id]){
     const up=['bottom','mid','top'].indexOf(t.tier)>['bottom','mid','top'].indexOf(before[t.id]);
-    ev.push(`${t.name}이(가) ${TIER_LBL[t.tier].replace('팀','권')}으로 ${up?'올라섰어요':'내려갔어요'}.`)}});
+    ev.push(`${jo(t.name,'이','가')} ${TIER_LBL[t.tier].replace('팀','권')}으로 ${up?'올라섰어요':'내려갔어요'}.`)}});
 }
 
 /* ---------- race simulation ---------- */
@@ -985,7 +985,7 @@ function ageF1Grid(){
     const tier=teamDef(d.team).tier;
     if(Math.random()<rc||d.age>=43){S.paddock.push(`${d.name}, ${d.age}세에 은퇴 발표`);continue}
     if(ovrOf(d.stats)<B.career.f1_seat_ovr[tier]-4){S.paddock.push(`${d.name}, ${teamDef(d.team).name} 시트를 잃어`);continue}
-    if(Math.random()<(tier==='top'?.03:.09)){S.paddock.push(`${d.name}, ${teamDef(d.team).name}와(과) 계약 만료로 결별`);continue}
+    if(Math.random()<(tier==='top'?.03:.09)){S.paddock.push(`${d.name}, ${jo(teamDef(d.team).name,'과','와')} 계약 만료로 결별`);continue}
     keep.push(d);
   }
   S.f1=keep;
@@ -1179,7 +1179,7 @@ function makeOffers(pos,field,h2h){
     const sponsor=p.fans>=25&&pt&&pt!=='top';if(sponsor)pt=up(pt);
     if(p.academy){pt=pt?up(pt):(r<=.66?'bottom':null)}
     if(next&&pt&&p.age>=seriesDef(next).age[0])o.push(juniorOffer(next,pt,{tag:sponsor?'승격 · 스폰서 지원':'승격'}));
-    if(next2&&pos===1&&p.seriesSeasons===1&&p.age>=seriesDef(next2).age[0]-1)o.push(juniorOffer(next2,'top',{tag:'월반',sub:`${seriesDef(next2).name}로 한 단계 건너뛰기 · ${TIER_LBL.top}`}));
+    if(next2&&pos===1&&p.seriesSeasons===1&&p.age>=seriesDef(next2).age[0]-1)o.push(juniorOffer(next2,'top',{tag:'월반',sub:`${joRo(seriesDef(next2).name)} 한 단계 건너뛰기 · ${TIER_LBL.top}`}));
     const canStay=champF2?false:p.series==='F2'?p.f2Seasons<B.career.f2_max_seasons:p.age<=seriesDef(p.series).age[1];
     if(!canStay)S.leaveNote=champF2?'F2 챔피언은 규정상 다음 시즌 F2에 나올 수 없어요. F1이나 다른 무대를 골라야 해요.':p.series==='F2'?`F2에서 뛸 수 있는 ${B.career.f2_max_seasons}시즌을 다 채웠어요. 이제 F2를 떠나야 해요.`:`나이 제한으로 ${seriesDef(p.series).name}에 더 남을 수 없어요. 다음 무대를 찾아야 해요.`;
     if(canStay)o.push(juniorOffer(p.series,r<=.2?'top':r<=.5?'mid':'bottom',{tag:p.series==='F2'&&(p.f2Seasons>=2||p.age>=24)?'마지막 도전':'잔류'}));
@@ -1201,17 +1201,17 @@ function makeOffers(pos,field,h2h){
     const c=p.contract||{left:0,option:false,clause:false};
     const base={color:tm.color,short:tm.short,teamId:tm.id},curSal=c.sal||terms(tm).sal;
     const safe=(pos&&pos<=3)||(h2h&&h2h.tp&&h2h.tp[1]>0&&h2h.tp[0]/h2h.tp[1]>=.35);
-    if(h2h&&h<.25&&ovr<mateOvr-4&&safe){evs.push(`${tm.name}이(가) 경고를 보냈어요. 팀메이트에게 크게 밀린 건 문제래요. 내년에도 이러면 위험해요.`)}
-    else if(h2h&&h<.25&&ovr<mateOvr-4){evs.push(`${tm.name}이(가) 팀메이트에 크게 밀린 성적을 이유로 계약을 조기 해지했어요.`);p.contract=null;S.leaveNote=`${tm.name}이(가) 계약을 조기 해지했어요. 새 팀을 찾아야 해요.`}
+    if(h2h&&h<.25&&ovr<mateOvr-4&&safe){evs.push(`${jo(tm.name,'이','가')} 경고를 보냈어요. 팀메이트에게 크게 밀린 건 문제래요. 내년에도 이러면 위험해요.`)}
+    else if(h2h&&h<.25&&ovr<mateOvr-4){evs.push(`${jo(tm.name,'이','가')} 팀메이트에 크게 밀린 성적을 이유로 계약을 조기 해지했어요.`);p.contract=null;S.leaveNote=`${jo(tm.name,'이','가')} 계약을 조기 해지했어요. 새 팀을 찾아야 해요.`}
     else if(c.left>0){
       const rank=[...S.teams].sort((a,b)=>b.machine-a.machine).findIndex(x=>x.id===tm.id)+1;
       if(c.clause&&rank>6)evs.push(`탈출 조항 발동! ${tm.name} 머신이 ${rank}번째로 밀려 계약을 해지하고 떠날 수 있어요.`);
       else{bound=true;buyout=(pos&&pos<=5)||h>=.65}
       o.push({kind:'stay',...base,years:c.left,sal:curSal,title:'계약 유지',sub:`${c.left}년 남음 · ${TIER_LBL[tm.tier]} · 머신 ${tm.machine}`,tag:'계약 중'});
     }else if(c.option&&keepOK){
-      evs.push(`${tm.name}이(가) 1년 옵션을 행사했어요.`);bound=true;
+      evs.push(`${jo(tm.name,'이','가')} 1년 옵션을 행사했어요.`);bound=true;
       o.push({kind:'option',...base,years:1,sal:curSal,title:'옵션 연장',sub:`팀이 옵션을 행사해 1년 더 함께해요 · 머신 ${tm.machine}`,tag:'옵션'});
-    }else if(!keepOK){S.leaveNote=`${tm.name}이(가) 재계약을 하지 않기로 했어요. 새 팀을 찾아야 해요.`;evs.push(`${tm.name}이(가) 재계약을 하지 않기로 했어요.`)}
+    }else if(!keepOK){S.leaveNote=`${jo(tm.name,'이','가')} 재계약을 하지 않기로 했어요. 새 팀을 찾아야 해요.`;evs.push(`${jo(tm.name,'이','가')} 재계약을 하지 않기로 했어요.`)}
     else if(keepOK){const tr=terms(tm);o.push({kind:'resign',...base,...tr,title:'재계약',sub:`${tr.termTxt} · 머신 ${tm.machine}`,tag:null})}
   }
   const contracted=()=>o.some(x=>['resign','stay','option'].includes(x.kind));
@@ -1269,10 +1269,10 @@ function makeOffers(pos,field,h2h){
     got.forEach(({t,weak})=>{const tr=terms(t);o.push({kind:'f1',teamId:t.id,...tr,poach:weak.id,title:`${t.name} 레이스 시트`,
       sub:`${tr.termTxt} · ${TIER_LBL[t.tier]} · 머신 ${t.machine} · ${weak.name} 대신`,color:t.color,short:t.short,tag:req?'이적 요청':'스카우트 제안'})});
     if(req){p.xferDone={year:S.year-1,n:got.length};
-      if(got.length)S.last.ev.push(`이적 요청에 ${got.map(g=>g.t.name).join(', ')}이(가) 응답했어요!`);
+      if(got.length)S.last.ev.push(`이적 요청에 ${jo(got.map(g=>g.t.name).join(', '),'이','가')} 응답했어요!`);
       else S.last.ev.push(`이적 요청에 응한 팀이 없었어요. 팀과 어색해졌어요 · ${applyEff({rep:-4,fans:-3})}`);
       p.xfer=null}
-    else if(got.length)S.last.ev.push(`${got.map(g=>g.t.name).join(', ')}이(가) 먼저 영입을 제안했어요!`);
+    else if(got.length)S.last.ev.push(`${jo(got.map(g=>g.t.name).join(', '),'이','가')} 먼저 영입을 제안했어요!`);
   }
   // bidding war: several F1 teams want me -> everyone pays more
   const paid=o.filter(x=>(x.kind==='f1'||x.kind==='resign')&&x.sal);
@@ -1304,7 +1304,7 @@ function applyOffer(o){
   else if(o.kind==='f1'){reactTransfer(o);
     if(o.poach){const d=S.f1.find(x=>x.id===o.poach);if(d){const tn=teamDef(o.teamId).name;
       if(leavingF1Seat&&oldTeam){d.team=oldTeam}else S.f1=S.f1.filter(x=>x!==d);
-      if(S.news&&S.news.heads)S.news.heads.unshift({t:o.promo?`${p.name}, ${tn} 승격 확정! ${d.name}, 시트를 잃어`:`${p.name}, ${tn} 이적 확정! ${d.name}${leavingF1Seat?'와(과) 자리 맞교환':'은(는) 시트를 잃어'}`,c:'gold'})}}
+      if(S.news&&S.news.heads)S.news.heads.unshift({t:o.promo?`${p.name}, ${tn} 승격 확정! ${d.name}, 시트를 잃어`:`${p.name}, ${tn} 이적 확정! ${leavingF1Seat?jo(d.name,'과','와')+' 자리 맞교환':jo(d.name,'은','는')+' 시트를 잃어'}`,c:'gold'})}}
     p.series='F1';p.role='race';p.team={id:o.teamId};p.seriesSeasons=1;if(!p.debutYear)p.debutYear=S.year;p.academy=null;p.contract={left:o.years,option:o.option,clause:o.clause,sal:o.sal};
     if(leavingF1Seat)fillSeat(oldTeam);
   }else if(o.kind==='reserve'){p.contract=null;p.series='F1';p.role='reserve';p.team={id:o.teamId};if(leavingF1Seat)fillSeat(oldTeam)}
@@ -1681,6 +1681,8 @@ function tone(s,o={}){
 /* ---------- reactions: expert + fans ---------- */
 function ieyo(w){const c=w.charCodeAt(w.length-1)-0xAC00;return c>=0&&c<11172&&c%28?'이에요':'예요'}
 function ro(w){const c=w.charCodeAt(w.length-1)-0xAC00;return c>=0&&c<11172&&c%28&&c%28!==8?'으로':'로'}
+function jo(w,a,b){w=String(w);const ch=w.replace(/[\s)\]]+$/,'').slice(-1),c=ch.charCodeAt(0)-0xAC00;const has=c>=0&&c<11172?c%28>0:/[013678LMNR]/i.test(ch);return w+(has?a:b)}
+function joRo(w){w=String(w);const ch=w.replace(/[\s)\]]+$/,'').slice(-1),c=ch.charCodeAt(0)-0xAC00;const b=c>=0&&c<11172?c%28:/[036]/.test(ch)&&!/[A-Za-z]\d*$/.test(w)?1:0;return w+(b&&b!==8?'으로':'로')}
 function josa(w){const c=w.charCodeAt(w.length-1)-0xAC00;return c>=0&&c<11172&&c%28?'을':'를'}
 const batchim=w=>{const c=w.charCodeAt(w.length-1)-0xAC00;return c>=0&&c<11172&&c%28>0},josa2=w=>batchim(w)?'은':'는',josa3=w=>batchim(w)?'이':'가';
 const NICKS=['새벽알람','피트레인직관러','타이어요정','DRS열어','언더컷장인','입문3년차','헬멧수집가','패독고양이','세이프티카','블루플래그','체커기','예선덕후','풀웻파','부산f1팬','대전레이싱'];
@@ -1805,7 +1807,7 @@ function buildReact(R,x){
   // 1) verdict: against what the car and driver should have managed
   let v;
   if(!R.pos||R.role==='reserve')v=R.role==='reserve'?(R.starts?pick(['리저브였지만 대타 출전으로 존재감을 보였어요.','리저브로 기다리다 잡은 기회, 그 자체로 의미가 있었어요.']):pick(['리저브로 패독을 지킨 시즌이었어요. 시뮬레이터 작업으로 차곡차곡 쌓았어요.','레이스는 없었지만 팀 안에서 신뢰를 쌓은 시즌이에요.'])):'출전 기회가 없던 시즌이었어요.';
-  else if(R.titled)v=R.sid==='F1'?pick([`월드 챔피언! 시즌 내내 흔들림 없이 타이틀을 지켜냈어요.`,`${R.wins}승으로 증명한 완벽한 시즌, 월드 챔피언이에요.`,`모두가 인정할 수밖에 없는 시즌이었어요. 챔피언 축하해요.`]):pick([`${R.series} 챔피언! 이 무대에서는 더 보여줄 게 없어요.`,`${R.wins}승으로 ${R.series}를 평정했어요.`,`챔피언다운 시즌이었어요. 다음 무대가 기다려요.`]);
+  else if(R.titled)v=R.sid==='F1'?pick([`월드 챔피언! 시즌 내내 흔들림 없이 타이틀을 지켜냈어요.`,`${R.wins}승으로 증명한 완벽한 시즌, 월드 챔피언이에요.`,`모두가 인정할 수밖에 없는 시즌이었어요. 챔피언 축하해요.`]):pick([`${R.series} 챔피언! 이 무대에서는 더 보여줄 게 없어요.`,`${R.wins}승으로 ${jo(R.series,'을','를')} 평정했어요.`,`챔피언다운 시즌이었어요. 다음 무대가 기다려요.`]);
   else if(R.first)v=`첫 시즌 ${R.field}명 중 ${R.pos}위. `+(R.pos/R.field<=.2?pick(['루키 시즌에 이 순위는 훌륭한 출발이에요.','데뷔 시즌부터 앞쪽에서 싸웠어요.']):R.pos/R.field<=.5?pick(['첫 시즌 치고 충분히 좋은 성적이에요.','적응하면서도 중위권 위를 지켰어요.']):R.pos/R.field<=.8?pick(['첫 시즌은 적응기예요. 초반만 지나면 페이스가 올라와요.','새 무대에 몸을 맞춘 시즌이에요. 진짜는 내년부터예요.']):'처음이라 쉽지 않았지만, 배운 게 많은 시즌이에요.');
   else if(R.pos<=3&&diff>=-2)v=pick([`${R.pos}위, 챔피언 경쟁까지 한 최고의 시즌이에요.`,`시즌 ${R.pos}위. 포디움 단골이 된 한 해였어요.`,`${R.pos}위로 정상 바로 아래까지 올라왔어요.`]);
   else if(expP&&diff>=3)v=pick([`예상 ${expP}위 전력으로 ${R.pos}위, 기대 이상의 시즌이에요.`,`전력만 보면 ${expP}위였는데 ${R.pos}위까지 끌어올렸어요.`,`차와 실력 이상을 해낸 ${R.pos}위예요 (예상 ${expP}위).`]);
@@ -1816,13 +1818,13 @@ function buildReact(R,x){
   // 2) inside the team
   if(R.h2h){const q=R.h2h.q,r=R.h2h.r,qs=q[0]/(q[0]+q[1]||1),rs=r[0]/(r[0]+r[1]||1),tp=R.h2h.tp,ps=tp&&tp[1]>0?tp[0]/tp[1]:null,m=R.h2h.mate;
     const ahead=rs>=.5||(ps!=null&&ps>=.5),pct=ps!=null?` · 포인트 ${Math.round(ps*100)}%`:'';let t;
-    if(qs>=.6&&ahead&&(ps==null||ps>=.5))t=pick([`예선 ${q[0]}:${q[1]}, 결선 ${r[0]}:${r[1]}${pct}. ${m}를 완전히 앞섰어요.`,`팀 안 경쟁은 확실히 이겼어요. 예선 ${q[0]}:${q[1]}, 결선 ${r[0]}:${r[1]}이에요.`,`이제 팀의 리더는 나예요. ${m}를 예선 ${q[0]}:${q[1]}로 눌렀어요.`]);
-    else if(qs<.5&&ahead)t=pick([`예선은 ${m}에게 ${q[0]}:${q[1]}로 밀렸지만, 결선 ${r[0]}:${r[1]}${pct}로 팀 안 우위는 지켰어요.`,`일요일에 강했어요. 예선은 ${q[0]}:${q[1]}였지만 결선에서 ${m}를 ${r[0]}:${r[1]}로 앞섰어요.`]);
-    else if(qs>=.5&&!ahead)t=pick([`예선은 ${q[0]}:${q[1]}로 앞섰는데 결선에서 ${r[0]}:${r[1]}로 밀렸어요.`,`토요일엔 빨랐지만 일요일엔 ${m}가 한 수 위였어요 (결선 ${r[0]}:${r[1]}).`]);
-    else if(qs<=.2&&rs<=.3&&R.pos&&R.pos<=3)t=pick([`${R.pos}위는 훌륭하지만, 팀 안 경쟁에선 ${m}가 한 수 위였어요 (예선 ${q[0]}:${q[1]}, 결선 ${r[0]}:${r[1]}).`,`성적은 좋았어요. 다만 ${m}를 넘으려면 예선부터 따라잡아야 해요.`]);
+    if(qs>=.6&&ahead&&(ps==null||ps>=.5))t=pick([`예선 ${q[0]}:${q[1]}, 결선 ${r[0]}:${r[1]}${pct}. ${jo(m,'을','를')} 완전히 앞섰어요.`,`팀 안 경쟁은 확실히 이겼어요. 예선 ${q[0]}:${q[1]}, 결선 ${r[0]}:${r[1]}${/[013678]$/.test(r[1])?'이에요':'예요'}.`,`이제 팀의 리더는 나예요. ${jo(m,'을','를')} 예선 ${q[0]}:${joRo(q[1])} 눌렀어요.`]);
+    else if(qs<.5&&ahead)t=pick([`예선은 ${m}에게 ${q[0]}:${joRo(q[1])} 밀렸지만, 결선 ${r[0]}:${r[1]}${pct}${pct?'로':joRo(r[1]).slice(String(r[1]).length)} 팀 안 우위는 지켰어요.`,`일요일에 강했어요. 예선은 ${q[0]}:${q[1]}였지만 결선에서 ${jo(m,'을','를')} ${r[0]}:${joRo(r[1])} 앞섰어요.`]);
+    else if(qs>=.5&&!ahead)t=pick([`예선은 ${q[0]}:${joRo(q[1])} 앞섰는데 결선에서 ${r[0]}:${joRo(r[1])} 밀렸어요.`,`토요일엔 빨랐지만 일요일엔 ${jo(m,'이','가')} 한 수 위였어요 (결선 ${r[0]}:${r[1]}).`]);
+    else if(qs<=.2&&rs<=.3&&R.pos&&R.pos<=3)t=pick([`${R.pos}위는 훌륭하지만, 팀 안 경쟁에선 ${jo(m,'이','가')} 한 수 위였어요 (예선 ${q[0]}:${q[1]}, 결선 ${r[0]}:${r[1]}).`,`성적은 좋았어요. 다만 ${jo(m,'을','를')} 넘으려면 예선부터 따라잡아야 해요.`]);
     else if(qs<=.2&&rs<=.3&&!R.first)t=`예선 ${q[0]}:${q[1]}, 결선 ${r[0]}:${r[1]}${pct}. ${m}에게 전부 밀린 건 뼈아파요.`;
-    else if(!ahead)t=pick([`${m}가 예선 ${q[1]}:${q[0]}, 결선 ${r[1]}:${r[0]}로 한발 앞섰어요. 아직 따라잡을 수 있는 차이예요.`,`팀 안 경쟁은 ${m} 쪽으로 기울었어요${ps!=null?` (내 포인트 비중 ${Math.round(ps*100)}%)`:''}.`]);
-    else t=ahead?pick([`${m}를 근소하게 앞섰어요 (예선 ${q[0]}:${q[1]}, 결선 ${r[0]}:${r[1]}${pct}).`,`팀 안 경쟁은 내 쪽이 조금 앞섰어요 (예선 ${q[0]}:${q[1]}, 결선 ${r[0]}:${r[1]}).`]):`${m}와 팀 안 경쟁은 팽팽했어요 (예선 ${q[0]}:${q[1]}, 결선 ${r[0]}:${r[1]}).`;
+    else if(!ahead)t=pick([`${jo(m,'이','가')} 예선 ${q[1]}:${q[0]}, 결선 ${r[1]}:${joRo(r[0])} 한발 앞섰어요. 아직 따라잡을 수 있는 차이예요.`,`팀 안 경쟁은 ${m} 쪽으로 기울었어요${ps!=null?` (내 포인트 비중 ${Math.round(ps*100)}%)`:''}.`]);
+    else t=ahead?pick([`${jo(m,'을','를')} 근소하게 앞섰어요 (예선 ${q[0]}:${q[1]}, 결선 ${r[0]}:${r[1]}${pct}).`,`팀 안 경쟁은 내 쪽이 조금 앞섰어요 (예선 ${q[0]}:${q[1]}, 결선 ${r[0]}:${r[1]}).`]):`${jo(m,'과','와')} 팀 안 경쟁은 팽팽했어요 (예선 ${q[0]}:${q[1]}, 결선 ${r[0]}:${r[1]}).`;
     E.push(t)}
   else if(R.pos&&R.sid!=='F1'&&p.team&&p.team.tier){const tr=p.team.tier;
     if(tr==='bottom'&&R.pos<=R.field/2)E.push(pick(['하위팀 머신으로 이 순위면 드라이버 몫이 컸다는 뜻이에요.','약한 팀에서 거둔 성적이라 더 값져요.']));
@@ -2497,7 +2499,7 @@ function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.r
     peak:p.peak,jr:p.jr.length,trs:[...altTrophies(p).map(t=>t.n),...p.jr.map(j=>`${j.name} 챔피언`)]});
   hofSave(rkSort(a));rkPush()}
 /* ---------- anonymous play log (Google Apps Script -> Sheet) ---------- */
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='0.32.3',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='0.32.4',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -2653,7 +2655,7 @@ function isNewContract(o){const p=S.p;
 const teamLogo=id=>(K.teams.find(x=>x.id===id)||{}).logo||null;
 function contractInfo(o){const p=S.p,y=S.year,N=a=>a.map(esc).join('<em>●</em>');
   if(o.kind==='f1'){const t=teamDef(o.teamId);return{big:true,color:t.color,logo:teamLogo(t.id),name:t.name,en:TEAM_EN[t.id]||t.name,line:`${y} 시즌부터 ${t.name} 드라이버`,terms:`${o.years}년 · ${won(o.sal)}${o.option?' · +1년 옵션':''}`,
-    news:N([`${p.name}, ${t.name}와 ${o.years}년 계약 체결`,`연봉 ${won(o.sal)} · ${y} 시즌부터 레이스 시트`,`${t.name} 팬들 "드디어 왔다"`])}}
+    news:N([`${p.name}, ${jo(t.name,"과","와")} ${o.years}년 계약 체결`,`연봉 ${won(o.sal)} · ${y} 시즌부터 레이스 시트`,`${t.name} 팬들 "드디어 왔다"`])}}
   if(o.kind==='reserve'){const t=teamDef(o.teamId);return{color:t.color,logo:teamLogo(t.id),name:t.name,line:`${y} 시즌 ${t.name} 리저브 드라이버`,terms:'FP1 · 시뮬레이터 작업'}}
   if(o.kind==='alt'){const a=altDef(o.altId);return{alt:true,color:o.altF1?teamDef(o.altF1).color:'#3182F6',logo:SLOGO[o.altId]||null,badge:SLOGO[o.altId]?null:a.name,name:o.altTeam||a.name,line:`${y} 시즌 ${a.name} · ${o.altTeam||''}`,terms:`${TIER_LBL[o.tier]||''} 시트`}}
   const ac=o.academy?K.academies.find(a=>a.id===o.academy):null,sd=seriesDef(o.series);
@@ -2880,7 +2882,7 @@ function statSheet(k){const I=STAT_INFO[k];
 function sheetView(){
   if(typeof sheet==='string'&&sheet.startsWith('skip_')){const s=sheet.slice(5),m=AI_MEAN[s],o=ovrOf(S.p.stats),ok=o>=m-5;
     return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">진로 설명</div><h3 class="h2">월반</h3>
-    <p style="margin:0">한 단계를 건너뛰고 ${esc(seriesDef(s).name)}로 바로 가요. 상위팀 시트가 보장돼요.</p>
+    <p style="margin:0">한 단계를 건너뛰고 ${joRo(esc(seriesDef(s).name))} 바로 가요. 상위팀 시트가 보장돼요.</p>
     <div class="kv"><div class="row"><span>상대 평균 OVR</span><span class="num">${m}</span></div><div class="row"><span>내 OVR</span><span class="num" style="color:${ok?'var(--good)':'var(--bad)'}">${o}</span></div></div>
     <div class="kv nw"><div class="row"><span class="up">좋은 점</span><span>상위팀 · 1년 단축 · 어린 나이 보너스</span></div><div class="row"><span class="down">위험</span><span>강한 상대 · 첫 시즌 적응 · 하위권이면 슬럼프</span></div></div>
     <p style="margin:0;font-weight:700">${ok?'충분히 해볼 만해요.':'아직은 한 단계씩 올라가는 게 안전해요.'}</p>
@@ -3020,7 +3022,7 @@ root.addEventListener('click',e=>{
   if(d.gacha&&S.phase==='progress'&&S.season.gacha&&!S.season.gacha.done){
     const box=document.getElementById('pInc');const go=d.gacha==='go';
     if(go)box.querySelector('.card').innerHTML='<div class="eyebrow">결과를 기다리는 중</div><h3 class="h2">두근두근…</h3>';
-    setTimeout(()=>{const res=resolveGacha(go);
+    setTimeout(()=>{if(!S||!S.season||S.season.gacha.done||S.phase!=='progress')return;const res=resolveGacha(go);
       box.innerHTML=`<div class="sheet"><section class="card"><div class="eyebrow">휴식기 결과</div><h3 class="h2" style="color:${res.ok===true?'var(--gold)':res.ok===false?'#FF6B78':'var(--fg)'}">${res.ok===true?'성공!':res.ok===false?'실패…':'휴식'}</h3><p style="margin:0">${esc(res.t)}</p><button class="btn" type="button" id="gachaOk">시즌 이어가기</button></section></div>`;
       feed.unshift({t:`휴식기 · ${res.t}`,c:res.ok===true?'gold':res.ok===false?'bad':'blue'});paintFeed()},go?900:0);return}
   if(id==='gachaOk'){document.getElementById('pInc').innerHTML='';progTimer=setTimeout(stepProgress,400);return}
@@ -3047,7 +3049,7 @@ root.addEventListener('click',e=>{
   if(d.prog&&S.phase==='ready'){if(S.train==='rest')S.train='focus';if(trOpen())setProg(d.prog);save();render();return}
   if(id==='askRetire'){sheet='retire';render();return}
   if(id==='confirmRetire'){sheet=null;retireNow();render();window.scrollTo(0,0);return}
-  if(id==='skipProg'){finishProgress();return}
+  if(id==='skipProg'){const b=document.getElementById('pInc');if(b&&b.innerHTML.trim())return;finishProgress();return}
   if(id==='okBtn'){S.phase='offers';save();tab='home';render();window.scrollTo(0,0);return}
   if(d.offer!=null){sel=+d.offer;render();return}
   if(id==='chooseBtn'&&sel!=null){const o=S.offers[sel],go=()=>{applyOffer(o);sel=null;render();window.scrollTo(0,0)};if(isNewContract(o))contractShow(o,go);else go();return}
