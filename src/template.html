@@ -2519,8 +2519,9 @@ function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.r
 /* ---------- anonymous play log (Google Apps Script -> Sheet) ---------- */
 // 업데이트 소식 (새 버전을 맨 위에 추가)
 const NOTES=[
+ {v:'1.0.2',d:'2026.11.2',t:'랭킹 창 편하게',items:['랭킹 창의 닫기 버튼이 아래에 항상 보여요','바깥 어두운 곳을 눌러도 닫혀요']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어가요','르망 24시·인디 500 도전과 트리플 크라운','은퇴식, 커리어 결산 카드, 전체 랭킹']}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.0.1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.0.2',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -2636,7 +2637,7 @@ function hofSheet(H){
   return`<div class="sheet" id="hofBg"><section class="card hof" style="max-height:85vh;overflow:auto"><h3 class="h2">랭킹</h3>
     <div class="segs"><button type="button" data-rk="all" aria-pressed="${all}">전체</button><button type="button" data-rk="mine" aria-pressed="${!all}">내 기록</button></div>
     ${body}
-    <button class="btn" type="button" id="hofClose">닫기</button></section></div>`}
+    <div class="stick"><button class="btn" type="button" id="hofClose">닫기</button></div></section></div>`}
 let lightsT=[];
 function lightsGo(cb){
   const el=document.createElement('div');el.className='lights';
@@ -3035,7 +3036,8 @@ root.addEventListener('input',e=>{
 root.addEventListener('change',e=>{if(e.target.id==='obNat'){ob.nat=e.target.value;if(!ob.avPick)ob.av=avDefault(ob.nat);if(ob.nameAuto)ob.name=genName(ob.nat);render()}if(e.target.id==='obNum'){ob.num=clamp(parseInt(e.target.value)||2,2,99);render()}});
 root.addEventListener('click',e=>{
   {const ib=e.target.closest('span.ibtn[data-sheet]');if(ib){openSheet(ib.dataset.sheet);return}}
-  const t=e.target.closest('button,#sheetBg');if(!t)return;
+  const t=e.target.closest('button,#sheetBg,#hofBg');if(!t)return;
+  if(t.id==='hofBg'){if(e.target===t){hofOpen=false;render()}return}
   if(t.id==='sheetBg'&&e.target===t){if(sheetBack){sheet=sheetBack;sheetBack=null;render();return}if(PRE(sheet)||sheet&&sheet.type==='chres')return;sheet=null;chain=false;evPick=null;render();return}
   const id=t.id,d=t.dataset;
   // onboarding
