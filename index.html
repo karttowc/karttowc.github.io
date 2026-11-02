@@ -3638,7 +3638,7 @@ function cerPage(i){const p=S.p,D=cerData(),T=p.tot,s=similarDriver();
       <div class="cbye">${bye.map((b,j)=>`<div style="animation-delay:${.9+j*.35}s">💬 ${esc(b)}</div>`).join('')}</div></div>`}
   if(i===1)return`<div class="cp c1"><div class="ck">THE ROAD</div><h2>${p.debutYear?'카트에서 F1까지':'걸어온 길'}</h2>
       <div class="road">${D.steps.map((x,j)=>`<div class="rs${x.k==='F1'?' f1':''}" style="animation-delay:${.15+j*.18}s"><span class="rl">${sLogo(x.k,22)||'🏁'}</span><span class="rb"><b>${esc(x.name)}</b><span>${x.from}${x.to!==x.from?'–'+x.to:''} · ${x.ti?'<em>챔피언</em>':x.best?'최고 '+x.best+'위':'출전 없음'}</span></span></div>`).join('')}</div>
-      ${p.debutYear?`<p>${p.debutYear-S.startYear+B.driver.start_age}세에 F1 데뷔</p>`:(Math.max(0,...p.history.map(h=>LVL(h.sid)))>=3||p.history.some(h=>h.sid==='ALT')?`<p>F1의 문은 끝내 열리지 않았어요</p>`:p.history.every(h=>h.sid==='KART')?`<p>다른 진로를 찾아 떠나요<br>카트는 취미로 남았어요</p>`:`<p>짧았지만 꿈을 향해 달린 시간이었어요</p>`)}</div>`;
+      ${p.debutYear?`<p>${p.debutYear-S.startYear+B.driver.start_age}세에 F1 데뷔</p>`:(p.history.some(h=>h.sid==='F2'&&h.titled)?`<p>F2 챔피언까지 올랐지만<br>F1 시트는 끝내 오지 않았어요</p>`:Math.max(0,...p.history.map(h=>LVL(h.sid)))>=3||p.history.some(h=>h.sid==='ALT')?`<p>F1의 문은 끝내 열리지 않았어요</p>`:p.history.every(h=>h.sid==='KART')?`<p>다른 진로를 찾아 떠나요<br>카트는 취미로 남았어요</p>`:`<p>짧았지만 꿈을 향해 달린 시간이었어요</p>`)}</div>`;
   if(i===2){const b=D.bestS;return`<div class="cp c2"><div class="ck">BY THE NUMBERS</div><h2>숫자로 보는 커리어</h2>
       <div class="cnum"><div class="gold"><b data-n="${T.titles}">0</b><span>월드 챔피언</span></div><div><b data-n="${T.wins}">0</b><span>F1 우승</span></div><div><b data-n="${T.podiums}">0</b><span>포디움</span></div><div><b data-n="${T.poles}">0</b><span>폴</span></div><div><b data-n="${T.starts}">0</b><span>F1 출전</span></div><div><b data-n="${p.peak}">0</b><span>최고 OVR</span></div></div>
       ${p.jr.length||altTrophies().length||S.rival?`<div class="chips" style="justify-content:center">${p.jr.map(j=>`<span class="chip">${esc(j.name)} 챔피언</span>`).join('')}${altTrophies().map(j=>`<span class="chip silver">${esc(j.n)}</span>`).join('')}${S.rival?`<span class="chip">라이벌 ${esc(S.rival.name)} 맞대결 ${S.rival.h2h[0]}:${S.rival.h2h[1]}</span>`:''}</div>`:''}
@@ -3788,7 +3788,7 @@ function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.r
     peak:p.peak,jr:p.jr.length,trs:[...altTrophies(p).map(t=>t.n),...p.jr.map(j=>`${j.name} 챔피언`)]});
   hofSave(rkSort(a));rkPush()}
 /* ---------- anonymous play log (Google Apps Script -> Sheet) ---------- */
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='0.32.5',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='0.32.6',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
