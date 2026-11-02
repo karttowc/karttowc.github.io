@@ -2455,21 +2455,21 @@ function obInit(){
 }
 function obView(){
   const steps=`<div class="steps">${[1,2,3].map(i=>`<i class="${i<=ob.step?'on':''}"></i>`).join('')}</div>`;
-  const tag=`<div class="obtag"><div class="obmeta">${ob.step===1?'':helmet(ob.helmet,null,44)}<b class="num">#${esc(ob.num)}</b>${ob.step===1?'':`<em>${esc(K.nationalities[ob.nat]||'')}</em>`}</div><span class="obname">${esc(ob.name.trim()||'이름 없음')}</span></div>`;
+  const tag=`<div class="obtag"><div class="obmeta">${ob.step===1?'':helmet(ob.helmet,null,44)}<b class="num">#${esc(ob.num)}</b><em>${esc(K.nationalities[ob.nat]||'')}</em></div><span class="obname">${esc(ob.name.trim()||'이름 없음')}</span></div>`;
   const hero=`<section class="obhero"><div class="obstage">${ob.step===1?helmet(ob.helmet,ob.num,118):avatar(ob.av,ob.helmet,118,true)}</div>${tag}</section>`;
   const note=`<p class="muted" style="margin:4px 0 0;font-size:12px;text-align:center">비공식 팬 게임이에요. 수익을 내지 않으며 F1·FIA·각 팀과 관련이 없어요. 팀명·로고·선수명 등 상표는 각 소유자의 것이에요.</p>`;
   if(ob.step===1)return`<header class="top"><span style="width:56px"></span>${steps}<button class="iconbtn" type="button" id="obRandom">랜덤</button></header>
-    <div><h2 class="h2">헬멧과 이름부터 정해요</h2></div>
+    <div><h2 class="h2">헬멧·이름·국적부터 정해요</h2></div>
     ${hero}
     <section class="card">${helmetEditor(ob.helmet)}</section>
     <section class="card"><div class="grid2"><label class="lbl" for="obName">이름<input class="field" id="obName" maxlength="12" placeholder="이름" value="${esc(ob.name)}"></label>
-      <label class="lbl" for="obNum">차량 번호<input class="field num" id="obNum" type="number" min="2" max="99" value="${ob.num}"></label></div></section>
+      <label class="lbl" for="obNum">차량 번호<input class="field num" id="obNum" type="number" min="2" max="99" value="${ob.num}"></label></div>
+      <label class="lbl" for="obNat" style="margin-top:10px">국적<select class="field" id="obNat">${Object.entries(K.nationalities).map(([k,v])=>`<option value="${k}"${k===ob.nat?' selected':''}>${v}</option>`).join('')}</select></label></section>
     <button class="btn" type="button" id="obNext1" ${ob.name.trim()?'':'disabled'}>다음</button>${note}`;
   if(ob.step===2)return`<header class="top"><button class="iconbtn" type="button" id="obBack">이전</button>${steps}<button class="iconbtn" type="button" id="obRandom">랜덤</button></header>
     <div><h2 class="h2">어떤 드라이버로 살아볼까요?</h2></div>
     ${hero}
     <section class="card"><div class="avgrid">${AVATAR.map((_,i)=>`<button class="avopt" type="button" data-av="${i}" aria-pressed="${i===ob.av}" aria-label="드라이버 ${i+1}">${avatar(i,ob.helmet,64)}</button>`).join('')}</div></section>
-    <section class="card"><label class="lbl" for="obNat">국적<select class="field" id="obNat">${Object.entries(K.nationalities).map(([k,v])=>`<option value="${k}"${k===ob.nat?' selected':''}>${v}</option>`).join('')}</select></label></section>
     <button class="btn" type="button" id="obNext2">다음</button>`;
   return`<header class="top"><button class="iconbtn" type="button" id="obBack">이전</button>${steps}<span style="width:56px"></span></header>
     <div><div class="eyebrow">네 후보 모두 능력치 합은 ${B.driver.start_stat_sum}이고, 분포만 달라요.</div><h2 class="h2">드라이버 스타일을 골라 주세요</h2></div>
@@ -2497,7 +2497,7 @@ function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.r
     peak:p.peak,jr:p.jr.length,trs:[...altTrophies(p).map(t=>t.n),...p.jr.map(j=>`${j.name} 챔피언`)]});
   hofSave(rkSort(a));rkPush()}
 /* ---------- anonymous play log (Google Apps Script -> Sheet) ---------- */
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='0.32.0',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='0.32.1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3000,7 +3000,7 @@ root.addEventListener('click',e=>{
   if(t.id==='sheetBg'&&e.target===t){if(sheetBack){sheet=sheetBack;sheetBack=null;render();return}if(PRE(sheet)||sheet&&sheet.type==='chres')return;sheet=null;chain=false;evPick=null;render();return}
   const id=t.id,d=t.dataset;
   // onboarding
-  if(id==='obRandom'){if(ob.step===1){ob.helmet=randomHelmet();ob.name=genName(ob.nat);ob.nameAuto=true;ob.num=ri(2,99)}else{ob.nat=pick(Object.keys(K.nationalities));if(ob.nameAuto)ob.name=genName(ob.nat);ob.av=pick(AVATAR.map((_,i)=>i));ob.avPick=true}render();return}
+  if(id==='obRandom'){if(ob.step===1){ob.helmet=randomHelmet();ob.nat=pick(Object.keys(K.nationalities));if(!ob.avPick)ob.av=avDefault(ob.nat);ob.name=genName(ob.nat);ob.nameAuto=true;ob.num=ri(2,99)}else{ob.av=pick(AVATAR.map((_,i)=>i));ob.avPick=true}render();return}
   if(d.htab){hedTab=d.htab;render();return}
   if(d.av!=null&&ob){ob.av=+d.av;ob.avPick=true;render();return}
   if(d.hb||d.hs||d.hp||d.hv){const tgt=ob||(S&&!S.p.retired?S.p:null);if(!tgt)return;const h=normHelmet(tgt.helmet);
