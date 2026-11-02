@@ -3187,9 +3187,13 @@ function reactTransfer(o){if(!S.react)return;const t=o.teamId?teamDef(o.teamId):
 const HPAT=[['none','단색'],['visor','바이저 라인'],['swoosh','스윕'],['two','투톤'],['center','센터 스트라이프'],['grad','그라데이션'],['dots','도트 페이드'],['crown','크라운 밴드']];
 const HPAT_OLD={stripe:'visor',double:'center',cap:'two',diag:'swoosh',checker:'dots',stars:'dots',ring:'crown'};
 const HVIS=[['dark','다크'],['smoke','스모크'],['gold','골드 미러'],['blue','블루 미러'],['iri','오로라']];
-const HCOL=['#3182F6','#E8002D','#FF8000','#27F4D2','#F2C14E','#9B5CF6','#F5F5F5','#1F8A4C','#16181D','#FF5CA8','#7A1F2B','#9AA3B2'];
-function normHelmet(h){if(typeof h==='string')h={base:h,sec:'#F5F5F5',pat:'visor',vis:'dark'};
-  if(HPAT_OLD[h.pat])h={...h,pat:HPAT_OLD[h.pat]};return h}
+/* 레이싱 도장 팔레트(v0.32.0): 로소·버건디·파파야·샴페인 골드·브리티시 그린·민트·걸프 블루·네이비·딥 퍼플·코랄·펄 화이트·건메탈 */
+const HCOL=['#C8102E','#6E1A2B','#F28C28','#D4AF6A','#1E5A3F','#5FC9B5','#6FA8DC','#1C2A4A','#4B2E6F','#E8747C','#EDEAE3','#4A4F57'];
+/* 옛 팔레트 → 새 팔레트(옛 세이브·AI 헬멧) */
+const HCOL_OLD={'#3182F6':'#6FA8DC','#E8002D':'#C8102E','#FF8000':'#F28C28','#27F4D2':'#5FC9B5','#F2C14E':'#D4AF6A','#9B5CF6':'#4B2E6F','#F5F5F5':'#EDEAE3','#1F8A4C':'#1E5A3F','#16181D':'#1C2A4A','#FF5CA8':'#E8747C','#7A1F2B':'#6E1A2B','#9AA3B2':'#4A4F57'};
+function normHelmet(h){if(typeof h==='string')h={base:h,sec:'#EDEAE3',pat:'visor',vis:'dark'};
+  if(HPAT_OLD[h.pat])h={...h,pat:HPAT_OLD[h.pat]};
+  const u=c=>HCOL_OLD[String(c).toUpperCase()]||c;if(HCOL_OLD[String(h.base).toUpperCase()]||HCOL_OLD[String(h.sec).toUpperCase()])h={...h,base:u(h.base),sec:u(h.sec)};return h}
 function shade(hex,f){const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,m=v=>Math.round(f<1?v*f:v+(255-v)*(f-1));return'#'+[m(r),m(g),m(b)].map(v=>v.toString(16).padStart(2,'0')).join('')}
 /* helmet sprites (data/helmets.json, one per pattern): green shell -> base, magenta pattern -> sec, cyan visor -> visor tint */
 const HVIS_COL={dark:'#2A2F3A',smoke:'#566074',gold:'#D9A520',blue:'#2F72D6'};
@@ -3782,7 +3786,7 @@ function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.r
     peak:p.peak,jr:p.jr.length,trs:[...altTrophies(p).map(t=>t.n),...p.jr.map(j=>`${j.name} 챔피언`)]});
   hofSave(rkSort(a));rkPush()}
 /* ---------- anonymous play log (Google Apps Script -> Sheet) ---------- */
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='0.31.1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='0.32.0',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
