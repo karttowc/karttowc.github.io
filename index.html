@@ -905,7 +905,7 @@ const B = {
   "debut_age_penalty_per_year": 2,
   "rookie_adapt": 3,
   "first_kart_easy": 5,
-  "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 3, "dev_max": 9, "window": 4}
+  "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 1.5, "dev_max": 4.5, "window": 4}
  },
  "super_licence": {
   "min_age": 18,
@@ -3809,7 +3809,7 @@ function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.r
 // 업데이트 소식 (새 버전을 맨 위에 추가)
 const NOTES=[
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어가요','르망 24시·인디 500 도전과 트리플 크라운','은퇴식, 커리어 결산 카드, 전체 랭킹']}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.0.2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.1.0',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3848,6 +3848,8 @@ function logDownload(){const q=logQ();if(!q.length)return;const name=`kart-to-wc
 const logBtn=()=>!logOff()&&logQ().length?`<button class="btn ghost" type="button" id="logDl">플레이 기록 파일 받기 (못 보낸 기록 ${logQ().length}개)</button>`:'';
 setTimeout(logFlush,3000);
 /* ---------- online ranking (Supabase) ---------- */
+// ranking season: only records since the v1.0.0 launch count (older ones were set under an easier balance; kept on the server)
+const RK_FROM='2026-11-02T07:31:00Z';
 const SB_URL='https://nylfktkmicqqlgkjfvyg.supabase.co/rest/v1/ranking',SB_KEY='sb_publishable_oIyy0JrrciMA_g_iX70j_A_coEepIDF',RK_VER='0.21.0';
 let rkTab='all',rkAll=null,rkErr=false,rkBusy=false;
 const BADW=['시발','씨발','ㅅㅂ','ㅆㅂ','병신','ㅂㅅ','좆','개새','지랄','니미','fuck','shit','bitch'];
@@ -3860,7 +3862,7 @@ function rkPush(){if(!rkNet())return;
         peak:h.peak??null,top:h.top,tro:h.tro||0,jr:h.jr||0,trophies:h.trs||[],earn:h.earn||0,ver:RK_VER})})
     .then(r=>{if(!r.ok&&r.status!==409)return;const b=hofLoad(),x=b.find(y=>y.cid===h.cid);if(x){x.sent=1;hofSave(b)}rkAll=null;if(hofOpen&&rkTab==='all')rkLoad()}).catch(()=>{})})}
 function rkLoad(){if(rkBusy||!rkNet())return;rkBusy=true;rkErr=false;
-  fetch(SB_URL+'?select=*&order=titles.desc,wins.desc,tro.desc,podiums.desc,jr.desc,peak.desc.nullslast,created_at.asc&limit=100',{headers:{apikey:SB_KEY}})
+  fetch(SB_URL+'?select=*&created_at=gte.'+RK_FROM+'&order=titles.desc,wins.desc,tro.desc,podiums.desc,jr.desc,peak.desc.nullslast,created_at.asc&limit=100',{headers:{apikey:SB_KEY}})
     .then(r=>r.ok?r.json():Promise.reject(r.status))
     .then(d=>{rkAll=d.filter(r=>!badName(r.name)).map(r=>({cid:r.cid,name:r.name,num:r.num,nat:r.nat,helmet:r.helmet,start:r.start_year,end:r.end_year,age:r.age,titles:r.titles,wins:r.wins,podiums:r.podiums,starts:r.starts,peak:r.peak,top:r.top,tro:r.tro,jr:r.jr,trs:r.trophies||[]}))})
     .catch(()=>{rkErr=true}).finally(()=>{rkBusy=false;if(hofOpen)render()})}
