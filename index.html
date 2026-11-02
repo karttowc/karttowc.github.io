@@ -3786,7 +3786,7 @@ function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.r
     peak:p.peak,jr:p.jr.length,trs:[...altTrophies(p).map(t=>t.n),...p.jr.map(j=>`${j.name} 챔피언`)]});
   hofSave(rkSort(a));rkPush()}
 /* ---------- anonymous play log (Google Apps Script -> Sheet) ---------- */
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='0.32.2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='0.32.3',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -4265,7 +4265,8 @@ function menuSheet(){
     ${logBtn()}
     <p class="muted" style="margin:0;font-size:12px">시즌 결과·선택 같은 플레이 기록을 이름 없이 익명으로 모아 밸런스 조정에 써요.</p>
     <p class="muted" style="margin:0;font-size:12px">비공식 팬 게임이에요. 수익을 내지 않으며 F1·FIA·각 팀과 관련이 없어요. 팀명·로고·선수명 등 상표는 각 소유자의 것이에요.</p>
-    <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`;
+    <button class="btn" type="button" id="closeSheet">닫기</button>
+    <p class="muted" style="margin:0;font-size:11px;text-align:center">v${LOG_VER}</p></section></div>`;
 }
 // big result card after a preseason choice: what you picked and what it changed
 function bigToast(title,msg,risk){const old=document.getElementById('btoast');if(old)old.remove();
