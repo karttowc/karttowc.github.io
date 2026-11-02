@@ -2481,7 +2481,7 @@ function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.r
     peak:p.peak,jr:p.jr.length,trs:[...altTrophies(p).map(t=>t.n),...p.jr.map(j=>`${j.name} 챔피언`)]});
   hofSave(rkSort(a));rkPush()}
 /* ---------- anonymous play log (Google Apps Script -> Sheet) ---------- */
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='0.26.3',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='0.29.12',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -2996,7 +2996,7 @@ root.addEventListener('click',e=>{
   if(id==='obDone'){newGame({name:ob.name.trim(),num:ob.num,nat:ob.nat,avatar:ob.av,helmet:ob.helmet,style:ob.style,stats:ob.cands[ob.style]});ob=null;tab='home';render();window.scrollTo(0,0);return}
   // game
   if(id==='playBtn'){chain=true;chainSeen={};nextStep();return}
-  if(id==='goSeason'){if(trOpen()){S.progYear=S.year;S.progFree=null}chain=false;sheet=null;S.logPre={morale:S.p.morale,ch:S.challenge?S.challenge.id+':'+(S.chTxt?'go':'no'):null};S.chTxt=null;startSeason();render();window.scrollTo(0,0);return}
+  if(id==='goSeason'){if(trOpen()){S.progYear=S.year;S.progFree=null}chain=false;sheet=null;S.logPre={morale:S.p.morale,ch:S.chLog||null};S.chTxt=null;S.chLog=null;startSeason();render();window.scrollTo(0,0);return}
   if(id==='xferNo'){if(chain){nextStep();return}sheet=null;render();return}
   if(false){startSeason();render();window.scrollTo(0,0);return}
   if(d.gacha&&S.phase==='progress'&&S.season.gacha&&!S.season.gacha.done){
@@ -3022,9 +3022,9 @@ root.addEventListener('click',e=>{
   if(id==='evNext'&&evPick!=null){const i=+d.i,j=evPick,e=evDef(S.events[i].id),c=e.choices[j];evPick=null;let msg=applyEff(c.eff);
     let rk=null;if(c.risk&&Math.random()<c.risk.p){rk=c.risk.msg;msg=msg+' · '+applyEff(c.risk.eff)}
     S.evSeason=[...(S.evSeason||[]),{id:e.id,j}];S.events.splice(i,1);save();if(c.risk)bigToast(c.label,msg,rk||'다행히 아무 일도 없었어요');if(chain){nextStep();return}sheet=null;render();return}
-  if(id==='acceptCh'){const m=runChallenge();S.chTxt=m;sheet={type:'chres',c:S.p.challenges.at(-1)};render();return}
+  if(id==='acceptCh'){S.chLog=S.challenge.id+':go';const m=runChallenge();S.chTxt=m;sheet={type:'chres',c:S.p.challenges.at(-1)};render();return}
   if(id==='chDone'){sheet=null;if(chain){nextStep();return}render();return}
-  if(id==='declineCh'){S.challenge=null;save();if(chain){nextStep();return}sheet=null;render();return}
+  if(id==='declineCh'){S.chLog=S.challenge.id+':no';S.challenge=null;save();if(chain){nextStep();return}sheet=null;render();return}
   if(d.rest&&S.phase==='ready'){S.train=S.train==='rest'?'focus':'rest';save();render();return}
   if(d.prog&&S.phase==='ready'){if(S.train==='rest')S.train='focus';if(trOpen())setProg(d.prog);save();render();return}
   if(id==='askRetire'){sheet='retire';render();return}

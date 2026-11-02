@@ -1,0 +1,212 @@
+{
+ "careers": 89,
+ "ev": {
+  "wedding": [
+   29,
+   22
+  ],
+  "fitness": [
+   51,
+   12
+  ],
+  "dad": [
+   13,
+   23
+  ],
+  "friends": [
+   24,
+   20
+  ],
+  "esports": [
+   30,
+   19
+  ],
+  "home": [
+   8,
+   25
+  ],
+  "helmetvote": [
+   24,
+   12
+  ],
+  "rookietest": [
+   3,
+   3
+  ],
+  "mechanic": [
+   39,
+   6
+  ],
+  "sns": [
+   41,
+   41
+  ],
+  "move": [
+   13,
+   28
+  ],
+  "legend": [
+   25,
+   18
+  ],
+  "routine": [
+   26,
+   26
+  ],
+  "kidfan": [
+   27,
+   17
+  ],
+  "sign": [
+   24,
+   27
+  ],
+  "slump": [
+   29,
+   24
+  ],
+  "sim": [
+   45,
+   22
+  ],
+  "coach": [
+   39,
+   15
+  ],
+  "press": [
+   26,
+   30
+  ],
+  "hate": [
+   5,
+   36
+  ],
+  "tvshow": [
+   14,
+   23
+  ],
+  "setup": [
+   41,
+   17
+  ],
+  "heat": [
+   24,
+   14
+  ],
+  "sponsor": [
+   14,
+   16
+  ],
+  "upgrade": [
+   17,
+   5
+  ],
+  "simdev": [
+   14,
+   16
+  ],
+  "fanclub": [
+   19,
+   16
+  ],
+  "bosspress": [
+   14,
+   14
+  ],
+  "mate": [
+   21,
+   6
+  ],
+  "starmate": [
+   15,
+   17
+  ],
+  "cycling": [
+   26,
+   25
+  ],
+  "rally": [
+   30,
+   21
+  ],
+  "sibling": [
+   29,
+   27
+  ],
+  "gt3ring": [
+   8,
+   14
+  ],
+  "kartschool": [
+   10,
+   20
+  ],
+  "rivalacad": [
+   14,
+   7
+  ],
+  "wet": [
+   48,
+   12
+  ],
+  "docu": [
+   13,
+   23
+  ],
+  "charity": [
+   11,
+   16
+  ],
+  "engineer": [
+   25,
+   8
+  ],
+  "school": [
+   8,
+   10
+  ],
+  "paydriver": [
+   11,
+   3
+  ],
+  "leaveme": [
+   14,
+   10
+  ]
+ },
+ "ga": {
+  "mtb": 0.79,
+  "surf": 0.88,
+  "trampoline": 0.94,
+  "cycle": 0.85,
+  "rainold": 0.6,
+  "rallyx": 0.66,
+  "skydive": 0.89,
+  "gt3": 0.52,
+  "simnight": 0.71,
+  "kart": 0.56,
+  "gamenight": 0.79,
+  "rentkart": 0.92,
+  "esports": 0.8,
+  "boxing": 0.82,
+  "padel": 0.88,
+  "football": 0.81
+ },
+ "ga_all": 0.76,
+ "prog": {
+  "speed": 243,
+  "longrun": 159,
+  "sim": 142,
+  "mind": 87,
+  "craft": 86,
+  "rainx": 74
+ },
+ "rest": {
+  "30": 0.167,
+  "40": 0.2,
+  "50": 0.088,
+  "60": 0.025,
+  "70": 0.005,
+  "80": 0.021
+ }
+}
