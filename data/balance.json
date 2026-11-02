@@ -248,8 +248,8 @@
   "minor_change_per_year": 2,
   "major_regulation": {
    "first_year": 2026,
-   "swing": 8,
-   "tier_reshuffle_chance": 0.3,
+   "swing": 4,
+   "tier_reshuffle_chance": 0.1,
    "cycle_range": [
     3,
     4
@@ -272,6 +272,7 @@
    "mid": 78,
    "bottom": 72
   },
+  "f1_top_extra": 6,
   "seat_rep_adjust": 3,
   "academy": {
    "keep_top_fraction": 0.33,

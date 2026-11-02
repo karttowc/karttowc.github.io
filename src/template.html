@@ -1148,7 +1148,7 @@ const rsvBoost=t=>{const p=S.p;return p.series==='F1'&&p.role==='reserve'&&scv(t
 function f1SeatThr(t,c=seatCtx()){const p=S.p,ac=p.academy?K.academies.find(a=>a.id===p.academy):null,mine=ac&&ac.teams.includes(t.id);
   const resBonus=c.inF1Race?0:c.champF2?10:c.f2Top?5:c.altRet?10:0;
   const agePen=c.inF1Race?0:Math.max(0,p.age-B.career.debut_age_penalty_from+1)*B.career.debut_age_penalty_per_year*(c.altRet?.5:1);
-  const si=scv(t.id);return B.career.f1_seat_ovr[t.tier]+agePen+(c.inF1Race?0:(B.career.f1_debut_extra||0))-repAdj()-fanAdj(t)-(mine?3:0)-(si>=90?5:si>=80?3:si>=60?1:0)-resBonus-rsvBoost(t)}
+  const si=scv(t.id);return B.career.f1_seat_ovr[t.tier]+(t.tier==='top'?B.career.f1_top_extra||0:0)+agePen+(c.inF1Race?0:(B.career.f1_debut_extra||0))-repAdj()-fanAdj(t)-(mine?3:0)-(si>=90?5:si>=80?3:si>=60?1:0)-resBonus-rsvBoost(t)}
 // real 2026 teams in the other series; f1 = the F1 team they feed (same manufacturer or engine partner)
 const ALT_TEAMS={
  WEC:[{n:'토요타 가주 레이싱',tier:'top'},{n:'페라리 AF 코르세',tier:'top',f1:'ferrari'},{n:'캐딜락 팀 JOTA',tier:'mid',f1:'cadillac'},{n:'BMW 팀 WRT',tier:'mid'},{n:'푸조 토탈에너지',tier:'mid'},
@@ -2493,7 +2493,7 @@ function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.r
     peak:p.peak,jr:p.jr.length,trs:[...altTrophies(p).map(t=>t.n),...p.jr.map(j=>`${j.name} 챔피언`)]});
   hofSave(rkSort(a));rkPush()}
 /* ---------- anonymous play log (Google Apps Script -> Sheet) ---------- */
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='0.31.0',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='0.31.1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
