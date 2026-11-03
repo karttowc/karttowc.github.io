@@ -3296,7 +3296,7 @@ function resultCard(){
     <div class="sumtop"><div><span class="lbl">시즌 후 능력치 · 다음 시즌부터 반영</span><b class="num">${R.ovrBefore} <i>→</i> <em>${R.ovrAfter}</em></b>${d?`<span class="delta ${d<0?'down':''}">${d>0?'+':''}${d}</span>`:''}</div>
       ${R.val!=null?`<div style="text-align:right"><span class="lbl">몸값</span><b class="num sm">${won(R.val)}</b>${R.val!==R.valBefore?`<span class="delta ${R.val<R.valBefore?'down':''}">${R.val>R.valBefore?'+':'-'}${won(Math.abs(R.val-R.valBefore))}</span>`:''}</div>`:''}</div>
     ${R.earn?`<div class="earn">${R.earn.sal||R.earn.prize?`<span>올해 수익</span><b class="num">${won(R.earn.sal+R.earn.prize)}</b>${R.earn.prize?`<em>상금 ${won(R.earn.prize)} 포함</em>`:''}`:`<span>올해 수익</span><b>스폰서 지원으로 레이스 중</b>`}<i>통산 ${won(S.p.earn||0)}</i></div>`:''}
-    ${R.h2h?`<div class="earn"><span>vs ${esc(R.h2h.mate)}</span><b class="num" style="font-size:14px">예선 ${R.h2h.q[0]}:${R.h2h.q[1]} · 결선 ${R.h2h.r[0]}:${R.h2h.r[1]}</b>${R.h2h.tp&&R.h2h.tp[1]>0?`<i>팀 포인트 기여 <b class="num" style="font-size:14px">${Math.round(R.h2h.tp[0]/R.h2h.tp[1]*100)}%</b> (${R.h2h.tp[0]}/${R.h2h.tp[1]})</i>`:''}</div>`:''}
+    ${R.h2h?`<div class="earn"><span>vs ${esc(R.h2h.mate)}</span><b class="num" style="font-size:14px">예선 ${R.h2h.q[0]}:${R.h2h.q[1]} · 결선 ${R.h2h.r[0]}:${R.h2h.r[1]}${R.h2h.tp?` · 포인트 ${R.h2h.tp[0]}:${R.h2h.tp[1]-R.h2h.tp[0]}`:''}</b></div>`:''}
     <div class="sgrid"><div class="sgh"><span>능력치 변화</span>${R.train?`<em>훈련: ${esc(R.train)}</em>`:''}</div>${STATS.map(k=>{const v=dm[k]||0;return`<div class="sg${fo.includes(k)?' f':''}"><span>${LBL[k]}</span><b class="num">${S.p.stats[k]}</b><i class="${v>0?'up':v<0?'down':''}">${v>0?'+'+v:v<0?v:'–'}</i></div>`}).join('')}</div>
     ${mine.length?`<div class="mynews">${mine.slice(0,3).map(e=>`<div class="${tone(e)}">${withLogos(esc(e))}</div>`).join('')}</div>`:''}
     ${ex?`<div class="quote"><span>패독 분석가 J</span>${withLogos(esc(ex))}</div>`:''}
@@ -3809,7 +3809,7 @@ function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.r
 // 업데이트 소식 (새 버전을 맨 위에 추가)
 const NOTES=[
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어가요','르망 24시·인디 500 도전과 트리플 크라운','은퇴식, 커리어 결산 카드, 전체 랭킹']}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.0.3',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.0.4',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
