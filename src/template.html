@@ -2115,7 +2115,10 @@ function gauges(c=''){const p=S.p;return`<div class="hg ${c}"><div><span>인기<
 function homeHero(){const p=S.p,c=currentLine();
   return`<section class="dhero"><div class="dhl">${avatar(pAv(p),p.helmet,52)}<div class="hn"><b>${esc(p.name)}</b><span>${p.age}세 · ${sLogo(c.sid||p.series,13)}${c.teamId?logo(c.teamId,18):''}${esc(c.team)}${c.role==='reserve'?' 리저브':''}</span></div>
     <div class="ho"><b class="num">${ovrOf(p.stats)}</b><span>OVR</span></div></div>
-    ${gauges()}</section>`}
+    ${heroLadder()}${gauges()}</section>`}
+// where we are on the road to F1, always on the home card (junior series and F1 only)
+function heroLadder(){const L=[...ORDER,'F1'],cur=L.indexOf(S.p.series);if(cur<0)return'';
+  return`<div class="ladder">${L.map((x,i)=>`<span class="${i===cur?'now':i<cur?'done':''}">${x}</span>`).join('<i></i>')}</div>`}
 function homeTab(){
   return`<header class="top"><h1>카트부터 월챔까지</h1><button class="iconbtn" type="button" id="menuBtn">설정</button></header>
   ${stepper()}
@@ -2534,9 +2537,10 @@ function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.r
 /* ---------- anonymous play log (Google Apps Script -> Sheet) ---------- */
 // 업데이트 소식 (새 버전을 맨 위에 추가)
 const NOTES=[
+ {v:'1.2.0',d:'2026.11.3',t:'F1까지 남은 길 · 빨라진 프리시즌',items:['홈 화면에서 지금 어느 무대에 있고 F1까지 몇 단계 남았는지 늘 보입니다','프리시즌 결정은 선택지를 한 번 누르면 바로 정해집니다']},
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.1.3',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.2.0',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -2792,6 +2796,11 @@ function nextStep(){const p=S.p;
   if(S.events.length){sheet='ev0';render();return}
   if(S.challenge&&!chainSeen.ch){chainSeen.ch=1;sheet='ch';render();return}
   sheet='go';render()}
+// one tap on a preseason choice decides it (the guard stops a double tap from also picking on the next event)
+let evAt=0;
+function pickEvent(i,j){if(!S.events[i])return;const e=evDef(S.events[i].id),c=e.choices[j];evPick=null;let msg=applyEff(c.eff);
+  let rk=null;if(c.risk&&Math.random()<c.risk.p){rk=c.risk.msg;msg=msg+' · '+applyEff(c.risk.eff)}
+  S.evSeason=[...(S.evSeason||[]),{id:e.id,j}];S.events.splice(i,1);save();if(c.risk)bigToast(c.label,msg,rk||'다행히 아무 일도 없었어요');if(chain){nextStep();return}sheet=null;render()}
 function goSheet(){const p=S.p,picked=(S.evSeason||[]).map(e=>{const d=evDef(e.id);return d?d.choices[e.j].label:null}).filter(Boolean);
   const row=(k,v)=>`<div class="row"><span>${k}</span><span>${v}</span></div>`;
   return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">${S.year} 시즌</div><h3 class="h2">준비 완료!</h3>
@@ -2799,7 +2808,7 @@ function goSheet(){const p=S.p,picked=(S.evSeason||[]).map(e=>{const d=evDef(e.i
       ${S.chTxt?row('도전',esc(S.chTxt)):''}
       ${p.series==='F1'&&p.role==='race'?row('이적 요청',p.xfer===S.year?'<span style="color:#FF8A94">요청함</span>':'안 함'):''}
       ${row('체력',`<b class="num">${p.morale}</b>${p.morale<40?' <span style="color:var(--bad)">(지침 · 실수 위험)</span>':''}`)}</div>
-    <button class="btn" type="button" id="goSeason">${S.year} 시즌 시작</button><button class="btn ghost" type="button" id="closeSheet">조금 더 준비하기</button></section></div>`}
+    <button class="btn" type="button" id="goSeason">${S.year} 시즌 시작!</button><button class="btn ghost" type="button" id="closeSheet">조금 더 준비하기</button></section></div>`}
 function enterGame_unused(){}
 
 /* ---------- title decider at the final round ---------- */
@@ -2964,8 +2973,7 @@ function sheetView(){
       <button class="btn" type="button" data-sheet="news">소식으로 돌아가기</button></section></div>`;
   if(typeof sheet==='string'&&sheet.startsWith('ev')){const i=+sheet.slice(2),e=evDef(S.events[i].id);
     return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">${esc(S.p.name)} · ${e.cat||'선택의 기로'}</div>${gauges('mini')}${PEEK}<h3 class="h2">${esc(e.title)}</h3>
-      ${e.choices.map((c,j)=>`<button class="choice" type="button" data-choose="${i}:${j}" aria-pressed="${evPick===j}" style="background:var(--surface-2)"><span class="row"><span class="h3">${esc(c.label)}</span><span class="tick">✓</span></span>${effChips(c.eff)}${c.risk?`<span class="muted" style="font-size:12px;color:var(--bad)">⚠ ${Math.round(c.risk.p*100)}% 확률로 사고</span>`:''}</button>`).join('')}
-      <button class="btn" type="button" id="evNext" data-i="${i}" ${evPick==null?'disabled':''}>${chain?'다음':'결정하기'}</button>
+      ${e.choices.map((c,j)=>`<button class="choice" type="button" data-choose="${i}:${j}" style="background:var(--surface-2)"><span class="h3">${esc(c.label)}</span>${effChips(c.eff)}${c.risk?`<span class="muted" style="font-size:12px;color:var(--bad)">⚠ ${Math.round(c.risk.p*100)}% 확률로 사고</span>`:''}</button>`).join('')}
       ${chain?'':'<button class="btn ghost" type="button" id="closeSheet">닫기</button>'}</section></div>`}
   if(sheet==='train'){const p=S.p,can=S.phase==='ready',open=can&&trOpen(),rest=S.train==='rest',RG=recProg(),RS=recStats()[0],C='font-size:11px;padding:2px 7px';
     return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">${esc(p.name)} · 프리시즌</div><h3 class="h2">훈련 계획</h3><p class="muted" style="margin:0">${!can?'시즌 준비 단계에서 바꿀 수 있어요.':open?`${S.progFree==='stage'?'새 무대에 왔어요. ':S.progFree==='max'?'최대치를 찍은 능력치가 있어요. ':''}고른 프로그램의 능력치가 빨리 자라요. ${PROG_LOCK}시즌 동안 이어져요.`:`지금 프로그램은 ${S.progYear+PROG_LOCK}년에 바꿀 수 있어요. 휴식은 언제든 고를 수 있어요.`}</p>
@@ -3091,11 +3099,8 @@ root.addEventListener('click',e=>{
   if(d.go){tab=d.go;sheet=null;render();window.scrollTo(0,0);return}
   if(d.sheet==='notes')lsSet('k2wc-notes-seen',NOTES[0].v);
   if(d.sheet){openSheet(d.sheet);return}
-  if(d.choose){evPick=+d.choose.split(':')[1];render();return}
+  if(d.choose){if(Date.now()-evAt<450)return;evAt=Date.now();const[i,j]=d.choose.split(':').map(Number);pickEvent(i,j);return}
   if(id==='trNext'){save();nextStep();return}
-  if(id==='evNext'&&evPick!=null){const i=+d.i,j=evPick,e=evDef(S.events[i].id),c=e.choices[j];evPick=null;let msg=applyEff(c.eff);
-    let rk=null;if(c.risk&&Math.random()<c.risk.p){rk=c.risk.msg;msg=msg+' · '+applyEff(c.risk.eff)}
-    S.evSeason=[...(S.evSeason||[]),{id:e.id,j}];S.events.splice(i,1);save();if(c.risk)bigToast(c.label,msg,rk||'다행히 아무 일도 없었어요');if(chain){nextStep();return}sheet=null;render();return}
   if(id==='acceptCh'){S.chLog=S.challenge.id+':go';const m=runChallenge();S.chTxt=m;sheet={type:'chres',c:S.p.challenges.at(-1)};render();return}
   if(id==='chDone'){sheet=null;if(chain){nextStep();return}render();return}
   if(id==='declineCh'){S.chLog=S.challenge.id+':no';S.challenge=null;save();if(chain){nextStep();return}sheet=null;render();return}
