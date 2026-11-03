@@ -420,6 +420,13 @@ html,body{margin:0}
 .lights .go{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:56px;letter-spacing:.04em;color:#fff;font-style:italic;opacity:0;transform:scale(.7);transition:all .18s}
 .lights.out .go{opacity:1;transform:scale(1)}
 .lights .skip{position:absolute;bottom:28px;font-size:12px;color:#5B6070}
+.hof .rkhd{display:flex;align-items:center;justify-content:space-between}
+.hof .rkhd .h2{margin:0}
+.hof .rkinfo{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--dim);background:none;color:var(--dim);font:italic 700 15px Georgia,serif;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
+.hof .rkinfo[aria-expanded="true"]{border-color:var(--gold);color:var(--gold)}
+.hof .rkhow{background:var(--surface-2);border-radius:12px;padding:12px 14px;margin:10px 0 4px;font-size:13px;line-height:1.6}
+.hof .rkhow ol{margin:6px 0;padding-left:20px}
+.hof .rkhow span{color:var(--dim)}
 .hof .row2{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #23262F}
 .hof .rk{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;width:26px;text-align:center;color:var(--dim)}
 .hof .rk.m0,.hof .rk.m1,.hof .rk.m2{font-size:30px;font-style:italic;-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 1px 0 rgba(0,0,0,.6))}
@@ -3884,7 +3891,7 @@ setTimeout(logFlush,3000);
 // ranking season: only records since the v1.0.0 launch count (older ones were set under an easier balance; kept on the server)
 const RK_FROM='2026-11-02T07:31:00Z';
 const SB_URL='https://nylfktkmicqqlgkjfvyg.supabase.co/rest/v1/ranking',SB_KEY='sb_publishable_oIyy0JrrciMA_g_iX70j_A_coEepIDF',RK_VER='0.21.0';
-let rkTab='all',rkAll=null,rkErr=false,rkBusy=false;
+let rkInfo=false,rkTab='all',rkAll=null,rkErr=false,rkBusy=false;
 const BADW=['시발','씨발','ㅅㅂ','ㅆㅂ','병신','ㅂㅅ','좆','개새','지랄','니미','fuck','shit','bitch'];
 function badName(n){const s=String(n||'').toLowerCase().replace(/[\s._-]/g,'');return BADW.some(w=>s.includes(w))}
 function rkNet(){return typeof fetch==='function'&&typeof location!=='undefined'&&/^https?:$/.test(location.protocol)}
@@ -3955,7 +3962,8 @@ function hofSheet(H){
     all&&!L?`<p class="muted" style="margin:0">랭킹을 불러오는 중이에요…</p>`:
     L.length?L.slice(0,100).map(row).join(''):
     `<p class="muted" style="margin:0">${all?'아직 랭킹에 오른 드라이버가 없어요. 첫 번째 이름을 남겨 보세요.':'아직 은퇴한 드라이버가 없어요. 커리어를 마치면 여기에 이름이 남아요.'}</p>`;
-  return`<div class="sheet" id="hofBg"><section class="card hof" style="max-height:85vh;overflow:auto"><h3 class="h2">랭킹</h3>
+  return`<div class="sheet" id="hofBg"><section class="card hof" style="max-height:85vh;overflow:auto"><div class="rkhd"><h3 class="h2">랭킹</h3><button type="button" class="rkinfo" id="rkInfo" aria-label="순위 정하는 법" aria-expanded="${rkInfo}">i</button></div>
+    ${rkInfo?`<div class="rkhow"><b>순위 정하는 법</b><ol><li>F1 월드 챔피언 횟수</li><li>F1 우승 수</li><li>다른 무대 트로피(르망·인디 500 등)</li><li>포디움 수</li><li>주니어 챔피언 수</li><li>최고 OVR</li></ol><span>앞 기준이 같을 때만 다음 기준으로 비교해요.</span></div>`:''}
     <div class="segs"><button type="button" data-rk="all" aria-pressed="${all}">전체</button><button type="button" data-rk="mine" aria-pressed="${!all}">내 기록</button></div>
     ${body}
     <div class="stick"><button class="btn" type="button" id="hofClose">닫기</button></div></section></div>`}
@@ -4426,6 +4434,7 @@ root.addEventListener('click',e=>{
   if(id==='tHof'){rkOpen();render();return}
   if(d.rk){rkTab=d.rk;if(rkTab==='all'&&!rkAll)rkLoad();render();return}
   if(id==='rkRetry'){rkLoad();render();return}
+  if(id==='rkInfo'){rkInfo=!rkInfo;render();return}
   if(id==='hofClose'){hofOpen=false;render();return}
   if(id==='logDl'){logDownload();return}
   if(id==='fbOpen'){sheet='fb';render();setTimeout(()=>{const x=document.getElementById('fbText');if(x)x.focus()},50);return}
