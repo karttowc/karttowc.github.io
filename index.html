@@ -154,7 +154,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 
 .jtro{position:relative;display:inline-block;line-height:0}.jtro svg{display:block}.jtro b{position:absolute;left:0;right:0;top:17%;text-align:center;line-height:1;font-weight:900;color:#6B4A1B;letter-spacing:-.5px}
 .tshelf.jr{border-bottom-color:#3A3F4B;padding-top:6px}.tshelf.jr figcaption{font-size:10px}
-.crbig{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 0;text-align:center}.crbig b{font-size:22px}.crbig span{font-size:30px;font-weight:900}.tcban{margin:0 0 12px;padding:12px;border:1px solid var(--gold);border-radius:12px;text-align:center;font-weight:900;font-size:17px;color:var(--gold);background:linear-gradient(180deg,rgba(242,193,78,.16),rgba(242,193,78,.04))}.tcban small{display:block;margin-top:3px;font-size:12px;font-weight:600;color:var(--dim)}.chres.win{background:radial-gradient(ellipse at 50% 20%,rgba(242,193,78,.18),transparent 65%),var(--surface)}
+.crbig{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 0;text-align:center}.crbig b{font-size:22px}.crbig span{font-size:30px;font-weight:900}.n1row{display:flex;justify-content:center;gap:28px;padding:8px 0 4px}.n1row>div{display:flex;flex-direction:column;align-items:center;gap:4px}.n1row b{font-size:15px}.tcban{margin:0 0 12px;padding:12px;border:1px solid var(--gold);border-radius:12px;text-align:center;font-weight:900;font-size:17px;color:var(--gold);background:linear-gradient(180deg,rgba(242,193,78,.16),rgba(242,193,78,.04))}.tcban small{display:block;margin-top:3px;font-size:12px;font-weight:600;color:var(--dim)}.chres.win{background:radial-gradient(ellipse at 50% 20%,rgba(242,193,78,.18),transparent 65%),var(--surface)}
 .peekbtn{all:unset;box-sizing:border-box;align-self:flex-start;cursor:pointer;font-size:12px;font-weight:700;color:var(--accent);padding:6px 10px;border-radius:999px;background:rgba(49,130,246,.12);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}
 #peek{position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);pointer-events:none;padding:16px}
 #peek .pk{width:100%;max-width:360px;background:var(--surface);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
@@ -1987,7 +1987,7 @@ function rookie(team){
 let newsTab='all',newsMore=false,hlMore=false,fanMore=false,chain=false,resMore=false,evPick=null;
 let S=null, tab='home', ob=null, sel=null, DL=null, sheet=null, cardURL=null;
 const KEY='k2wc-save-v1';
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S));const p=S.p;localStorage.setItem('k2wc-last',JSON.stringify({name:p.name,num:p.num,nat:p.nat,avatar:p.avatar,helmet:p.helmet}))}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));const p=S.p;localStorage.setItem('k2wc-last',JSON.stringify({name:p.name,num:p.num0||p.num,nat:p.nat,avatar:p.avatar,helmet:p.helmet}))}catch(e){}}
 function load(){try{const t=localStorage.getItem(KEY);if(t){const s=JSON.parse(t);if(s&&s.p)return s}}catch(e){}return null}
 
 
@@ -2205,6 +2205,8 @@ function finishSeason(){
   const m=m0,ents=Object.values(m),me=m.me,mate=Z.mateKey?m[Z.mateKey]:null;
   const ovrBefore=C.ovrBefore,statsBefore=C.statsBefore,teamName=C.teamName,teamColor=C.teamColor;
   if(p.series==='F1'&&me.fp[7]===1&&!p.monaco){p.monaco=true;if(tcMark()){tcPop={id:'MONACO',name:'모나코 GP'};ev.unshift(`모나코 GP 우승! ${TC_MSG}`)}else ev.push(`모나코 GP 우승! ${tcLast()?'트리플 크라운까지 하나 남았어요.':'트리플 크라운의 첫 조각이에요.'}`)}
+  let homeW=0;if(p.series==='F1')me.fp.forEach((x,r)=>{if(x===1&&isHome(r))homeW++});
+  if(homeW)ev.push(`홈 GP 우승! 홈 관중 앞에서 시상대 맨 위에 섰어요.`);
   const st=standingsOf(ents);
   let f1st=null;
   {let fe=p.series==='F1'?ents:null;
@@ -2226,6 +2228,16 @@ function finishSeason(){
     if(p.series==='F1'){p.tot.titles++;ev.unshift(`${S.year} 포뮬러 1 월드 챔피언!`)}
     else if(p.series==='ALT'){p.alts.push({year:S.year,name:altDef(p.alt).name});ev.unshift(`${altDef(p.alt).name} 챔피언!`)}
     else{p.jr.push({year:S.year,series:p.series,name:seriesDef(p.series).name});ev.unshift(`${seriesDef(p.series).name} 챔피언!`)}}
+  // youngest records
+  const yrNew=[];
+  if(p.series==='F1'&&me.starts>0){const T=p.tot,a=p.age,ks=[];
+    if(me.wins&&T.wins===me.wins)ks.push('win');else if(me.pod&&T.podiums===me.pod)ks.push('pod');
+    if(me.poles&&T.poles===me.poles)ks.push('pole');if(titled&&T.titles===1)ks.push('wc');
+    const ms=[];ks.forEach(k=>{const[ra,who,lb]=YREC[k];if(a>ra)return;yrNew.push(k);
+      ms.push(a<ra?`최연소 ${lb} 기록 경신! (종전 ${who} ${ra}세)`:`${jo(who,'과','와')} 같은 ${ra}세에 ${lb}, 최연소 타이 기록이에요.`)});
+    ev.splice(titled&&p.series==='F1'?1:0,0,...ms)}
+  // the #1 plate only lasts while the title is held
+  if(p.num===1&&p.num0&&!(p.series==='F1'&&titled)){ev.push(`챔피언 자리를 내줘서 다음 시즌부터 다시 ${jo('#'+p.num0,'을','를')} 달아요.`);p.num=p.num0;delete p.num0}
   // crown jewel inside the season: WEC -> Le Mans, IndyCar -> Indy 500
   let crown=null;
   if(p.series==='ALT'&&(p.alt==='WEC'||p.alt==='INDY')&&me.starts>0){const cid=p.alt==='WEC'?'LEMANS':'INDY500',cn=p.alt==='WEC'?'르망 24시':'인디 500',rr=pos?1-(pos-1)/Math.max(1,fieldN-1):.2;
@@ -2258,7 +2270,7 @@ function finishSeason(){
   const deltas=STATS.map(k=>({k,v:p.stats[k],d:p.stats[k]-statsBefore[k]})).filter(x=>x.d!==0);
   const rec={lk:p.series==='ALT'?p.alt:p.series,year:S.year,age:p.age,series:p.series==='ALT'?altDef(p.alt).name:seriesDef(p.series).name,sid:p.series,team:teamName,color:teamColor,role:p.role,
     pos,field:fieldN,train:trName(),points:me.pts,wins:me.wins,podiums:me.pod,poles:me.poles,dnf:me.dnf,starts:me.starts,ovrBefore,ovrAfter,h2h,titled,crown,first:!!C.firstLeague,slump:slump||null};
-  rec.rv=rvRes;if(p.tcY===S.year)rec.tc=true;
+  rec.rv=rvRes;if(p.tcY===S.year)rec.tc=true;if(homeW)rec.homeW=homeW;if(yrNew.length)rec.yr=yrNew;
   if(C.why0&&pos&&me.starts>0){const fin=me.fp.filter(x=>x&&x<99).sort((a,b)=>a-b),med=fin.length?fin[Math.floor(fin.length/2)]:fieldN,P=B.race.points;
     const extra=me.dnf*(P[med-1]||0),myPts=me.pts+extra,rND=1+st.filter(e=>e!==me&&e.pts>myPts).length,W=C.why0;
     const r3a=W.r3a??W.r3;rec.why={r0:W.r0,drv:W.r0-W.r1,car:W.r1-W.r2,stam:W.r2-W.r3,adapt:W.r3-r3a,luck:r3a-rND,dnf:rND-pos,pos}}
@@ -2961,7 +2973,9 @@ const tcHave=()=>({MONACO:!!S.p.monaco,LEMANS:wonC('LEMANS'),INDY500:wonC('INDY5
 function tcLast(){const h=tcHave(),m=Object.keys(h).filter(k=>!h[k]);return m.length===1?m[0]:null}
 // first time all three are won: remember the year so that season's wrap-up celebrates it
 // triple crown completed during a season (Monaco, or Le Mans/Indy 500 in a WEC/IndyCar season): its window opens when the season wraps up
-let tcPop=null;
+let tcPop=null,popQ=[];
+// windows queued after the season wraps up (triple crown, #1 plate)
+function popNext(){const s=popQ.shift();sheet=s||null;render()}
 function tcMark(){const p=S.p;if(p.tcY||!tripleCrown())return false;p.tcY=S.year;p.fans=clamp(p.fans+10,0,100);return true}
 function retireNow(){const p=S.p;if(p.series==='F1'&&p.role==='race')fillSeat(p.team.id);fillVacancies();p.retired=true;logRetire();S.phase='retired';S.events=[];S.challenge=null;save()}
 
@@ -3151,6 +3165,8 @@ for(const k in FAN_MORE)FAN[k]=[...(FAN[k]||[]),...FAN_MORE[k]];
 FAN.firstGood=['첫 시즌에 이 정도면 대박','적응 끝나면 진짜 무서워질 듯','루키가 벌써 이러면 내년엔 어쩌려고','데뷔 시즌부터 존재감 확실함'];
 FAN.firstOk=['첫 시즌은 원래 적응기임','후반에 페이스 올라온 거 봄?','조급해하지 말자 내년부터가 진짜','새 차 적응하는 데 시간 걸리는 건 당연함'];
 FAN.backPts=['하위팀으로 포인트 따온 거 실화냐 ㅋㅋ','이 차로 1점이면 사실상 우승임','팀 공장 오늘 회식 확정','이 1점이 상금 수십억이다 진짜로','팀 보스 표정 봤냐 ㅋㅋ 함박웃음'];
+FAN.homewin=['홈 관중 앞에서 우승이라니, 관중석 난리 났다','홈 GP 우승은 평생 남는다','국가 울려 퍼질 때 소름 돋았다','홈 팬들 앞에서 해냈다!','이번 주말 관중석 분위기 역대급이었음'];
+FAN.youngrec=['최연소 기록 갈아치우는 걸 실시간으로 봤다','이 나이에 이걸 해낸다고?','{name}, 기록 제조기 시작이다','역사책에 이름 올라가는 중'];
 FAN.triple=['트리플 크라운 축하합니다!!','모나코, 르망, 인디 500을 다 이긴 드라이버를 내가 응원했다니','그레이엄 힐 이후 두 번째 트리플 크라운, 이건 역사다','몇십 년 뒤에도 이름이 나올 기록이에요. 축하합니다','{name} 진짜 전설 인정합니다'];
 FAN.crownWin=['{crown} 우승은 진짜 레전드 업적이다','F1 못 간 게 아니라 다른 전설을 쓰는 중','{crown} 트로피 들어 올리는 거 보고 울었다','이거면 트리플 크라운 꿈꿔도 된다'];
 
@@ -3220,7 +3236,7 @@ function buildReact(R,x){
   if(R.titled)tags.push(R.sid==='F1'?'wc':'champ');
   (x.inc||[]).filter(i=>i.done&&i.j!=null).forEach(i=>{const k=i.id+i.j+(i.dnf?'dnf':i.ok?'ok':'bad');tags.push(FAN[k]?k:i.id+i.j+(i.ok?'ok':'bad'))});
   if(x.gacha&&x.gacha.res)tags.push(x.gacha.res==='rest'?'g_rest':`g_${x.gacha.id}_${x.gacha.res}`);
-  if(x.monacoWin)tags.push('monaco');
+  if(x.monacoWin)tags.push('monaco');if(R.homeW)tags.unshift('homewin');if(R.yr)tags.unshift('youngrec');
   if(p.xferDone&&p.xferDone.year===R.year)tags.unshift(p.xferDone.n?'xferOk':'xferNone');
   (S.evSeason||[]).forEach(e=>{const k=`ev_${e.id}${e.j}`;if(FAN[k])tags.push(k)});
   if(R.rv&&R.rv.same){tags.push(R.rv.ahead?'rivalWin':'rivalLose');if(R.rv.lk==='F1'&&R.sid==='F1'&&S.rival&&S.rival.h2h[0]+S.rival.h2h[1]>0&&!S.rival.f1Seen){S.rival.f1Seen=true;tags.unshift('rivalF1')}}
@@ -3740,6 +3756,11 @@ const F1TR=[['호주','앨버트 파크',1.2,.1],['중국','상하이',1.2,0],['
  ['캐나다','질 빌르뇌브',1.8,0],['모나코','몬테카를로',1,.65],['바르셀로나','카탈루냐',.6,.15],['오스트리아','레드불링',1.4,0],['영국','실버스톤',1.8,0],['벨기에','스파-프랑코르샹',2.6,0],
  ['헝가리','헝가로링',1,.3],['네덜란드','잔드보르트',1.6,.25],['이탈리아','몬차',.8,0],['마드리드','마드링',.8,.1],['아제르바이잔','바쿠',.3,.1],['싱가포르','마리나 베이',1.2,.35],
  ['미국','COTA',.8,0],['멕시코','에르마노스 로드리게스',.6,0],['브라질','인테르라고스',2.4,0],['라스베이거스','라스베이거스 스트립',0,.1],['카타르','루사일',0,0],['아부다비','야스 마리나',0,.1]];
+/* home GP by nationality (index into F1TR) */
+const HOME_GP={AUS:[0],CHN:[1],JPN:[2],USA:[5,18,21],CAN:[6],MON:[7],ESP:[8,15],AUT:[9],GBR:[10],BEL:[11],HUN:[12],NED:[13],ITA:[14],MEX:[19],BRA:[20]};
+const isHome=r=>(HOME_GP[S.p.nat]||[]).includes(r%F1TR.length);
+/* real youngest marks in whole years: younger breaks it, same age ties it */
+const YREC={win:[18,'막스 베르스타펜','F1 우승'],pod:[18,'막스 베르스타펜','F1 포디움'],pole:[21,'제바스티안 페텔','F1 폴 포지션'],wc:[23,'제바스티안 페텔','F1 월드 챔피언']};
 const F1CAL=F1TR.map(x=>x[0]),F1W=F1TR.map(x=>({w:x[2],q:x[3]}));
 /* junior calendars: circuits, races per weekend, race labels */
 const JRCAL={KART:{t:['사르노','프란차코르타','겡크','크리스티안스타드','포르티망','발렌시아','라 코니에라','로나토'],n:1},
@@ -3764,11 +3785,12 @@ function progressView(){
 function roundInfo(r){
   const Z=S.season,m=tally(r),me=m.me,o=Z.orders[r],ab=Z.meAbsent.includes(r);
   const rank=me.starts>0?standingsOf(Object.values(m)).findIndex(e=>e.key==='me')+1:null;
-  return{r,wet:o.wet,tc:Z.ctx.f1&&r===7&&tcLast()==='MONACO',absent:ab,fp:ab?null:me.fp[r]??null,pole:o.q[0]==='me',pts:me.pts,rank,wins:me.wins};
+  return{r,wet:o.wet,tc:Z.ctx.f1&&r===7&&tcLast()==='MONACO',home:Z.ctx.f1&&isHome(r),absent:ab,fp:ab?null:me.fp[r]??null,pole:o.q[0]==='me',pts:me.pts,rank,wins:me.wins};
 }
 function describe(t){
   const C=S.season.ctx;
   if(t.absent||t.fp==null)return{head:C.role==='reserve'?'패독에서 기회를 기다리고 있어요':'부상에서 회복하고 있어요'};
+  if(t.fp===1&&t.home&&!t.tc)return{head:'홈 GP 우승!',note:{t:`${roundName(t.r)} 우승 · 홈 관중 앞에서!`,c:'gold'},hl:1};
   if(t.fp===1&&t.tc)return{head:'트리플 크라운!',note:{t:`${roundName(t.r)} 우승 · ${TC_MSG}`,c:'gold'},hl:1};
   if(t.fp===1)return{head:t.wins===1?'첫 우승을 차지했어요!':'우승했어요!',note:{t:`${roundName(t.r)} 우승${t.wet?' (빗속 레이스)':''}`,c:'gold'},hl:1};
   if(t.fp===99)return{head:'리타이어했어요',note:{t:`${roundName(t.r)} 리타이어`,c:'bad'},hl:1};
@@ -3820,9 +3842,10 @@ function finishProgress(){
   const G=S.season.gacha,pend=S.season.incidents.find(x=>!x.done),dec=!S.season.decDone&&deciderInfo()?S.season.races-1:null,pr=[G&&!G.done?G.r:null,pend?pend.r:null,dec].filter(x=>x!=null);
   if(pr.length){progI=Math.min(...pr);stepProgress();return}
   finishSeason();tab='home';resMore=false;hlMore=false;render();window.scrollTo(0,0);
-  const R=S.last&&S.last.rec,tp=tcPop;tcPop=null;
-  const tcShow=()=>{if(!tp)return;sheet={type:'chres',c:{...tp,year:R?R.year:S.year,res:'우승',tc:1,season:1}};render()};
-  if(R&&R.titled)celebrate(R,tcShow);else tcShow();
+  const R=S.last&&S.last.rec,tp=tcPop;tcPop=null;popQ=[];
+  if(tp)popQ.push({type:'chres',c:{...tp,year:R?R.year:S.year,res:'우승',tc:1,season:1}});
+  if(R&&R.titled&&R.sid==='F1'&&S.p.num!==1)popQ.push({type:'num1',year:R.year});
+  if(R&&R.titled)celebrate(R,popNext);else popNext();
 }
 function stepper(){
   const ph=S.phase,steps=[['ready','프리시즌'],['progress','시즌'],['result','시즌 결과'],['offers','이적 시장']];
@@ -3893,7 +3916,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.3',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.5.0',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -4348,6 +4371,11 @@ function sheetView(){
         ${c.season?'':`<div class="row"><span>보상</span><span>${w?'인기 +10 · 평판 +2':'인기 +4 · 평판 +2'} · 체력 -10</span></div>`}
         ${c.id!=='DAKAR'?`<div class="row"><span>트리플 크라운</span><span>${tc.map(([n,v])=>`<b style="color:${v?'var(--gold)':'var(--dim)'}">${v?'✓':'·'} ${n}</b>`).join(' ')}</span></div>`:''}</div>
       <button class="btn" type="button" id="chDone">${chain?'다음':c.season?'시즌 결과 보기':'확인'}</button></section></div>`}
+  if(sheet&&sheet.type==='num1'){const p=S.p;
+    return`<div class="sheet" id="sheetBg"><section class="card chres win"><div class="eyebrow">${sheet.year} 월드 챔피언</div><h3 class="h2">챔피언 번호 1번을 달까요?</h3>
+      <p class="muted" style="margin:0">F1 챔피언은 다음 시즌 1번을 달 수 있어요. 베르스타펜은 1번을 달았고, 해밀턴은 44번을 지켰어요. 타이틀을 내주면 원래 번호로 돌아가요.</p>
+      <div class="n1row"><div>${helmet(p.helmet,1,84)}<b>#1</b></div><div>${helmet(p.helmet,p.num,84)}<b>#${esc(p.num)}</b></div></div>
+      <button class="btn" type="button" id="num1Yes">#1을 단다</button><button class="btn ghost" type="button" id="num1No">#${esc(p.num)} 그대로</button></section></div>`}
   if(sheet&&sheet.type==='msg')return`<div class="sheet" id="sheetBg"><section class="card"><h3 class="h2">${esc(sheet.title)}</h3><p style="margin:0">${esc(sheet.text)}</p><button class="btn" type="button" id="closeSheet">확인</button></section></div>`;
   if(sheet==='news'&&S.news&&S.news.heads){const N=S.news,ts=[...S.teams].sort((a,b)=>b.machine-a.machine);
     return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">${N.year} 시즌을 앞두고</div><h3 class="h2">패독 소식</h3>
@@ -4415,7 +4443,7 @@ root.addEventListener('click',e=>{
   if(rkInfo&&!e.target.closest('#rkInfo')){rkInfo=false;render();return}
   const t=e.target.closest('button,#sheetBg,#hofBg');if(!t)return;
   if(t.id==='hofBg'){if(e.target===t){hofOpen=false;render()}return}
-  if(t.id==='sheetBg'&&e.target===t){if(sheetBack){sheet=sheetBack;sheetBack=null;render();return}if(PRE(sheet)||sheet&&sheet.type==='chres')return;sheet=null;chain=false;evPick=null;render();return}
+  if(t.id==='sheetBg'&&e.target===t){if(sheetBack){sheet=sheetBack;sheetBack=null;render();return}if(PRE(sheet)||sheet&&(sheet.type==='chres'||sheet.type==='num1'))return;sheet=null;chain=false;evPick=null;render();return}
   const id=t.id,d=t.dataset;
   // onboarding
   if(id==='obRandom'){if(ob.step===1){ob.helmet=randomHelmet();ob.nat=pick(Object.keys(K.nationalities));if(!ob.avPick)ob.av=avDefault(ob.nat);ob.name=genName(ob.nat);ob.nameAuto=true;ob.num=ri(2,99)}else{ob.av=pick(AVATAR.map((_,i)=>i));ob.avPick=true}render();return}
@@ -4457,7 +4485,8 @@ root.addEventListener('click',e=>{
   if(id==='evNext'&&evPick!=null){const last=chain&&lastPre();pickEvent(+d.i,evPick,last);if(last)goSeason();return}
   if(id==='trNext'){save();nextStep();return}
   if(id==='acceptCh'){S.chLog=S.challenge.id+':go';const m=runChallenge();S.chTxt=m;sheet={type:'chres',c:S.p.challenges.at(-1)};render();return}
-  if(id==='chDone'){sheet=null;if(chain){nextStep();return}render();return}
+  if(id==='chDone'){sheet=null;if(chain){nextStep();return}if(popQ.length){popNext();return}render();return}
+  if(id==='num1Yes'||id==='num1No'){const p=S.p;if(id==='num1Yes'){p.num0=p.num;p.num=1;toast('다음 시즌부터 #1을 달아요')}save();popNext();return}
   if(id==='declineCh'){S.chLog=S.challenge.id+':no';S.challenge=null;save();if(chain){nextStep();return}sheet=null;render();return}
   if(d.rest&&S.phase==='ready'){S.train=S.train==='rest'?'focus':'rest';save();render();return}
   if(d.prog&&S.phase==='ready'){if(S.train==='rest')S.train='focus';if(trOpen())setProg(d.prog);save();render();return}
