@@ -3023,10 +3023,15 @@ function spriteImg(arr,src,i){if(typeof Image==='undefined')return null;if(!arr[
 function avFix(){if(typeof document==='undefined')return;document.querySelectorAll('img[data-avp]').forEach(e=>{const d=e.dataset,c=avatarCanvas(+d.avp,{base:d.hb,sec:d.hs},!!d.aw);if(c){e.src=c.url;e.removeAttribute('data-avp')}});
   document.querySelectorAll('img.himg[data-hb]').forEach(e=>{const d=e.dataset,c=helmetCanvas({base:d.hb,sec:d.hs,vis:d.hvi});if(c){e.src=c.url;e.removeAttribute('data-hb')}})}
 /* recolour an image: rule(hue,sat,light,x,w) -> [[h,s,l], refLight] or null; lightness offset from refLight is kept */
-function recolor(im,rule){const c=document.createElement('canvas'),w=c.width=im.naturalWidth,ht=c.height=im.naturalHeight,g=c.getContext('2d');g.drawImage(im,0,0);
-  const d=g.getImageData(0,0,w,ht),a=d.data;
+function recolor(im,rule,fr){const c=document.createElement('canvas'),w=c.width=im.naturalWidth,ht=c.height=im.naturalHeight,g=c.getContext('2d');g.drawImage(im,0,0);
+  const d=g.getImageData(0,0,w,ht),a=d.data,o=fr?a.slice():null,hit=fr?new Uint8Array(w*ht):null;
   for(let j=0;j<a.length;j+=4){if(!a[j+3])continue;const[hu,s,l]=hexHsl('#'+((1<<24)|(a[j]<<16)|(a[j+1]<<8)|a[j+2]).toString(16).slice(1));
-    const r=rule(hu,s,l,(j>>2)%w,w);if(!r)continue;const[t,ref]=r,rgb=hslRgb(t[0],t[1],Math.max(0,Math.min(1,t[2]+(l-ref)*.9)));a[j]=rgb[0]*255;a[j+1]=rgb[1]*255;a[j+2]=rgb[2]*255}
+    const r=rule(hu,s,l,(j>>2)%w,w);if(!r)continue;const[t,ref]=r,rgb=hslRgb(t[0],t[1],Math.max(0,Math.min(1,t[2]+(l-ref)*.9)));a[j]=rgb[0]*255;a[j+1]=rgb[1]*255;a[j+2]=rgb[2]*255;if(fr)hit[j>>2]=1}
+  /* fringe(v1.4.4): 칠한 픽셀 바로 옆의 채도 낮은 초록빛 픽셀(키 색 경계에 섞인 것)도 fr 규칙으로 칠함. 떨어진 곳(장갑·머리 테두리)은 안 건드림 */
+  if(fr)for(let q=0;q<w*ht;q++){const j=q*4;if(hit[q]||!o[j+3])continue;const x=q%w,y=(q/w)|0;let nb=0;
+    for(let dy=-1;dy<=1&&!nb;dy++)for(let dx=-1;dx<=1;dx++){const X=x+dx,Y=y+dy;if(X>=0&&Y>=0&&X<w&&Y<ht&&hit[Y*w+X]){nb=1;break}}if(!nb)continue;
+    const[hu,s,l]=hexHsl('#'+((1<<24)|(o[j]<<16)|(o[j+1]<<8)|o[j+2]).toString(16).slice(1)),r=fr(hu,s,l);if(!r)continue;
+    const[t,ref]=r,rgb=hslRgb(t[0],t[1],Math.max(0,Math.min(1,t[2]+(l-ref)*.9)));a[j]=rgb[0]*255;a[j+1]=rgb[1]*255;a[j+2]=rgb[2]*255}
   g.putImageData(d,0,0);return{canvas:c,url:c.toDataURL(),w,h:ht}}
 function hexHsl(h){const n=parseInt(h.slice(1),16),r=(n>>16)/255,g=(n>>8&255)/255,b=(n&255)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2;let hu=0,s=0;
   if(mx!==mn){const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);hu=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;hu/=6}return[hu,s,l]}
@@ -3035,7 +3040,7 @@ function hslRgb(h,s,l){if(!s)return[l,l,l];const q=l<.5?l*(1+s):l+s-l*s,p=2*l-q,
 function avatarCanvas(i,h,win){const L=win?AVWIN:AVATAR;i=Math.max(0,Math.min(L.length-1,i|0));h=normHelmet(h);const k=(win?'w':'')+i+h.base+h.sec;if(AVC[k])return AVC[k];
   const im=spriteImg(win?AWIMG:AVIMG,L,i);if(!im||!im.complete||!im.naturalWidth){if(im)spriteWait=true;return null}
   const B=hexHsl(h.base),Sx=hexHsl(h.sec);
-  return AVC[k]=recolor(im,(hu,s,l)=>s>.35&&hu>.22&&hu<.45?[B,.5]:s>.35&&hu>.78&&hu<.92?[Sx,.5]:null)}
+  return AVC[k]=recolor(im,(hu,s,l)=>s>.35&&hu>.22&&hu<.45?[B,.5]:s>.35&&hu>.78&&hu<.92?[Sx,.5]:null,(hu,s,l)=>s>.1&&hu>.15&&hu<.5?[B,.5]:s>.1&&hu>.68&&hu<.98?[Sx,.5]:null)}
 function avatarSrc(i,h,win){const c=avatarCanvas(i,h,win),L=win?AVWIN:AVATAR;return c?c.url:L[Math.max(0,Math.min(L.length-1,i|0))]}
 /* src + (if the recoloured sprite isn't ready yet) markers so avFix can repaint it once loaded */
 function avAttr(i,h,win){const c=avatarCanvas(i,h,win);if(c)return`src="${c.url}"`;h=normHelmet(h);
@@ -3965,7 +3970,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.4-d6',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.4-d7',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
