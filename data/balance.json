@@ -28,7 +28,7 @@
    "mental"
   ],
   "stat_labels": {
-   "quali": "예선 페이스",
+   "quali": "퀄리파잉 페이스",
    "race": "휠투휠",
    "tyre": "타이어 관리",
    "wet": "우천",
@@ -134,7 +134,7 @@
  "styles": [
   {
    "id": "qualifier",
-   "name": "예선형",
+   "name": "퀄리파잉형",
    "desc": "한 바퀴 속도로 그리드 앞자리를 잡는다",
    "bias": {
     "quali": 8,
