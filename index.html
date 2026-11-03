@@ -3880,7 +3880,7 @@ function hofSave(a){try{localStorage.setItem(KEYH,JSON.stringify(a.slice(0,50)))
 function rkSort(a){return a.sort((x,y)=>y.titles-x.titles||y.wins-x.wins||(y.tro||0)-(x.tro||0)||y.podiums-x.podiums||(y.jr||0)-(x.jr||0)||(y.peak||0)-(x.peak||0))}
 function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.random().toString(36).slice(2,8);const a=hofLoad();if(a.some(x=>x.cid===S.cid))return;const p=S.p,T=p.tot;
   a.push({cid:S.cid,name:p.name,num:p.num,nat:p.nat,helmet:p.helmet,start:S.startYear,end:S.year,age:p.age,titles:T.titles,wins:T.wins,podiums:T.podiums,starts:T.starts,top:bestStage(p),tro:altTrophies(p).length,earn:p.earn||0,
-    peak:p.peak,jr:p.jr.length,trs:[...altTrophies(p).map(t=>t.n),...p.jr.map(j=>`${j.name} 챔피언`)]});
+    peak:p.peak,jr:p.jr.length,trs:[...(tripleCrown()?['트리플 크라운']:[]),...altTrophies(p).map(t=>t.n),...p.jr.map(j=>`${j.name} 챔피언`)]});
   hofSave(rkSort(a));rkPush()}
 /* ---------- anonymous play log (Google Apps Script -> Sheet) ---------- */
 // 개발자의 말 (찬우가 쓴 글, 고칠 땐 그대로 옮길 것). DEV_NOTE는 개발자의 말 창과 게임 소식에 같이 쓰고, 안내 문구 DEV_DISC는 창에만
@@ -3893,7 +3893,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.3',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -4000,7 +4000,7 @@ function hofSheet(H){
   const row=(h,i)=>{const tr=h.trs||[];return`<div class="row2${i<3?' p'+i:''}${all&&mine.has(h.cid)?' me':''}"><span class="rk${i<3?' m'+i:''}">${i+1}</span>${helmet(h.helmet,h.num,40)}
       <span style="flex:1;min-width:0"><b>${esc(h.name)}</b><br>
       <span class="muted" style="font-size:13px">${esc(h.top==='포뮬러 1'?'F1':h.top||'')} · 포디움 ${h.podiums}${h.peak?` · 최고 OVR ${h.peak}`:''}<br>${h.start}–${h.end} · ${h.age}세 은퇴</span>
-      ${tr.length?`<div class="chips" style="margin-top:4px">${tr.slice(0,3).map(t=>`<span class="chip silver" style="font-size:12px">${esc(t)}</span>`).join('')}${tr.length>3?`<span class="chip" style="font-size:12px">+${tr.length-3}</span>`:''}</div>`:''}</span>${h.titles||h.wins?`<span class="rkwc">${h.titles?`<span class="t" aria-label="월드 챔피언 ${h.titles}회"><img src="${TROPHY.F1}" alt=""><b>${h.titles}</b></span>`:''}${h.wins?`<span class="w">우승 ${h.wins}</span>`:''}</span>`:''}</div>`};
+      ${tr.length?`<div class="chips" style="margin-top:4px">${tr.slice(0,3).map(t=>`<span class="chip ${t==='트리플 크라운'?'gold':'silver'}" style="font-size:12px">${esc(t)}</span>`).join('')}${tr.length>3?`<span class="chip" style="font-size:12px">+${tr.length-3}</span>`:''}</div>`:''}</span>${h.titles||h.wins?`<span class="rkwc">${h.titles?`<span class="t" aria-label="월드 챔피언 ${h.titles}회"><img src="${TROPHY.F1}" alt=""><b>${h.titles}</b></span>`:''}${h.wins?`<span class="w">우승 ${h.wins}</span>`:''}</span>`:''}</div>`};
   const body=all&&!rkNet()?`<p class="muted" style="margin:0">전체 랭킹은 인터넷에 연결된 게임 사이트에서 볼 수 있어요.</p>`:
     all&&rkErr?`<p class="muted" style="margin:0">랭킹을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.</p><button class="btn ghost" type="button" id="rkRetry">다시 불러오기</button>`:
     all&&!L?`<p class="muted" style="margin:0">랭킹을 불러오는 중이에요…</p>`:
