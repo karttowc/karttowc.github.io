@@ -3072,6 +3072,15 @@ function wornCanvas(i,h){h=normHelmet(h);const k=i+h.base+h.sec+h.vis;if(AWC[k])
   const hw=WORN.hw*sc,hh=hw*hc.h/hc.w;g.drawImage(hc.canvas,(w-hw)/2,WORN.bottom*sc-hh,hw,hh);
   return AWC[k]={canvas:c,url:c.toDataURL(),w,h:ht}}
 function avatarWorn(i,h,size){const c=wornCanvas(i,h);return`<img class="avfull" src="${c?c.url:avatarSrc(i,h)}" alt="" style="height:${size}px">`}
+/* 헬멧 든 전신(v1.4.5): 보는 쪽 왼손이 헬멧 턱 테두리를 잡고, 헬멧은 거꾸로 기울어져 바깥쪽 아래로 늘어짐. 헬멧을 몸 뒤에 깔아 장갑이 턱 테두리를 덮게. 아바타 좌표(420 높이) 기준 */
+const HOLD={x:18,y:290,hw:100,ang:218,lip:.06},AHC={};
+function holdCanvas(i,h,num){h=normHelmet(h);const k=i+h.base+h.sec+h.vis+'#'+num;if(AHC[k])return AHC[k];const a=avatarCanvas(i,h,false,num),hc=helmetCanvas(h);if(!a||!hc)return null;
+  const sc=a.h/420,hw=HOLD.hw*sc,hh=hw*hc.h/hc.w,t=HOLD.ang*Math.PI/180,co=Math.cos(t),si=Math.sin(t),gx=HOLD.x*sc,gy=HOLD.y*sc;
+  const pts=[[-hw/2,-hh*(1-HOLD.lip)],[hw/2,-hh*(1-HOLD.lip)],[-hw/2,hh*HOLD.lip],[hw/2,hh*HOLD.lip]].map(([x,y])=>[gx+x*co-y*si,gy+x*si+y*co]);
+  const pad=Math.max(0,Math.ceil(-Math.min(...pts.map(q=>q[0])))),c=document.createElement('canvas'),w=c.width=a.w+pad,ht=c.height=a.h,g=c.getContext('2d');
+  g.save();g.translate(gx+pad,gy);g.rotate(t);g.drawImage(hc.canvas,-hw/2,-hh*(1-HOLD.lip),hw,hh);g.restore();g.drawImage(a.canvas,pad,0);
+  const r={canvas:c,url:c.toDataURL(),w,h:ht};if(!a.tmp)AHC[k]=r;return r}
+function avatarHold(i,h,size,num){const c=holdCanvas(i,h,num);return c?`<img class="avfull" src="${c.url}" alt="" style="height:${size}px">`:`<span class="hsuit">${helmet(h,num,Math.round(size*.3))}${avatar(i,h,size,true,num)}</span>`}
 function avatar(i,h,size=56,full,num){return full?`<img class="avfull" ${avAttr(i,h,false,num)} alt="" style="height:${size}px">`:`<div class="avface" style="width:${size}px;height:${size}px"><img ${avAttr(i,h)} alt=""></div>`}
 const pAv=p=>p.avatar??avDefault(p.nat);
 /* trophy art by key: F1 / alt series id (image) or junior series (pixel cup); th = height in px */
@@ -3792,7 +3801,7 @@ const BYE_MID=['F1까지는 못 갔지만 보는 내내 즐거웠어','{name}의
 const BYE_F1=['고마웠어요. 덕분에 일요일이 즐거웠어요','헬멧 벗는 모습 보고 울었다','{name} 없는 그리드는 상상이 안 된다','카트 시절부터 끝까지 함께해서 행복했어','마지막 체커기 받는 거 보고 소름','다음 커리어는 감독으로 돌아와 줘'];
 function cerPage(i){const p=S.p,D=cerData(),T=p.tot,s=similarDriver();
   if(i===0){const lv=Math.max(0,...p.history.map(h=>LVL(h.sid))),BYE=p.debutYear?BYE_F1:lv>=3||p.history.some(h=>h.sid==='ALT')?BYE_MID:BYE_SHORT;const bye=[...BYE].sort(()=>Math.random()-.5).slice(0,2).map(x=>x.replace('{name}',p.name));
-    return`<div class="cflag"></div><div class="cp c0"><div class="chel">${avatar(pAv(p),p.helmet,170,true,p.num)}${helmet(p.helmet,p.num,72)}</div>
+    return`<div class="cflag"></div><div class="cp c0"><div class="chel">${avatarHold(pAv(p),p.helmet,170,p.num)}</div>
       <div class="ck">LAST LAP</div><h2>${esc(p.name)},<br>헬멧을 벗습니다</h2>
       <p>${p.age}세 · ${D.first}–${D.last} · ${D.seasons}시즌</p>
       <div class="cbye">${bye.map((b,j)=>`<div style="animation-delay:${.9+j*.35}s">💬 ${esc(b)}</div>`).join('')}</div></div>`}
@@ -3938,7 +3947,7 @@ function obInit(){hcustOpen=false;
 function obView(){
   const steps=`<div class="steps">${[1,2,3].map(i=>`<i class="${i<=ob.step?'on':''}"></i>`).join('')}</div>`;
   const tag=`<div class="obtag"><div class="obmeta"><b class="num">#${esc(ob.num)}</b><em>${esc(K.nationalities[ob.nat]||'')}</em></div><span class="obname">${esc(ob.name.trim()||'이름 없음')}</span></div>`;
-  const hero=`<section class="obhero"><div class="obstage"><div class="hsuit">${helmet(ob.helmet,ob.num,64)}${avatar(ob.av,ob.helmet,118,true,ob.num)}</div></div>${tag}</section>`;
+  const hero=`<section class="obhero"><div class="obstage">${avatarHold(ob.av,ob.helmet,118,ob.num)}</div>${tag}</section>`;
   const note=`<p class="muted" style="margin:4px 0 0;font-size:12px;text-align:center">비공식 팬 게임이에요. 수익을 내지 않으며 F1·FIA·각 팀과 관련이 없어요. 팀명·로고·선수명 등 상표는 각 소유자의 것이에요.</p>`;
   if(ob.step===1)return`<header class="top"><span style="width:56px"></span>${steps}<button class="iconbtn" type="button" id="obRandom">랜덤</button></header>
     <div><h2 class="h2">나만의 드라이버를 꾸며요</h2></div>
@@ -3991,7 +4000,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.5-d1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.5-d2',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
