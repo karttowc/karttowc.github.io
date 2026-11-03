@@ -423,6 +423,9 @@ html,body{margin:0}
 .hof .row2{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #23262F}
 .hof .rk{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;width:26px;text-align:center;color:var(--dim)}
 .hof .rk.g{color:var(--gold)}
+.hof .rkwc{flex:none;display:flex;align-items:center;gap:4px}
+.hof .rkwc img{height:30px;width:auto;display:block;filter:drop-shadow(0 2px 6px rgba(242,193,78,.35))}
+.hof .rkwc b{font-family:'Barlow Condensed',sans-serif;font-size:26px;line-height:1;color:var(--gold)}
 .hof .row2.me{background:rgba(242,193,78,.08);border-radius:12px;padding-left:6px;padding-right:6px}
 @media (prefers-reduced-motion:reduce){.scene .car,.ttl .logo,.ttl .stars i{animation:none}.scene .car{transform:translateX(calc(50vw - 150px))}.scene .f1{transform:translateX(calc(50vw - 20px))}}
 
@@ -2539,7 +2542,7 @@ function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.r
 const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.2.0',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.2.1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -2644,9 +2647,9 @@ function titleView(){
 function hofSheet(H){
   const mine=new Set(H.map(h=>h.cid)),all=rkTab==='all',L=all?rkAll:H;
   const row=(h,i)=>{const tr=h.trs||[];return`<div class="row2${all&&mine.has(h.cid)?' me':''}"><span class="rk${i<3?' g':''}">${i+1}</span>${helmet(h.helmet,h.num,40)}
-      <span style="flex:1;min-width:0"><b>${esc(h.name)}</b>${h.titles?` <span class="chip gold" style="font-size:12px">월챔 ${h.titles}회</span>`:''}<br>
-      <span class="muted" style="font-size:13px">${esc(h.top||'')} · F1 우승 ${h.wins} · 포디움 ${h.podiums}<br>${h.start}–${h.end} · ${h.age}세 은퇴${h.peak?` · 최고 OVR ${h.peak}`:''}</span>
-      ${tr.length?`<div class="chips" style="margin-top:4px">${tr.slice(0,3).map(t=>`<span class="chip silver" style="font-size:12px">${esc(t)}</span>`).join('')}${tr.length>3?`<span class="chip" style="font-size:12px">+${tr.length-3}</span>`:''}</div>`:''}</span></div>`};
+      <span style="flex:1;min-width:0"><b>${esc(h.name)}</b><br>
+      <span class="muted" style="font-size:13px">${esc(h.top||'')} · 포디움 ${h.podiums}<br>${h.start}–${h.end} · ${h.age}세 은퇴${h.peak?` · 최고 OVR ${h.peak}`:''}</span>
+      ${tr.length?`<div class="chips" style="margin-top:4px">${tr.slice(0,3).map(t=>`<span class="chip silver" style="font-size:12px">${esc(t)}</span>`).join('')}${tr.length>3?`<span class="chip" style="font-size:12px">+${tr.length-3}</span>`:''}</div>`:''}</span>${h.titles?`<span class="rkwc" aria-label="월드 챔피언 ${h.titles}회"><img src="${TROPHY.F1}" alt=""><b>${h.titles}</b></span>`:''}</div>`};
   const body=all&&!rkNet()?`<p class="muted" style="margin:0">전체 랭킹은 인터넷에 연결된 게임 사이트에서 볼 수 있어요.</p>`:
     all&&rkErr?`<p class="muted" style="margin:0">랭킹을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.</p><button class="btn ghost" type="button" id="rkRetry">다시 불러오기</button>`:
     all&&!L?`<p class="muted" style="margin:0">랭킹을 불러오는 중이에요…</p>`:
