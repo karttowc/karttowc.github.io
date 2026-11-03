@@ -54,8 +54,9 @@ bg=Image.new('RGBA',(N,N));d=ImageDraw.Draw(bg)
 for y in range(N):
     t=y/(N-1);d.line([(0,y),(N,y)],fill=(int(26-15*t),int(24-11*t),int(56-34*t),255))
 bg.alpha_composite(hel,((N-hel.width)//2,(N-hel.height)//2))
-m=Image.new('L',(N,N),0);ImageDraw.Draw(m).rounded_rectangle([0,0,N-1,N-1],124,fill=255)
-im=Image.new('RGBA',(N,N),(0,0,0,0));im.paste(bg,(0,0),m);im=im.resize((512,512),Image.LANCZOS)
+# browser tab icons: no background, helmet fills the square (v1.4.4-d2)
+T=max(hel.size)+8;im=Image.new('RGBA',(T,T),(0,0,0,0));im.alpha_composite(hel,((T-hel.width)//2,(T-hel.height)//2))
+im=im.resize((512,512),Image.LANCZOS)
 im.resize((32,32),Image.LANCZOS).save(R/'favicon-32.png')
 # iOS rounds corners itself and dislikes transparency: full-bleed square
 bg.convert('RGB').resize((180,180),Image.LANCZOS).save(R/'apple-touch-icon.png')
