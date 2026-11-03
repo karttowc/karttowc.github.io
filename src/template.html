@@ -814,7 +814,7 @@ const standingsOf=ents=>ents.filter(e=>e.starts>0).sort((a,b)=>b.pts-a.pts||b.wi
 
 /* ---------- season ---------- */
 function startSeason(){
-  const p=S.p,ev=[],ovrBefore=ovrOf(p.stats),statsBefore={...p.stats};
+  const p=S.p,ev=[],evR=[],ovrBefore=ovrOf(p.stats),statsBefore={...p.stats};
   S.events=[];S.challenge=null;
   let ents=[],me=null,races,field,seriesName,teamName,teamColor=null,mate=null;
   if(p.series==='F1'){
@@ -824,13 +824,13 @@ function startSeason(){
     me=entrant({key:'me',name:p.name,team:tm.short,color:tm.color,teamId:tm.id,car:tm.machine,isPlayer:true,...fromStats(p.stats)});
     if(p.role==='race'){
       mate=ents.find(e=>e.teamId===tm.id);
-      if(Math.random()<B.career.own_injury_per_season){const k=ri(...B.career.injury_races),s=ri(0,races-k);for(let i=s;i<s+k;i++)me.absent.add(i);ev.push(`부상으로 ${k}경기를 결장했어요.`)}
+      if(Math.random()<B.career.own_injury_per_season){const k=ri(...B.career.injury_races),s=ri(0,races-k);for(let i=s;i<s+k;i++)me.absent.add(i);ev.push(`부상으로 ${k}경기를 결장했어요.`);evR.push({t:ev[ev.length-1],r:s})}
     }else{
       for(let i=0;i<races;i++)me.absent.add(i);
       ents.filter(e=>e.teamId===tm.id).forEach(e=>{
         if(Math.random()<B.career.teammate_absence_per_season){const k=ri(...B.career.sub_races),s=ri(0,races-k);
-          for(let i=s;i<s+k;i++){if(!me.absent.has(i))continue;me.absent.delete(i);e.absent.add(i)}
-          ev.push(`대타 콜업! ${e.name}의 결장으로 ${k}경기에 출전했어요.`)}});
+          let r0=null;for(let i=s;i<s+k;i++){if(!me.absent.has(i))continue;me.absent.delete(i);e.absent.add(i);if(r0==null)r0=i}
+          ev.push(`대타 콜업! ${e.name}의 결장으로 ${k}경기에 출전했어요.`);evR.push({t:ev[ev.length-1],r:r0??s})}});
     }
     ents.push(me);
   }else{
@@ -864,7 +864,7 @@ function startSeason(){
   S.recentInc=[...(S.recentInc||[]),...incidents.map(x=>x.id)].slice(-6);
   let gacha=null;
   if(p.role==='race'){const mid=Math.floor(races/2);if(orders[mid]&&!me.absent.has(mid)&&!incidents.some(x=>x.r===mid)){const rg=new Set(S.recentGa||[]);let pool=GACHA.filter(g=>gaOK(g,p)&&!rg.has(g.id));if(!pool.length)pool=GACHA.filter(g=>gaOK(g,p));gacha={r:mid,id:pick(pool).id,done:false};S.recentGa=[...(S.recentGa||[]),gacha.id].slice(-4)}}
-  S.season={races,orders,meAbsent:[...me.absent],mateKey:mate?mate.key:null,incidents,gacha,
+  S.season={races,orders,meAbsent:[...me.absent],evR,mateKey:mate?mate.key:null,incidents,gacha,
     ents:ents.map(e=>({key:e.key,name:e.name,team:e.team,teamId:e.teamId||null,color:e.color||null,isPlayer:!!e.isPlayer})),
     ctx:{why0,firstLeague,sid:p.series==='ALT'?p.alt:p.series,seriesName,teamName,teamColor,ovrBefore,statsBefore,ev,f1:p.series==='F1',role:p.role,year:S.year}};
   S.phase='progress';sel=null;save();
@@ -2424,7 +2424,8 @@ function describe(t){
 }
 function startProgress(){
   clearTimeout(progTimer);progI=0;feed=[];
-  S.season.ctx.ev.filter(x=>x.includes('콜업')||x.includes('부상')).forEach(e=>feed.unshift({t:e,c:'blue'}));paintFeed();
+  // call-up / injury notes appear at the round they start (old saves without evR: at the start)
+  if(!S.season.evR)S.season.ctx.ev.filter(x=>x.includes('콜업')||x.includes('부상')).forEach(e=>feed.unshift({t:e,c:'blue'}));paintFeed();
   progTimer=setTimeout(stepProgress,500);
 }
 function paintFeed(){const f=document.getElementById('pFeed');if(f)f.innerHTML=feed.map(x=>`<div class="${x.c}">${esc(x.t)}</div>`).join('')}
@@ -2436,6 +2437,7 @@ function stepProgress(){
   if(inc){showIncident(inc);return}
   if(progI===Z.races-1&&!Z.decDone){Z.decDone=true;const D=deciderInfo();if(D){showDecider(D,()=>{progTimer=setTimeout(stepProgress,200)});return}}
   const t=roundInfo(progI),d=describe(t);
+  (Z.evR||[]).filter(x=>x.r===progI).forEach(x=>feed.unshift({t:x.t,c:'blue'}));
   if(d.note){feed.unshift(d.note);paintFeed()}
   const g=id=>document.getElementById(id);if(!g('pHead'))return;
   g('pHead').textContent=d.head;
@@ -2520,7 +2522,7 @@ function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.r
 // 업데이트 소식 (새 버전을 맨 위에 추가)
 const NOTES=[
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어가요','르망 24시·인디 500 도전과 트리플 크라운','은퇴식, 커리어 결산 카드, 전체 랭킹']}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.0.4',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.0.5',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
