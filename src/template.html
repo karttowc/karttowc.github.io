@@ -403,6 +403,7 @@ html,body{margin:0}
 .note ul{margin:8px 0 0;padding-left:18px;font-size:14px;color:var(--muted)}
 .note li{margin:2px 0}
 .devnote p{margin:0;line-height:1.7}
+.note .nbody{margin-top:8px;display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--muted)}
 .dlink{background:none;border:0;padding:0;font:inherit;font-size:14px;color:var(--dim,#6B7290);cursor:pointer;white-space:nowrap}
 .tfoot{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px 6px;margin-top:10px;font-size:12px}
 .tfoot button,.tfoot a{background:none;border:0;padding:6px 2px;color:#9AA0B8;font:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
@@ -2561,11 +2562,18 @@ function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.r
     peak:p.peak,jr:p.jr.length,trs:[...altTrophies(p).map(t=>t.n),...p.jr.map(j=>`${j.name} 챔피언`)]});
   hofSave(rkSort(a));rkPush()}
 /* ---------- anonymous play log (Google Apps Script -> Sheet) ---------- */
-// 업데이트 소식 (새 버전을 맨 위에 추가)
+// 개발자의 말 (찬우가 쓴 글, 고칠 땐 그대로 옮길 것). 개발자의 말 창과 게임 소식에 같이 씀
+const DEV_NOTE=`      <p>안녕하세요, ‘카트부터 월챔까지’ 개발자입니다.</p>
+      <p>평소 F1을 좋아해서 직접 만들게 됐습니다. 처음에는 친구들끼리만 하려고 만든 게임인데, 생각보다 재밌어서 다른 분들과도 함께하고 싶어 공개하게 됐습니다.</p>
+      <p>이 게임은 수익을 내지 않는 개인 팬 프로젝트이며, 현재 활발히 업데이트 중입니다. 새로운 기능과 밸런스 조정이 계속 추가되고 있으니, 업데이트 소식도 기대해 주세요. 버그나 아이디어가 있다면 언제든 알려 주세요. <button class="dlink" type="button" id="fbOpen">의견 보내러 가기 ›</button></p>
+      <p>P.S. 정식 공개 전부터 어떻게든 찾아서 플레이해 주신 분들, 정말 감사합니다!</p>
+      <p class="muted" style="font-size:12px">※ 본 게임은 Formula 1 및 각 팀과 관련 없는 비공식 팬 게임입니다. F1 및 팀 명칭·상표는 각 권리자에게 있습니다.</p>`;
+// 게임 소식 (새 버전을 맨 위에 추가)
 const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
- {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.3.0',KEYL='k2wc-log-v1';
+ {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
+ {d:'2026.11.2',t:'개발자의 말',dev:true}];
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.3.1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -2651,7 +2659,7 @@ function titleView(){
   const cur=p?(p.retired?'은퇴한 커리어 · 커리어 카드 보기':`${esc(p.name)} · ${p.age}세 · ${esc(currentLine().series)}`):'';
   const H=hofLoad();
   return`<section class="ttl"><div class="stars">${stars}</div><div class="in">
-    <button type="button" class="tnews${lsGet('k2wc-notes-seen')!==NOTES[0].v?' dot':''}" data-sheet="notes" aria-label="업데이트 소식"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></button>
+    <button type="button" class="tnews${lsGet('k2wc-notes-seen')!==NOTES[0].v?' dot':''}" data-sheet="notes" aria-label="게임 소식"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></button>
     <div class="eb">F1 DRIVER CAREER</div>
     <img class="logo" src="${TITLE_IMG}" alt="카트부터 월챔까지">
     <div class="sub">FROM KART TO WORLD CHAMPION</div>
@@ -3037,14 +3045,10 @@ function sheetView(){
   if(sheet==='helmet')return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:88vh;overflow:auto"><div class="row"><h3 class="h2">헬멧 꾸미기</h3><button class="iconbtn" type="button" id="hRandom">랜덤</button></div>
       <div class="row" style="justify-content:center">${helmet(S.p.helmet,S.p.num,150)}</div>${helmetEditor(S.p.helmet)}<button class="btn" type="button" id="closeSheet">완료</button></section></div>`;
   if(sheet==='dev')return`<div class="sheet" id="sheetBg"><section class="card devnote" style="max-height:85vh;overflow:auto"><div class="eyebrow">개발자의 말</div>
-      <p>안녕하세요, ‘카트부터 월챔까지’ 개발자입니다.</p>
-      <p>평소 F1을 좋아해서 직접 만들게 됐습니다. 처음에는 친구들끼리만 하려고 만든 게임인데, 생각보다 재밌어서 다른 분들과도 함께하고 싶어 공개하게 됐습니다.</p>
-      <p>이 게임은 수익을 내지 않는 개인 팬 프로젝트이며, 현재 활발히 업데이트 중입니다. 새로운 기능과 밸런스 조정이 계속 추가되고 있으니, 업데이트 소식도 기대해 주세요. 버그나 아이디어가 있다면 언제든 알려 주세요. <button class="dlink" type="button" id="fbOpen">의견 보내러 가기 ›</button></p>
-      <p>P.S. 정식 공개 전부터 어떻게든 찾아서 플레이해 주신 분들, 정말 감사합니다!</p>
-      <p class="muted" style="font-size:12px">※ 본 게임은 Formula 1 및 각 팀과 관련 없는 비공식 팬 게임입니다. F1 및 팀 명칭·상표는 각 권리자에게 있습니다.</p>
+      ${DEV_NOTE}
       <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`;
-  if(sheet==='notes')return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">지금 버전 v${LOG_VER}</div><h3 class="h2">업데이트 소식</h3>
-      ${NOTES.map(n=>`<details class="note"><summary><span class="nt"><b>${esc(n.t||'v'+n.v)}</b><span class="muted num">v${n.v} · ${n.d}</span></span><i>›</i></summary><ul>${n.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></details>`).join('')}
+  if(sheet==='notes')return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">지금 버전 v${LOG_VER}</div><h3 class="h2">게임 소식</h3>
+      ${NOTES.map(n=>`<details class="note"><summary><span class="nt"><b>${esc(n.t||'v'+n.v)}</b><span class="muted num">${n.v?`v${n.v} · `:''}${n.d}</span></span><i>›</i></summary>${n.dev?`<div class="devnote nbody">${DEV_NOTE}</div>`:`<ul>${n.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`}</details>`).join('')}
       <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`;
   if(sheet==='fb')return`<div class="sheet" id="sheetBg"><section class="card"><h3 class="h3">의견 보내기</h3>
       <textarea class="field" id="fbText" maxlength="300" rows="5" placeholder="불편한 점, 어려운 구간, 바랐던 기능 등 뭐든 좋아요" style="resize:none">${esc(fbText)}</textarea>
