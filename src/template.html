@@ -328,6 +328,13 @@ label.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--
 .nhero .side{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:13px;position:relative;z-index:1;text-align:right}
 .nhero .lbl{color:#8D929D;letter-spacing:.04em}
 .nhero em{font-style:normal;color:#8D929D;margin-left:4px}
+.ntiles.four{grid-template-columns:repeat(4,1fr)}
+.nmate{background:#0A0B0D;border:1px solid #23262D;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.nmate .mh{display:flex;align-items:center;gap:8px;font-size:13px}.nmate .mh span{color:#8D929D}.nmate .mh b{color:#fff}
+.nmate .mc{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.nmate .mc.two{grid-template-columns:repeat(2,1fr)}
+.nmate .mc div{display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 0;border-radius:8px;background:rgba(255,255,255,.04)}
+.nmate .mc span{font-size:11px;color:#8D929D}.nmate .mc b{font-family:var(--num);font-size:17px;color:#fff}
+.nmate .mc .w b{color:var(--good)}.nmate .mc .l b{color:#FF6B76}
 .ntiles.three{grid-template-columns:repeat(3,1fr)}
 .ntiles div.lead b{color:var(--gold)}
 .nres{font-size:20px;word-break:keep-all;font-weight:700;letter-spacing:-.02em;color:#fff;line-height:1.3}
@@ -1112,7 +1119,7 @@ function buildNotice(){
     if(N&&N.heads[0])L.push(`F1 소식: ${N.heads[0].t}`);
   }
   const pv=p.history.length>1?p.history[p.history.length-2]:null;
-  const so=R?{year:R.year,sid:R.lk||R.sid,series:R.series,pos:R.pos,field:R.field,wins:R.wins,pod:R.podiums,poles:R.poles,prev:pv&&pv.sid===R.sid&&pv.pos?pv.pos:null,h2h:R.h2h?R.h2h.q:null,o0:R.ovrBefore,o1:R.ovrAfter}:null;
+  const so=R?{year:R.year,sid:R.lk||R.sid,series:R.series,pos:R.pos,field:R.field,wins:R.wins,pod:R.podiums,poles:R.poles,pts:R.points,h2:R.h2h||null,prev:pv&&pv.sid===R.sid&&pv.pos?pv.pos:null,h2h:R.h2h?R.h2h.q:null,o0:R.ovrBefore,o1:R.ovrAfter}:null;
   if(p.rivalNote){L.unshift(p.rivalNote);p.rivalNote=null}
   S.notice={year:S.year,team:p.series==='F1'?teamDef(p.team.id).name:(p.team&&p.team.name)||'',sum,so,lines:L.slice(0,6)};
 }
@@ -1983,7 +1990,8 @@ function standRows(){const st=S.last.standings;
   return[...st,...(S.last.meRow?[S.last.meRow]:[])].map(e=>`<tr class="${e.me?'me':''}"><td class="num" style="width:28px">${e.pos}</td><td>${e.team&&teamByShort(e.team)?logo(teamByShort(e.team).id,24):''}${esc(e.name)}</td><td class="muted">${esc(e.team||'')}</td><td class="r num">${e.pts}</td></tr>`).join('')}
 function resultBoard(){
   const R=S.last&&S.last.rec;if(!R)return'';
-  const so=S.notice&&S.notice.so&&S.notice.so.year===R.year?S.notice.so:{year:R.year,sid:R.lk||R.sid,series:R.series,pos:R.pos,field:R.field,wins:R.wins,pod:R.podiums,poles:R.poles,prev:null};
+  const so=S.notice&&S.notice.so&&S.notice.so.year===R.year?S.notice.so:{year:R.year,sid:R.lk||R.sid,series:R.series,pos:R.pos,field:R.field,wins:R.wins,pod:R.podiums,poles:R.poles,pts:R.points,h2:R.h2h||null,prev:null};
+  if(so.pts==null){so.pts=R.points;so.h2=R.h2h||null}
   const V=R.rv;
   return`<section class="notice"><div class="flag"></div><div class="nb">${noticeTiles(so)}${V?`<div class="rvres ${V.ahead?'win':'lose'}"><span class="rvb">라이벌</span><span class="t"><b>${esc(V.name)}</b> · ${sLogo(V.lk,14)}${V.pos?'P'+V.pos:'-'}${V.field?'/'+V.field:''}</span><span class="r">${V.ahead?'내가 앞섬 ✓':'라이벌 승'} · ${V.h2h[0]}:${V.h2h[1]}</span></div>`:''}${S.last.standings&&S.last.standings.length?`<button class="nmore" type="button" data-sheet="stand">순위표 보기 <span>›</span></button>`:''}</div></section>`}
 function hlList(R){const H=R.hl||[];if(!H.length)return'';
@@ -2007,7 +2015,6 @@ function resultCard(){
     <div class="sumtop"><div><span class="lbl">시즌 후 능력치 · 다음 시즌부터 반영</span><b class="num">${R.ovrBefore} <i>→</i> <em>${R.ovrAfter}</em></b>${d?`<span class="delta ${d<0?'down':''}">${d>0?'+':''}${d}</span>`:''}</div>
       ${R.val!=null?`<div style="text-align:right"><span class="lbl">몸값</span><b class="num sm">${won(R.val)}</b>${R.val!==R.valBefore?`<span class="delta ${R.val<R.valBefore?'down':''}">${R.val>R.valBefore?'+':'-'}${won(Math.abs(R.val-R.valBefore))}</span>`:''}</div>`:''}</div>
     ${R.earn?`<div class="earn">${R.earn.sal||R.earn.prize?`<span>올해 수익</span><b class="num">${won(R.earn.sal+R.earn.prize)}</b>${R.earn.prize?`<em>상금 ${won(R.earn.prize)} 포함</em>`:''}`:`<span>올해 수익</span><b>스폰서 지원으로 레이스 중</b>`}<i>통산 ${won(S.p.earn||0)}</i></div>`:''}
-    ${R.h2h?`<div class="earn"><span>vs ${esc(R.h2h.mate)}</span><b class="num" style="font-size:14px">예선 ${R.h2h.q[0]}:${R.h2h.q[1]} · 결선 ${R.h2h.r[0]}:${R.h2h.r[1]}${R.h2h.tp?` · 포인트 ${R.h2h.tp[0]}:${R.h2h.tp[1]-R.h2h.tp[0]}`:''}</b></div>`:''}
     <div class="sgrid"><div class="sgh"><span>능력치 변화</span>${R.train?`<em>훈련: ${esc(R.train)}</em>`:''}</div>${STATS.map(k=>{const v=dm[k]||0;return`<div class="sg${fo.includes(k)?' f':''}"><span>${LBL[k]}</span><b class="num">${S.p.stats[k]}</b><i class="${v>0?'up':v<0?'down':''}">${v>0?'+'+v:v<0?v:'–'}</i></div>`}).join('')}</div>
     ${mine.length?`<div class="mynews">${mine.slice(0,3).map(e=>`<div class="${tone(e)}">${withLogos(esc(e))}</div>`).join('')}</div>`:''}
     ${ex?`<div class="quote"><span>패독 분석가 J</span>${withLogos(esc(ex))}</div>`:''}
@@ -2063,7 +2070,9 @@ function noticeTiles(o){const mv=o.prev&&o.pos?o.prev-o.pos:0,top=o.pos&&o.pos<=
   return`<div class="nres">${sLogo(o.sid,20)}${o.year} ${esc(o.series)} 결과</div>
   <div class="nhero${top?' top':''}"><div class="pos"><span class="pp">P</span><b>${o.pos??'–'}</b>${o.pos?`<small>/${o.field}</small>`:''}</div>
     <div class="side"><span class="lbl">최종 순위</span>${mv?`<span class="${mv>0?'up':'down'}">${mv>0?'▲':'▼'} ${Math.abs(mv)} <em>작년 ${o.prev}위</em></span>`:o.prev?`<span class="muted">작년과 같은 순위</span>`:''}</div></div>
-  <div class="ntiles three"><div class="${o.wins?'lead':''}"><b>${o.wins}</b><span>우승</span></div><div><b>${o.pod}</b><span>포디움</span></div><div><b>${o.poles??0}</b><span>폴 포지션</span></div></div>`}
+  <div class="ntiles four"><div><b>${o.pts??0}</b><span>포인트</span></div><div class="${o.wins?'lead':''}"><b>${o.wins}</b><span>우승</span></div><div><b>${o.pod}</b><span>포디움</span></div><div><b>${o.poles??0}</b><span>폴 포지션</span></div></div>
+  ${o.h2?(()=>{const H=o.h2,c=(a,b,l)=>`<div class="${a>b?'w':a<b?'l':''}"><span>${l}</span><b>${a}:${b}</b></div>`;
+    return`<div class="nmate"><div class="mh"><span>팀메이트</span><b>${esc(H.mate)}</b></div><div class="mc${H.tp?'':' two'}">${c(H.q[0],H.q[1],'퀄리파잉')}${c(H.r[0],H.r[1],'결선')}${H.tp?c(H.tp[0],H.tp[1]-H.tp[0],'포인트'):''}</div></div>`})():''}`}
 function whyCard(){const H=S.p.history,R=H.at(-1),Y=R&&R.why;if(!Y||(S.react&&S.react.year!==R.year))return'';
   const P=H.length>1?H[H.length-2]:null,X=P&&P.why&&(P.lk||P.sid)===(R.lk||R.sid)?P.why:null;
   if(!X)return`<div class="why"><div class="wh"><b>순위 변동을 만든 요인</b></div><p class="muted" style="margin:0;font-size:13px">이 리그 첫 시즌이라 작년과 비교할 정보가 없어요.</p></div>`;
@@ -2520,7 +2529,7 @@ function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.r
 // 업데이트 소식 (새 버전을 맨 위에 추가)
 const NOTES=[
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어가요','르망 24시·인디 500 도전과 트리플 크라운','은퇴식, 커리어 결산 카드, 전체 랭킹']}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.0.6',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.0.7',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
