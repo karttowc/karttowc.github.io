@@ -914,7 +914,7 @@ function finishSeason(){
   const m0=tally(races);let wetN=0,wetPod=0;Z.orders.forEach((o,r)=>{if(o.wet&&m0.me.fp[r]){wetN++;if(m0.me.fp[r]<=3)wetPod++}});
   const m=m0,ents=Object.values(m),me=m.me,mate=Z.mateKey?m[Z.mateKey]:null;
   const ovrBefore=C.ovrBefore,statsBefore=C.statsBefore,teamName=C.teamName,teamColor=C.teamColor;
-  if(p.series==='F1'&&me.fp[7]===1&&!p.monaco){p.monaco=true;if(tcMark())ev.unshift(`모나코 GP 우승! ${TC_MSG}`);else ev.push(`모나코 GP 우승! ${tcLast()?'트리플 크라운까지 하나 남았어요.':'트리플 크라운의 첫 조각이에요.'}`)}
+  if(p.series==='F1'&&me.fp[7]===1&&!p.monaco){p.monaco=true;if(tcMark()){tcPop={id:'MONACO',name:'모나코 GP'};ev.unshift(`모나코 GP 우승! ${TC_MSG}`)}else ev.push(`모나코 GP 우승! ${tcLast()?'트리플 크라운까지 하나 남았어요.':'트리플 크라운의 첫 조각이에요.'}`)}
   const st=standingsOf(ents);
   let f1st=null;
   {let fe=p.series==='F1'?ents:null;
@@ -941,7 +941,7 @@ function finishSeason(){
   if(p.series==='ALT'&&(p.alt==='WEC'||p.alt==='INDY')&&me.starts>0){const cid=p.alt==='WEC'?'LEMANS':'INDY500',cn=p.alt==='WEC'?'르망 24시':'인디 500',rr=pos?1-(pos-1)/Math.max(1,fieldN-1):.2;
     const win=clamp(.03+rr*.3+(ovrOf(p.stats)-78)*.01,.02,.4),x=Math.random(),res=x<win?'우승':x<win*2.5?'포디움':x<.88?'완주':'리타이어';
     p.challenges.push({id:cid,name:cn,year:S.year,res,season:true});crown={id:cid,n:cn,res};
-    if(res==='우승'){p.fans=clamp(p.fans+6,0,100);ev.unshift(`${cn} 우승!${tcMark()?' '+TC_MSG:tcLast()?' 트리플 크라운까지 하나 남았어요.':''}`)}else ev.push(`${cn} ${res==='포디움'?'포디움':res==='완주'?'완주':'리타이어'}`)}
+    if(res==='우승'){p.fans=clamp(p.fans+6,0,100);const tcN=tcMark();if(tcN)tcPop={id:cid,name:cn};ev.unshift(`${cn} 우승!${tcN?' '+TC_MSG:tcLast()?' 트리플 크라운까지 하나 남았어요.':''}`)}else ev.push(`${cn} ${res==='포디움'?'포디움':res==='완주'?'완주':'리타이어'}`)}
   // super licence
   if(pos&&p.role==='race'){const tbl=B.super_licence.points[p.series==='ALT'?'ALT':p.series]||[];p.sl.push({year:S.year,pts:tbl[pos-1]||0})}
   else if(p.series==='F1'&&p.role==='reserve')p.sl.push({year:S.year,pts:10});
@@ -1670,6 +1670,8 @@ const tcHave=()=>({MONACO:!!S.p.monaco,LEMANS:wonC('LEMANS'),INDY500:wonC('INDY5
 // the one piece still missing when the other two are won
 function tcLast(){const h=tcHave(),m=Object.keys(h).filter(k=>!h[k]);return m.length===1?m[0]:null}
 // first time all three are won: remember the year so that season's wrap-up celebrates it
+// triple crown completed during a season (Monaco, or Le Mans/Indy 500 in a WEC/IndyCar season): its window opens when the season wraps up
+let tcPop=null;
 function tcMark(){const p=S.p;if(p.tcY||!tripleCrown())return false;p.tcY=S.year;p.fans=clamp(p.fans+10,0,100);return true}
 function retireNow(){const p=S.p;if(p.series==='F1'&&p.role==='race')fillSeat(p.team.id);fillVacancies();p.retired=true;logRetire();S.phase='retired';S.events=[];S.challenge=null;save()}
 
@@ -2528,7 +2530,9 @@ function finishProgress(){
   const G=S.season.gacha,pend=S.season.incidents.find(x=>!x.done),dec=!S.season.decDone&&deciderInfo()?S.season.races-1:null,pr=[G&&!G.done?G.r:null,pend?pend.r:null,dec].filter(x=>x!=null);
   if(pr.length){progI=Math.min(...pr);stepProgress();return}
   finishSeason();tab='home';resMore=false;hlMore=false;render();window.scrollTo(0,0);
-  const R=S.last&&S.last.rec;if(R&&R.titled)celebrate(R);
+  const R=S.last&&S.last.rec,tp=tcPop;tcPop=null;
+  const tcShow=()=>{if(!tp)return;sheet={type:'chres',c:{...tp,year:R?R.year:S.year,res:'우승',tc:1,season:1}};render()};
+  if(R&&R.titled)celebrate(R,tcShow);else tcShow();
 }
 function stepper(){
   const ph=S.phase,steps=[['ready','프리시즌'],['progress','시즌'],['result','시즌 결과'],['offers','이적 시장']];
@@ -2599,7 +2603,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.2',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3045,15 +3049,15 @@ function sheetView(){
     return`<div class="sheet" id="sheetBg"><section class="card${last?' chres win':''}"><div class="eyebrow">${last?'트리플 크라운까지 단 하나':'도전 이벤트 · 선택 사항'}</div>${PEEK}<h3 class="h2">${last?`${S.challenge.name}, 도전할까요?`:`${S.challenge.name} 출전 제안`}</h3>
       <p class="muted" style="margin:0">${last?`${jo(oth[0],'과','와')} ${jo(oth[1],'은','는')} 이미 우승했어요. ${S.challenge.name}만 이기면 모터스포츠 트리플 크라운이에요.`:`F1 시즌 사이에 한 번 출전해요. 체력이 꽤 깎이지만 인기와 평판이 올라요. ${S.challenge.id==='LEMANS'?'모나코, 인디 500과 함께 트리플 크라운의 한 조각이에요.':'르망, 모나코와 함께 트리플 크라운의 한 조각이에요.'}`}</p>
       ${effChips({fans:4,morale:-10,rep:2})}<p class="muted" style="margin:0;font-size:13px">우승하면 인기 +10${PRIZE[S.challenge.id]?` · 우승 상금 <b style="color:var(--gold)">${won(PRIZE[S.challenge.id])}</b>`:''} · 우승 확률 약 ${Math.round(clamp(.05+(ovr-75)*.02,.03,.35)*100)}%</p><button class="btn" type="button" id="acceptCh">${last?'도전한다':'출전한다'}</button><button class="btn ghost" type="button" id="declineCh">이번엔 거절한다${chain?' (다음)':''}</button></section></div>`}
-  if(sheet&&sheet.type==='chres'){const c=sheet.c,w=c.res==='우승',tcW=w&&c.tc,pz=w&&PRIZE[c.id]?PRIZE[c.id]:0,col=w?'var(--gold)':c.res==='포디움'?'#C9D1DE':c.res==='리타이어'?'var(--bad)':'var(--fg)';
+  if(sheet&&sheet.type==='chres'){const c=sheet.c,w=c.res==='우승',tcW=w&&c.tc,pz=w&&!c.season&&PRIZE[c.id]?PRIZE[c.id]:0,col=w?'var(--gold)':c.res==='포디움'?'#C9D1DE':c.res==='리타이어'?'var(--bad)':'var(--fg)';
     const tc=[['모나코',S.p.monaco],['르망',wonC('LEMANS')],['인디 500',wonC('INDY500')]];
-    return`<div class="sheet" id="sheetBg"><section class="card chres${w?' win':''}"><div class="eyebrow">${c.year} 도전 결과</div>
+    return`<div class="sheet" id="sheetBg"><section class="card chres${w?' win':''}"><div class="eyebrow">${c.year} ${c.season?'시즌 하이라이트':'도전 결과'}</div>
       <div class="crbig">${w?px(TROPHY_MAP,TROPHY_PAL,84):''}<b style="color:${col}">${esc(c.name)}${tcW?' 우승':''}</b><span style="color:${col}">${tcW?'트리플 크라운!':c.res==='우승'?'우승!':c.res}</span></div>
       ${tcW?`<div class="tcban">${TC_MSG}<small>그레이엄 힐 이후 역사상 두 번째</small></div>`:''}
       <div class="kv nw">${pz?`<div class="row"><span>상금</span><b class="num" style="color:var(--gold)">+${won(pz)}</b></div>`:''}
-        <div class="row"><span>보상</span><span>${w?'인기 +10 · 평판 +2':'인기 +4 · 평판 +2'} · 체력 -10</span></div>
+        ${c.season?'':`<div class="row"><span>보상</span><span>${w?'인기 +10 · 평판 +2':'인기 +4 · 평판 +2'} · 체력 -10</span></div>`}
         ${c.id!=='DAKAR'?`<div class="row"><span>트리플 크라운</span><span>${tc.map(([n,v])=>`<b style="color:${v?'var(--gold)':'var(--dim)'}">${v?'✓':'·'} ${n}</b>`).join(' ')}</span></div>`:''}</div>
-      <button class="btn" type="button" id="chDone">${chain?'다음':'확인'}</button></section></div>`}
+      <button class="btn" type="button" id="chDone">${chain?'다음':c.season?'시즌 결과 보기':'확인'}</button></section></div>`}
   if(sheet&&sheet.type==='msg')return`<div class="sheet" id="sheetBg"><section class="card"><h3 class="h2">${esc(sheet.title)}</h3><p style="margin:0">${esc(sheet.text)}</p><button class="btn" type="button" id="closeSheet">확인</button></section></div>`;
   if(sheet==='news'&&S.news&&S.news.heads){const N=S.news,ts=[...S.teams].sort((a,b)=>b.machine-a.machine);
     return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">${N.year} 시즌을 앞두고</div><h3 class="h2">패독 소식</h3>
