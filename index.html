@@ -3020,8 +3020,10 @@ const avDefault=nat=>AV_NAT[nat]??0;
 const AVIMG=[],AWIMG=[],AVC={};let spriteWait=false;
 function spriteImg(arr,src,i){if(typeof Image==='undefined')return null;if(!arr[i]){const im=new Image();im.onload=()=>{avFix();if(spriteWait){spriteWait=false;render()}};im.src=src[i];arr[i]=im}return arr[i]}
 /* overlays (champion, contract, ceremony) aren't redrawn by render(): repaint avatars still showing the raw green sprite */
-function avFix(){if(typeof document==='undefined')return;document.querySelectorAll('img[data-avp]').forEach(e=>{const d=e.dataset,c=avatarCanvas(+d.avp,{base:d.hb,sec:d.hs},!!d.aw);if(c){e.src=c.url;e.removeAttribute('data-avp')}});
+function avFix(){if(typeof document==='undefined')return;document.querySelectorAll('img[data-avp]').forEach(e=>{const d=e.dataset,c=avatarCanvas(+d.avp,{base:d.hb,sec:d.hs},!!d.aw,d.an);if(c){e.src=c.url;if(!c.tmp)e.removeAttribute('data-avp')}});
   document.querySelectorAll('img.himg[data-hb]').forEach(e=>{const d=e.dataset,c=helmetCanvas({base:d.hb,sec:d.hs,vis:d.hvi});if(c){e.src=c.url;e.removeAttribute('data-hb')}})}
+/* 글꼴이 늦게 오면 가슴 번호를 다시 그림 */
+if(typeof document!=='undefined'&&document.fonts)document.fonts.ready.then(()=>avFix());
 /* recolour an image: rule(hue,sat,light,x,w) -> [[h,s,l], refLight] or null; lightness offset from refLight is kept */
 function recolor(im,rule,fr,spot){const c=document.createElement('canvas'),w=c.width=im.naturalWidth,ht=c.height=im.naturalHeight,g=c.getContext('2d');g.drawImage(im,0,0);
   const d=g.getImageData(0,0,w,ht),a=d.data,o=fr?a.slice():null,hit=fr?new Uint8Array(w*ht):null;
@@ -3047,14 +3049,21 @@ function hexHsl(h){const n=parseInt(h.slice(1),16),r=(n>>16)/255,g=(n>>8&255)/25
   if(mx!==mn){const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);hu=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;hu/=6}return[hu,s,l]}
 function hslRgb(h,s,l){if(!s)return[l,l,l];const q=l<.5?l*(1+s):l+s-l*s,p=2*l-q,f=t=>{t=(t+1)%1;return t<1/6?p+(q-p)*6*t:t<.5?q:t<2/3?p+(q-p)*(2/3-t)*6:p};return[f(h+1/3),f(h),f(h-1/3)]}
 /* win=true: trophy pose (arms up, empty hands; the trophy is laid behind the hands) */
-function avatarCanvas(i,h,win){const L=win?AVWIN:AVATAR;i=Math.max(0,Math.min(L.length-1,i|0));h=normHelmet(h);const k=(win?'w':'')+i+h.base+h.sec;if(AVC[k])return AVC[k];
+/* 슈트 가슴 번호(v1.4.4): 입은 사람 왼쪽 가슴(보는 쪽 오른쪽), 포인트 색 + 검정 테두리(포인트 색이 어두우면 흰 테두리). 420px 높이 기준 x 112(몸 가운데 89)·y 185, 글자 20 */
+const SUIT_NUM={x:112,y:185,fs:20,lw:3};
+function suitNum(base,h,num){const fo=typeof document!=='undefined'&&document.fonts&&document.fonts.check('700 20px "Barlow Condensed"'),c=document.createElement('canvas'),w=c.width=base.w,ht=c.height=base.h,g=c.getContext('2d');
+  g.drawImage(base.canvas,0,0);const sc=ht/420,n=String(num);g.font=`700 ${SUIT_NUM.fs*sc}px "Barlow Condensed",sans-serif`;g.textAlign='center';g.textBaseline='middle';g.lineJoin='round';
+  g.lineWidth=SUIT_NUM.lw*sc;g.strokeStyle=hexHsl(h.sec)[2]<.3?'#F3F3F1':'#000';const x=w/2+(SUIT_NUM.x-89)*sc,y=SUIT_NUM.y*sc;g.strokeText(n,x,y);g.fillStyle=h.sec;g.fillText(n,x,y);
+  return{canvas:c,url:c.toDataURL(),w,h:ht,tmp:!fo}}
+function avatarCanvas(i,h,win,num){if(num!=null){h=normHelmet(h);const k=(win?'w':'')+(i|0)+h.base+h.sec+'#'+num;if(AVC[k])return AVC[k];const b=avatarCanvas(i,h,win);if(!b)return null;const c=suitNum(b,h,num);if(!c.tmp)AVC[k]=c;return c}
+  const L=win?AVWIN:AVATAR;i=Math.max(0,Math.min(L.length-1,i|0));h=normHelmet(h);const k=(win?'w':'')+i+h.base+h.sec;if(AVC[k])return AVC[k];
   const im=spriteImg(win?AWIMG:AVIMG,L,i);if(!im||!im.complete||!im.naturalWidth){if(im)spriteWait=true;return null}
   const B=hexHsl(h.base),Sx=hexHsl(h.sec);
   return AVC[k]=recolor(im,(hu,s,l)=>s>.35&&hu>.22&&hu<.45?[B,.5]:s>.35&&hu>.78&&hu<.92?[Sx,.5]:null,(hu,s,l)=>s>.1&&hu>.15&&hu<.5?[B,.5]:s>.1&&hu>.68&&hu<.98?[Sx,.5]:null,{t:B,y0:148,y1:182})}
-function avatarSrc(i,h,win){const c=avatarCanvas(i,h,win),L=win?AVWIN:AVATAR;return c?c.url:L[Math.max(0,Math.min(L.length-1,i|0))]}
+function avatarSrc(i,h,win,num){const c=avatarCanvas(i,h,win,num),L=win?AVWIN:AVATAR;return c?c.url:L[Math.max(0,Math.min(L.length-1,i|0))]}
 /* src + (if the recoloured sprite isn't ready yet) markers so avFix can repaint it once loaded */
-function avAttr(i,h,win){const c=avatarCanvas(i,h,win);if(c)return`src="${c.url}"`;h=normHelmet(h);
-  return`src="${avatarSrc(i,h,win)}" data-avp="${i|0}" data-hb="${h.base}" data-hs="${h.sec}"${win?' data-aw="1"':''}`}
+function avAttr(i,h,win,num){const c=avatarCanvas(i,h,win,num);if(c&&!c.tmp)return`src="${c.url}"`;h=normHelmet(h);
+  return`src="${c?c.url:avatarSrc(i,h,win)}" data-avp="${i|0}" data-hb="${h.base}" data-hs="${h.sec}"${win?' data-aw="1"':''}${num!=null?` data-an="${esc(num)}"`:''}`}
 /* 헬멧 쓴 전신(v1.4.4 helmet h4): 전신 위쪽(머리)을 지우고 정면 헬멧을 씌움. 번호 없음. 아바타 좌표(178x420) 기준 헬멧 폭 112, 아래 끝 y 158 */
 const WORN={hw:112,bottom:158},AWC={};
 function wornCanvas(i,h){h=normHelmet(h);const k=i+h.base+h.sec+h.vis;if(AWC[k])return AWC[k];const a=avatarCanvas(i,h),hc=helmetCanvas(h);if(!a||!hc)return null;
@@ -3063,14 +3072,14 @@ function wornCanvas(i,h){h=normHelmet(h);const k=i+h.base+h.sec+h.vis;if(AWC[k])
   const hw=WORN.hw*sc,hh=hw*hc.h/hc.w;g.drawImage(hc.canvas,(w-hw)/2,WORN.bottom*sc-hh,hw,hh);
   return AWC[k]={canvas:c,url:c.toDataURL(),w,h:ht}}
 function avatarWorn(i,h,size){const c=wornCanvas(i,h);return`<img class="avfull" src="${c?c.url:avatarSrc(i,h)}" alt="" style="height:${size}px">`}
-function avatar(i,h,size=56,full){return full?`<img class="avfull" ${avAttr(i,h)} alt="" style="height:${size}px">`:`<div class="avface" style="width:${size}px;height:${size}px"><img ${avAttr(i,h)} alt=""></div>`}
+function avatar(i,h,size=56,full,num){return full?`<img class="avfull" ${avAttr(i,h,false,num)} alt="" style="height:${size}px">`:`<div class="avface" style="width:${size}px;height:${size}px"><img ${avAttr(i,h)} alt=""></div>`}
 const pAv=p=>p.avatar??avDefault(p.nat);
 /* trophy art by key: F1 / alt series id (image) or junior series (pixel cup); th = height in px */
 function trophyArt(k,th){return TROPHY[k]?`<img src="${TROPHY[k]}" alt="" style="height:${th}px;width:auto;display:block">`:JR_LBL[k]?jrTrophy(k,th):px(TROPHY_MAP,TROPHY_PAL,th)}
 const trRatio=k=>TROPHY[k]?.55:.42;
 /* full-body trophy pose; size = figure height. Trophy sits behind the gloves so they look like they grip it */
-function avatarWin(i,h,size,k){const th=Math.round(size*trRatio(k)),top=th-Math.round(size*.08);
-  return`<div class="avwin" style="width:${Math.round(size*.62)}px;height:${size+top}px"><span class="awt">${trophyArt(k,th)}</span><img class="avfull" ${avAttr(i,h,true)} alt="" style="height:${size}px"></div>`}
+function avatarWin(i,h,size,k,num){const th=Math.round(size*trRatio(k)),top=th-Math.round(size*.08);
+  return`<div class="avwin" style="width:${Math.round(size*.62)}px;height:${size+top}px"><span class="awt">${trophyArt(k,th)}</span><img class="avfull" ${avAttr(i,h,true,num)} alt="" style="height:${size}px"></div>`}
 function sLogo(sid,h=14){return SLOGO[sid]?`<img src="${SLOGO[sid]}" alt="" style="height:${h}px;width:auto;vertical-align:-2px;margin-right:6px">`:''}
 const TROPHY_IMG={};for(const k in TROPHY){const i=new Image();i.src=TROPHY[k];TROPHY_IMG[k]=i}
 const LOGO_IMG={};K.teams.forEach(k=>{if(k.logo){const i=new Image();i.src=k.logo;LOGO_IMG[k.id]=i}});
@@ -3783,7 +3792,7 @@ const BYE_MID=['F1까지는 못 갔지만 보는 내내 즐거웠어','{name}의
 const BYE_F1=['고마웠어요. 덕분에 일요일이 즐거웠어요','헬멧 벗는 모습 보고 울었다','{name} 없는 그리드는 상상이 안 된다','카트 시절부터 끝까지 함께해서 행복했어','마지막 체커기 받는 거 보고 소름','다음 커리어는 감독으로 돌아와 줘'];
 function cerPage(i){const p=S.p,D=cerData(),T=p.tot,s=similarDriver();
   if(i===0){const lv=Math.max(0,...p.history.map(h=>LVL(h.sid))),BYE=p.debutYear?BYE_F1:lv>=3||p.history.some(h=>h.sid==='ALT')?BYE_MID:BYE_SHORT;const bye=[...BYE].sort(()=>Math.random()-.5).slice(0,2).map(x=>x.replace('{name}',p.name));
-    return`<div class="cflag"></div><div class="cp c0"><div class="chel">${avatar(pAv(p),p.helmet,170,true)}${helmet(p.helmet,p.num,72)}</div>
+    return`<div class="cflag"></div><div class="cp c0"><div class="chel">${avatar(pAv(p),p.helmet,170,true,p.num)}${helmet(p.helmet,p.num,72)}</div>
       <div class="ck">LAST LAP</div><h2>${esc(p.name)},<br>헬멧을 벗습니다</h2>
       <p>${p.age}세 · ${D.first}–${D.last} · ${D.seasons}시즌</p>
       <div class="cbye">${bye.map((b,j)=>`<div style="animation-delay:${.9+j*.35}s">💬 ${esc(b)}</div>`).join('')}</div></div>`}
@@ -3929,7 +3938,7 @@ function obInit(){hcustOpen=false;
 function obView(){
   const steps=`<div class="steps">${[1,2,3].map(i=>`<i class="${i<=ob.step?'on':''}"></i>`).join('')}</div>`;
   const tag=`<div class="obtag"><div class="obmeta"><b class="num">#${esc(ob.num)}</b><em>${esc(K.nationalities[ob.nat]||'')}</em></div><span class="obname">${esc(ob.name.trim()||'이름 없음')}</span></div>`;
-  const hero=`<section class="obhero"><div class="obstage"><div class="hsuit">${helmet(ob.helmet,ob.num,96)}${avatar(ob.av,ob.helmet,118,true)}</div></div>${tag}</section>`;
+  const hero=`<section class="obhero"><div class="obstage"><div class="hsuit">${helmet(ob.helmet,ob.num,96)}${avatar(ob.av,ob.helmet,118,true,ob.num)}</div></div>${tag}</section>`;
   const note=`<p class="muted" style="margin:4px 0 0;font-size:12px;text-align:center">비공식 팬 게임이에요. 수익을 내지 않으며 F1·FIA·각 팀과 관련이 없어요. 팀명·로고·선수명 등 상표는 각 소유자의 것이에요.</p>`;
   if(ob.step===1)return`<header class="top"><span style="width:56px"></span>${steps}<button class="iconbtn" type="button" id="obRandom">랜덤</button></header>
     <div><h2 class="h2">나만의 드라이버를 꾸며요</h2></div>
@@ -3980,7 +3989,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.4-d8',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.4-d9',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -4187,7 +4196,7 @@ function contractShow(o,done){
       bk.innerHTML=I.big?`<div class="cxa">
           <div class="mq">${['o l','f r','o l','f r','o l'].map((c,i)=>{const w=i%2?I.en:'BREAKING',s=Array(6).fill(w).join(' · ');return`<div class="${c}">${esc(s)} · ${esc(s)} · </div>`}).join('')}</div>
           <div class="brk"><b>BREAKING</b><div class="tk"><span>${I.news}</span></div></div>
-          <div class="off">OFFICIAL</div><div class="duo"><div class="lg">${mark}</div><div class="hel">${avatar(pAv(p),p.helmet,150,true)}</div></div>
+          <div class="off">OFFICIAL</div><div class="duo"><div class="lg">${mark}</div><div class="hel">${avatar(pAv(p),p.helmet,150,true,p.num)}</div></div>
           <div class="nm">${esc(p.name)}</div><div class="ln">${esc(I.line)}</div><div class="tt">${esc(I.terms)}</div>
           <div class="sg">${sigSVG(p.sig,220,74,'#fff')}<div class="stp" style="--stc:#fff">${I.logo?`<img src="${I.logo}" alt="">`:''}SIGNED</div></div>
           <div class="wf"></div><div class="fl">${Array.from({length:11},(_,i)=>`<i style="left:${8+Math.random()*78}%;top:${10+Math.random()*70}%;animation-delay:${(3.05+i*.08+Math.random()*.08).toFixed(2)}s"></i>`).join('')}</div>
@@ -4209,7 +4218,7 @@ function celebrate(R,done){
   const cols=['#F2C14E','#E10600','#FFFFFF','#3182F6','#34C77B','#FF8A00'];
   const conf=Array.from({length:f1?70:40},(_,i)=>`<i style="left:${Math.random()*100}%;background:${cols[i%cols.length]};animation-delay:${(Math.random()*2.5).toFixed(2)}s;animation-duration:${(2.2+Math.random()*2).toFixed(2)}s;width:${f1?8:6}px;height:${f1?8:6}px"></i>`).join('');
   el.innerHTML=`<div class="conf">${conf}</div><div class="cin">
-    <div class="trophy">${avatarWin(pAv(p),p.helmet,f1?220:190,f1?'F1':R.sid==='ALT'?R.lk:R.sid)}</div>
+    <div class="trophy">${avatarWin(pAv(p),p.helmet,f1?220:190,f1?'F1':R.sid==='ALT'?R.lk:R.sid,p.num)}</div>
     <div class="wow">${f1?'와! 월드 챔피언이다!':`와! 챔피언이다!`}</div>
     ${f1?'<div class="wcen">WORLD CHAMPION</div>':''}
     <div class="csub">${R.year} ${sLogo(R.lk||R.sid,18)}${esc(R.series)} 챔피언 · <b>${esc(p.name)}</b></div>
