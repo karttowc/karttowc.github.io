@@ -212,7 +212,11 @@ details.hcust>summary::after{content:'›';transform:rotate(90deg);color:var(--d
 details.hcust[open]>summary::after{transform:rotate(-90deg)}
 details.hcust[open]>summary{margin-bottom:10px}
 .hsuit{display:flex;align-items:flex-end;gap:2px}
-.obhero.solo{justify-content:center}
+.obsuit{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start}
+.obworn{display:grid;place-items:center;align-self:center;padding:0 2px;width:104px}.obworn .avfull{height:auto!important;width:100%}
+.obteams{min-width:0;display:flex;flex-direction:column;gap:8px}
+.obteams .tcgrid{grid-template-columns:repeat(3,1fr);gap:6px}
+.obteams .tcopt{padding:7px 2px 6px;gap:4px}.obteams .tcopt img{width:24px!important;height:24px!important}
 .obtag{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
 .obname{font-size:30px;font-weight:800;line-height:1.1;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .obmeta{display:flex;align-items:center;gap:8px;min-width:0}
@@ -3036,6 +3040,14 @@ function avatarSrc(i,h,win){const c=avatarCanvas(i,h,win),L=win?AVWIN:AVATAR;ret
 /* src + (if the recoloured sprite isn't ready yet) markers so avFix can repaint it once loaded */
 function avAttr(i,h,win){const c=avatarCanvas(i,h,win);if(c)return`src="${c.url}"`;h=normHelmet(h);
   return`src="${avatarSrc(i,h,win)}" data-avp="${i|0}" data-hb="${h.base}" data-hs="${h.sec}"${win?' data-aw="1"':''}`}
+/* 헬멧 쓴 전신(v1.4.4 helmet h4): 전신 위쪽(머리)을 지우고 정면 헬멧을 씌움. 번호 없음. 아바타 좌표(178x420) 기준 헬멧 폭 112, 아래 끝 y 150 */
+const WORN={hw:112,bottom:150},AWC={};
+function wornCanvas(i,h){h=normHelmet(h);const k=i+h.base+h.sec+h.vis;if(AWC[k])return AWC[k];const a=avatarCanvas(i,h),hc=helmetCanvas(h);if(!a||!hc)return null;
+  const c=document.createElement('canvas'),w=c.width=a.w,ht=c.height=a.h,g=c.getContext('2d');g.drawImage(a.canvas,0,0);
+  const sc=w/178,cut=Math.round((WORN.bottom-6)*sc);g.clearRect(0,0,w,cut);
+  const hw=WORN.hw*sc,hh=hw*hc.h/hc.w;g.drawImage(hc.canvas,(w-hw)/2,WORN.bottom*sc-hh,hw,hh);
+  return AWC[k]={canvas:c,url:c.toDataURL(),w,h:ht}}
+function avatarWorn(i,h,size){const c=wornCanvas(i,h);return`<img class="avfull" src="${c?c.url:avatarSrc(i,h)}" alt="" style="height:${size}px">`}
 function avatar(i,h,size=56,full){return full?`<img class="avfull" ${avAttr(i,h)} alt="" style="height:${size}px">`:`<div class="avface" style="width:${size}px;height:${size}px"><img ${avAttr(i,h)} alt=""></div>`}
 const pAv=p=>p.avatar??avDefault(p.nat);
 /* trophy art by key: F1 / alt series id (image) or junior series (pixel cup); th = height in px */
@@ -3902,18 +3914,17 @@ function obInit(){hcustOpen=false;
 function obView(){
   const steps=`<div class="steps">${[1,2,3].map(i=>`<i class="${i<=ob.step?'on':''}"></i>`).join('')}</div>`;
   const tag=`<div class="obtag"><div class="obmeta"><b class="num">#${esc(ob.num)}</b><em>${esc(K.nationalities[ob.nat]||'')}</em></div><span class="obname">${esc(ob.name.trim()||'이름 없음')}</span></div>`;
-  const hero=`<section class="obhero${ob.step===1?' solo':''}"><div class="obstage"><div class="hsuit">${helmet(ob.helmet,ob.num,96)}${avatar(ob.av,ob.helmet,118,true)}</div></div>${ob.step===1?'':tag}</section>`;
+  const hero=`<section class="obhero"><div class="obstage"><div class="hsuit">${helmet(ob.helmet,ob.num,96)}${avatar(ob.av,ob.helmet,118,true)}</div></div>${tag}</section>`;
   const note=`<p class="muted" style="margin:4px 0 0;font-size:12px;text-align:center">비공식 팬 게임이에요. 수익을 내지 않으며 F1·FIA·각 팀과 관련이 없어요. 팀명·로고·선수명 등 상표는 각 소유자의 것이에요.</p>`;
   if(ob.step===1)return`<header class="top"><span style="width:56px"></span>${steps}<button class="iconbtn" type="button" id="obRandom">랜덤</button></header>
     <div><h2 class="h2">나만의 드라이버를 꾸며요</h2></div>
-    ${hero}
-    <section class="card"><div class="lbl" style="margin-bottom:8px">얼굴</div><div class="avgrid">${AVATAR.map((_,i)=>`<button class="avopt" type="button" data-av="${i}" aria-pressed="${i===ob.av}" aria-label="드라이버 ${i+1}">${avatar(i,ob.helmet,64)}</button>`).join('')}</div></section>
-    <section class="card"><div class="lbl" style="margin-bottom:8px">좋아하는 팀 컬러</div>${teamColors(ob.helmet)}</section>
-    <section class="card"><details class="hcust"${hcustOpen?' open':''}><summary>직접 고르기</summary>${helmetEditor(ob.helmet)}</details></section>
+    <section class="card obsuit"><div class="obworn">${avatarWorn(ob.av,ob.helmet,240)}</div><div class="obteams"><div class="lbl">팀 컬러</div>${teamColors(ob.helmet)}</div></section>
+    <section class="card"><div class="lbl" style="margin-bottom:8px">직접 고르기</div>${helmetEditor(ob.helmet)}</section>
     <button class="btn" type="button" id="obNext1">다음</button>${note}`;
   if(ob.step===2)return`<header class="top"><button class="iconbtn" type="button" id="obBack">이전</button>${steps}<button class="iconbtn" type="button" id="obRandom">랜덤</button></header>
-    <div><h2 class="h2">이름·번호·국적을 정해요</h2></div>
+    <div><h2 class="h2">얼굴·이름·국적을 정해요</h2></div>
     ${hero}
+    <section class="card"><div class="lbl" style="margin-bottom:8px">얼굴</div><div class="avgrid">${AVATAR.map((_,i)=>`<button class="avopt" type="button" data-av="${i}" aria-pressed="${i===ob.av}" aria-label="드라이버 ${i+1}">${avatar(i,ob.helmet,64)}</button>`).join('')}</div></section>
     <section class="card"><div class="grid2"><label class="lbl" for="obName">이름<input class="field" id="obName" maxlength="12" placeholder="이름" value="${esc(ob.name)}"></label>
       <label class="lbl" for="obNum">차량 번호<input class="field num" id="obNum" type="number" min="2" max="99" value="${ob.num}"></label></div>
       <label class="lbl" for="obNat" style="margin-top:10px">국적<select class="field" id="obNat">${Object.entries(K.nationalities).map(([k,v])=>`<option value="${k}"${k===ob.nat?' selected':''}>${v}</option>`).join('')}</select></label></section>
@@ -3954,7 +3965,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.4-h3',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.4-h4',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -4485,7 +4496,7 @@ root.addEventListener('click',e=>{
   if(t.id==='sheetBg'&&e.target===t){if(sheetBack){sheet=sheetBack;sheetBack=null;render();return}if(PRE(sheet)||sheet&&(sheet.type==='chres'||sheet.type==='num1'))return;sheet=null;chain=false;evPick=null;render();return}
   const id=t.id,d=t.dataset;
   // onboarding
-  if(id==='obRandom'){if(ob.step===1){ob.av=pick(AVATAR.map((_,i)=>i));ob.avPick=true;ob.helmet=Math.random()<.5?randomHelmet():(([b,c])=>({...normHelmet(ob.helmet),base:b,sec:c}))(pick(Object.values(TEAM_COL)))}else{ob.nat=pick(Object.keys(K.nationalities));ob.name=genName(ob.nat);ob.nameAuto=true;ob.num=ri(2,99)}render();return}
+  if(id==='obRandom'){if(ob.step===1){ob.helmet=Math.random()<.5?randomHelmet():(([b,c])=>({...normHelmet(ob.helmet),base:b,sec:c}))(pick(Object.values(TEAM_COL)))}else{ob.av=pick(AVATAR.map((_,i)=>i));ob.avPick=true;ob.nat=pick(Object.keys(K.nationalities));ob.name=genName(ob.nat);ob.nameAuto=true;ob.num=ri(2,99)}render();return}
   if(d.tcol){const tgt=ob||(S&&!S.p.retired?S.p:null);if(!tgt||!TEAM_COL[d.tcol])return;const[b,c]=TEAM_COL[d.tcol];tgt.helmet={...normHelmet(tgt.helmet),base:b,sec:c};if(S&&!ob)save();render();return}
   if(d.htab){hedTab=d.htab;render();return}
   if(d.av!=null&&ob){ob.av=+d.av;ob.avPick=true;render();return}
