@@ -173,19 +173,19 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .tshelf.wc figcaption{color:var(--gold);font-weight:700;font-size:12px}.tcap{margin:0;text-align:center;color:var(--gold);font-weight:800;font-size:14px}
 .chip.red{background:#3D1B21;color:#FF8A95}
 .helmet{flex:none;position:relative;display:grid;place-items:center;border-radius:16px;background:var(--surface-2)}
-.himg{width:92%;height:auto;image-rendering:pixelated;display:block}
-.hnum{position:absolute;left:31%;top:57%;transform:translate(-50%,-50%);font-family:"Barlow Condensed",sans-serif;font-weight:700;color:#fff;-webkit-text-stroke:.06em #000;paint-order:stroke;line-height:1;pointer-events:none}
+.himg{width:83%;height:auto;display:block}
+.hnum{position:absolute;left:31.6%;top:80.4%;transform:translate(-50%,-50%) matrix(.886,.156,.174,.985,0,0);font-family:"Barlow Condensed",sans-serif;font-weight:700;color:#fff;-webkit-text-stroke:.06em #000;paint-order:stroke;line-height:1;pointer-events:none}
 .helmet svg{display:block;width:86%;height:auto;shape-rendering:crispEdges;image-rendering:pixelated}
 .hed{display:flex;flex-direction:column;gap:14px}
 .htabs{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;padding:4px;background:var(--surface-2);border-radius:12px}
 .htabs button{border:0;background:none;color:var(--muted);font-size:14px;font-weight:600;padding:8px 0;border-radius:9px}
 .htabs button[aria-selected="true"]{background:var(--surface);color:var(--fg)}
-.hed .swatches{flex-wrap:nowrap;overflow-x:auto;gap:8px;padding:4px 2px 6px;margin-top:6px;scrollbar-width:none}
+.hed .swatches{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;padding:4px 2px 6px;margin-top:6px}
 .hed .swatches::-webkit-scrollbar{display:none}
-.hed .sw{width:34px;height:34px;flex:none}
+.hed .sw{width:100%;height:auto;aspect-ratio:1;box-shadow:inset 0 0 0 1px rgba(128,128,128,.35)}
 .hgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .hopt{display:flex;flex-direction:column;align-items:center;gap:2px;border:2px solid transparent;background:var(--surface-2);border-radius:12px;padding:6px 2px 6px;color:var(--fg);font-size:12px}
-.hopt .himg{width:100%;max-width:70px}
+.hopt .himg{height:64px;width:auto}
 .hopt[aria-pressed="true"]{border-color:var(--accent)}
 .obhero{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;padding:4px 16px;border-radius:20px;background:radial-gradient(120% 90% at 30% 20%,#2a3550 0%,#171a22 70%);box-shadow:0 8px 24px rgba(0,0,0,.35)}
 .obhero .helmet{background:none}
@@ -201,6 +201,22 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .avopt .avface{width:100%!important;height:auto!important;aspect-ratio:1}
 .avopt[aria-pressed="true"]{border-color:var(--accent)}
 .obstage{flex:none}
+.tcgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tcopt{display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 2px 7px;border-radius:14px;border:2px solid transparent;background:var(--surface2,rgba(255,255,255,.04));color:inherit;min-width:0}
+.tcopt[aria-pressed="true"]{border-color:var(--accent)}
+.tcopt .tcsw{display:flex;gap:3px}.tcopt .tcsw i{width:12px;height:12px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(128,128,128,.4)}
+.tcopt .tcn{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+details.hcust>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:15px}
+details.hcust>summary::-webkit-details-marker{display:none}
+details.hcust>summary::after{content:'›';transform:rotate(90deg);color:var(--dim);font-size:18px;transition:transform .2s}
+details.hcust[open]>summary::after{transform:rotate(-90deg)}
+details.hcust[open]>summary{margin-bottom:10px}
+.hsuit{display:flex;align-items:flex-end;gap:2px}
+.obsuit{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start}
+.obworn{display:grid;place-items:center;align-self:center;padding:0 2px;width:104px}.obworn .avfull{height:auto!important;width:100%}
+.obteams{min-width:0;display:flex;flex-direction:column;gap:8px}
+.obteams .tcgrid{grid-template-columns:repeat(3,1fr);gap:6px}
+.obteams .tcopt{padding:7px 2px 6px;gap:4px}.obteams .tcopt img{width:24px!important;height:24px!important}
 .obtag{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
 .obname{font-size:30px;font-weight:800;line-height:1.1;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .obmeta{display:flex;align-items:center;gap:8px;min-width:0}
@@ -1731,6 +1747,14 @@ function avatarSrc(i,h,win){const c=avatarCanvas(i,h,win),L=win?AVWIN:AVATAR;ret
 /* src + (if the recoloured sprite isn't ready yet) markers so avFix can repaint it once loaded */
 function avAttr(i,h,win){const c=avatarCanvas(i,h,win);if(c)return`src="${c.url}"`;h=normHelmet(h);
   return`src="${avatarSrc(i,h,win)}" data-avp="${i|0}" data-hb="${h.base}" data-hs="${h.sec}"${win?' data-aw="1"':''}`}
+/* 헬멧 쓴 전신(v1.4.4 helmet h4): 전신 위쪽(머리)을 지우고 정면 헬멧을 씌움. 번호 없음. 아바타 좌표(178x420) 기준 헬멧 폭 112, 아래 끝 y 158 */
+const WORN={hw:112,bottom:158},AWC={};
+function wornCanvas(i,h){h=normHelmet(h);const k=i+h.base+h.sec+h.vis;if(AWC[k])return AWC[k];const a=avatarCanvas(i,h),hc=helmetCanvas(h);if(!a||!hc)return null;
+  const c=document.createElement('canvas'),w=c.width=a.w,ht=c.height=a.h,g=c.getContext('2d');g.drawImage(a.canvas,0,0);
+  const sc=w/178,cut=Math.round((WORN.bottom-6)*sc);g.clearRect(0,0,w,cut);
+  const hw=WORN.hw*sc,hh=hw*hc.h/hc.w;g.drawImage(hc.canvas,(w-hw)/2,WORN.bottom*sc-hh,hw,hh);
+  return AWC[k]={canvas:c,url:c.toDataURL(),w,h:ht}}
+function avatarWorn(i,h,size){const c=wornCanvas(i,h);return`<img class="avfull" src="${c?c.url:avatarSrc(i,h)}" alt="" style="height:${size}px">`}
 function avatar(i,h,size=56,full){return full?`<img class="avfull" ${avAttr(i,h)} alt="" style="height:${size}px">`:`<div class="avface" style="width:${size}px;height:${size}px"><img ${avAttr(i,h)} alt=""></div>`}
 const pAv=p=>p.avatar??avDefault(p.nat);
 /* trophy art by key: F1 / alt series id (image) or junior series (pixel cup); th = height in px */
@@ -1994,10 +2018,18 @@ function reactTransfer(o){if(!S.react)return;const t=o.teamId?teamDef(o.teamId):
 const HPAT=[['none','단색'],['visor','바이저 라인'],['swoosh','스윕'],['two','투톤'],['center','센터 스트라이프'],['grad','그라데이션'],['dots','도트 페이드'],['crown','크라운 밴드']];
 const HPAT_OLD={stripe:'visor',double:'center',cap:'two',diag:'swoosh',checker:'dots',stars:'dots',ring:'crown'};
 const HVIS=[['dark','다크'],['smoke','스모크'],['gold','골드 미러'],['blue','블루 미러'],['iri','오로라']];
-/* 레이싱 도장 팔레트(v0.32.0): 로소·버건디·파파야·샴페인 골드·브리티시 그린·민트·걸프 블루·네이비·딥 퍼플·코랄·펄 화이트·건메탈 */
-const HCOL=['#C8102E','#6E1A2B','#F28C28','#D4AF6A','#1E5A3F','#5FC9B5','#6FA8DC','#1C2A4A','#4B2E6F','#E8747C','#EDEAE3','#4A4F57'];
-/* 옛 팔레트 → 새 팔레트(옛 세이브·AI 헬멧) */
-const HCOL_OLD={'#3182F6':'#6FA8DC','#E8002D':'#C8102E','#FF8000':'#F28C28','#27F4D2':'#5FC9B5','#F2C14E':'#D4AF6A','#9B5CF6':'#4B2E6F','#F5F5F5':'#EDEAE3','#1F8A4C':'#1E5A3F','#16181D':'#1C2A4A','#FF5CA8':'#E8747C','#7A1F2B':'#6E1A2B','#9AA3B2':'#4A4F57'};
+/* F1 팀 색 팔레트(v1.4.4): 8개씩 2줄. 블랙·실버·화이트·페라리 레드·파파야·옐로·샴페인 골드·라임 / 레이싱 그린·페트로나스 틸·라이트 블루·알핀 블루·윌리엄스 블루·네이비·딥 퍼플·BWT 핑크. 골드·퍼플은 팀 색 아님(나만의 헬멧용) */
+const HCOL=['#1E1F23','#A7ADB4','#F3F3F1','#E10600','#FF8000','#FFD000','#D4AF6A','#C8DC00',
+  '#00594F','#27F4D2','#64C4FF','#0093CC','#005AFF','#1C2A4A','#4B2E6F','#FF87BC'];
+/* 옛 팔레트(v0.31·v0.32·v1.4.4-d3) → 지금 팔레트(옛 세이브·AI 헬멧) */
+const HCOL_OLD={'#111214':'#1E1F23','#2B2D33':'#1E1F23','#4A4F57':'#A7ADB4','#6E1A2B':'#E10600','#C8102E':'#E10600','#6692FF':'#64C4FF',
+  '#F28C28':'#FF8000','#1E5A3F':'#00594F','#5FC9B5':'#27F4D2','#6FA8DC':'#64C4FF','#E8747C':'#FF87BC','#EDEAE3':'#F3F3F1',
+  '#3182F6':'#005AFF','#E8002D':'#E10600','#F2C14E':'#D4AF6A','#9B5CF6':'#4B2E6F','#F5F5F5':'#F3F3F1','#1F8A4C':'#00594F','#16181D':'#1E1F23','#FF5CA8':'#FF87BC','#7A1F2B':'#E10600','#9AA3B2':'#A7ADB4'};
+/* 팀 컬러 프리셋: 로고 누르면 헬멧·슈트가 그 팀 색(메인, 포인트) */
+const TEAM_COL={mercedes:['#1E1F23','#27F4D2'],redbull:['#1C2A4A','#E10600'],ferrari:['#E10600','#FFD000'],mclaren:['#FF8000','#1E1F23'],astonmartin:['#00594F','#C8DC00'],
+  alpine:['#0093CC','#FF87BC'],racingbulls:['#F3F3F1','#005AFF'],williams:['#005AFF','#64C4FF'],haas:['#F3F3F1','#E10600'],audi:['#A7ADB4','#E10600'],cadillac:['#1E1F23','#F3F3F1']};
+function teamColors(h){h=normHelmet(h);return`<div class="tcgrid">${K.teams.filter(t=>TEAM_COL[t.id]).map(t=>{const[b,c]=TEAM_COL[t.id];
+  return`<button class="tcopt" type="button" data-tcol="${t.id}" aria-pressed="${h.base===b&&h.sec===c}" aria-label="${esc(t.name)}">${logo(t.id,30)}<span class="tcsw"><i style="background:${b}"></i><i style="background:${c}"></i></span><span class="tcn">${esc(t.name)}</span></button>`}).join('')}</div>`}
 function normHelmet(h){if(typeof h==='string')h={base:h,sec:'#EDEAE3',pat:'visor',vis:'dark'};
   if(HPAT_OLD[h.pat])h={...h,pat:HPAT_OLD[h.pat]};
   const u=c=>HCOL_OLD[String(c).toUpperCase()]||c;if(HCOL_OLD[String(h.base).toUpperCase()]||HCOL_OLD[String(h.sec).toUpperCase()])h={...h,base:u(h.base),sec:u(h.sec)};return h}
@@ -2005,18 +2037,22 @@ function shade(hex,f){const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&2
 /* helmet sprites (data/helmets.json, one per pattern): green shell -> base, magenta pattern -> sec, cyan visor -> visor tint */
 const HVIS_COL={dark:'#2A2F3A',smoke:'#566074',gold:'#D9A520',blue:'#2F72D6'};
 const HIMG=[],HC={};
-function helmetCanvas(h){h=normHelmet(h);const pi=0,k=h.base+h.sec+h.vis;if(HC[k])return HC[k];
+/* 정면 헬멧(HELMETS[1], v1.4.4)이 기본. side=true면 옛 옆모습(HELMETS[0], 사이트 아이콘용 tools/brand.py) */
+function helmetCanvas(h,side){h=normHelmet(h);const pi=side?0:1,k=h.base+h.sec+h.vis+(side?'s':'');if(HC[k])return HC[k];
   const im=spriteImg(HIMG,HELMETS,pi);if(!im||!im.complete||!im.naturalWidth){spriteWait=true;return null}
   const B=hexHsl(h.base),Sx=hexHsl(h.sec),V=h.vis==='iri'?null:hexHsl(HVIS_COL[h.vis]||HVIS_COL.dark);
   return HC[k]=recolor(im,(hu,s,l,x,w)=>s>.2&&hu>.2&&hu<.45?[B,.45]:s>.2&&hu>.75&&hu<.95?[Sx,.45]:s>.2&&hu>=.45&&hu<.6?[V||[(x/w*1.6+.7)%1,.75,.5],.5]:null)}
-function helmetSrc(h){const c=helmetCanvas(h);if(c)return c.url;return HELMETS[0]}
+function helmetSrc(h){const c=helmetCanvas(h);if(c)return c.url;return HELMETS[1]}
 function helmetImg(h){if(helmetCanvas(h))return`<img class="himg" src="${helmetSrc(h)}" alt="">`;h=normHelmet(h);
-  return`<img class="himg" src="${HELMETS[0]}" data-hb="${h.base}" data-hs="${h.sec}" data-hvi="${h.vis}" alt="">`}
-function helmet(h,num,size=56){return`<div class="helmet" style="width:${size}px;height:${size}px">${helmetImg(h)}${num!=null?`<b class="hnum" style="font-size:${Math.round(size*.19)}px">${esc(num)}</b>`:''}</div>`}
-function drawHelmet(g,h,num,x0,y0,sc){const w=24*sc,c=helmetCanvas(h);if(!c)return;const ht=w*c.h/c.w;y0+=(w*.75-ht)/2+sc*2;
-  g.imageSmoothingEnabled=false;g.drawImage(c.canvas,x0,y0,w,ht);g.imageSmoothingEnabled=true;
-  g.font=`700 ${w*.19}px "Barlow Condensed",sans-serif`;g.textAlign='center';g.lineWidth=w*.025;g.strokeStyle='#000';g.strokeText(String(num),x0+w*.32,y0+ht*.66);g.fillStyle='#fff';g.fillText(String(num),x0+w*.32,y0+ht*.66)}
-let hedTab='col';
+  return`<img class="himg" src="${HELMETS[1]}" data-hb="${h.base}" data-hs="${h.sec}" data-hvi="${h.vis}" alt="">`}
+function helmet(h,num,size=56){return`<div class="helmet" style="width:${size}px;height:${size}px">${helmetImg(h)}${num!=null?`<b class="hnum" style="font-size:${Math.max(7,Math.round(size*.16))}px">${esc(num)}</b>`:''}</div>`}
+/* 번호: 보는 쪽 왼뺨(줄무늬 아래), 반시계로 기울이고 1의 자리가 아래로(곡면에 붙은 느낌). CSS .hnum과 같은 값 */
+const HNUM_M=[.886,.156,.174,.985];
+function drawHelmet(g,h,num,x0,y0,sc){const W0=24*sc,c=helmetCanvas(h);if(!c)return;const ht=W0*.92,w=ht*c.w/c.h;x0+=(W0-w)/2;y0+=(W0*.75-ht)/2+sc*2;
+  g.drawImage(c.canvas,x0,y0,w,ht);
+  g.save();g.translate(x0+w*.278,y0+ht*.83);g.transform(...HNUM_M,0,0);g.font=`700 ${ht*.17}px "Barlow Condensed",sans-serif`;g.textAlign='center';g.textBaseline='middle';
+  g.lineWidth=ht*.016;g.lineJoin='round';g.strokeStyle='#000';g.strokeText(String(num),0,0);g.fillStyle='#fff';g.fillText(String(num),0,0);g.restore()}
+let hedTab='col',hcustOpen=false;
 function helmetEditor(h){h=normHelmet(h);const tabs=[['col','색'],['vis','바이저']];
   const sw=(k,v)=>`<div class="swatches">${HCOL.map(c=>`<button class="sw" type="button" data-${k}="${c}" aria-label="${c}" aria-pressed="${c===v}" style="background:${c}"></button>`).join('')}</div>`;
   if(hedTab!=='vis')hedTab='col';const body=hedTab==='col'?`<div class="lbl">메인 색${sw('hb',h.base)}</div><div class="lbl">포인트 색 (줄무늬)${sw('hs',h.sec)}</div>`
@@ -2573,7 +2609,7 @@ function stepper(){
 }
 
 /* ---------- onboarding ---------- */
-function obInit(){
+function obInit(){hcustOpen=false;
   const c={};B.styles.forEach(s=>c[s.id]=styleStats(B.driver.start_ovr,s.id));
   ob={step:1,name:genName('KOR'),nameAuto:true,num:ri(2,99),nat:'KOR',av:avDefault('KOR'),avPick:false,helmet:randomHelmet(),style:null,cands:c};
   let L=null;try{L=JSON.parse(lsGet('k2wc-last'))}catch(e){}
@@ -2584,22 +2620,22 @@ function obInit(){
 }
 function obView(){
   const steps=`<div class="steps">${[1,2,3].map(i=>`<i class="${i<=ob.step?'on':''}"></i>`).join('')}</div>`;
-  const tag=`<div class="obtag"><div class="obmeta">${ob.step===1?'':helmet(ob.helmet,null,44)}<b class="num">#${esc(ob.num)}</b><em>${esc(K.nationalities[ob.nat]||'')}</em></div><span class="obname">${esc(ob.name.trim()||'이름 없음')}</span></div>`;
-  const hero=`<section class="obhero"><div class="obstage">${ob.step===1?helmet(ob.helmet,ob.num,118):avatar(ob.av,ob.helmet,118,true)}</div>${tag}</section>`;
+  const tag=`<div class="obtag"><div class="obmeta"><b class="num">#${esc(ob.num)}</b><em>${esc(K.nationalities[ob.nat]||'')}</em></div><span class="obname">${esc(ob.name.trim()||'이름 없음')}</span></div>`;
+  const hero=`<section class="obhero"><div class="obstage"><div class="hsuit">${helmet(ob.helmet,ob.num,96)}${avatar(ob.av,ob.helmet,118,true)}</div></div>${tag}</section>`;
   const note=`<p class="muted" style="margin:4px 0 0;font-size:12px;text-align:center">비공식 팬 게임이에요. 수익을 내지 않으며 F1·FIA·각 팀과 관련이 없어요. 팀명·로고·선수명 등 상표는 각 소유자의 것이에요.</p>`;
   if(ob.step===1)return`<header class="top"><span style="width:56px"></span>${steps}<button class="iconbtn" type="button" id="obRandom">랜덤</button></header>
-    <div><h2 class="h2">헬멧·이름·국적부터 정해요</h2></div>
+    <div><h2 class="h2">나만의 드라이버를 꾸며요</h2></div>
+    <section class="card obsuit"><div class="obworn">${avatarWorn(ob.av,ob.helmet,240)}</div><div class="obteams"><div class="lbl">팀 컬러</div>${teamColors(ob.helmet)}</div></section>
+    <section class="card"><div class="lbl" style="margin-bottom:8px">직접 고르기</div>${helmetEditor(ob.helmet)}</section>
+    <button class="btn" type="button" id="obNext1">다음</button>${note}`;
+  if(ob.step===2)return`<header class="top"><button class="iconbtn" type="button" id="obBack">이전</button>${steps}<button class="iconbtn" type="button" id="obRandom">랜덤</button></header>
+    <div><h2 class="h2">얼굴·이름·국적을 정해요</h2></div>
     ${hero}
-    <section class="card">${helmetEditor(ob.helmet)}</section>
+    <section class="card"><div class="lbl" style="margin-bottom:8px">얼굴</div><div class="avgrid">${AVATAR.map((_,i)=>`<button class="avopt" type="button" data-av="${i}" aria-pressed="${i===ob.av}" aria-label="드라이버 ${i+1}">${avatar(i,ob.helmet,64)}</button>`).join('')}</div></section>
     <section class="card"><div class="grid2"><label class="lbl" for="obName">이름<input class="field" id="obName" maxlength="12" placeholder="이름" value="${esc(ob.name)}"></label>
       <label class="lbl" for="obNum">차량 번호<input class="field num" id="obNum" type="number" min="2" max="99" value="${ob.num}"></label></div>
       <label class="lbl" for="obNat" style="margin-top:10px">국적<select class="field" id="obNat">${Object.entries(K.nationalities).map(([k,v])=>`<option value="${k}"${k===ob.nat?' selected':''}>${v}</option>`).join('')}</select></label></section>
-    <button class="btn" type="button" id="obNext1" ${ob.name.trim()?'':'disabled'}>다음</button>${note}`;
-  if(ob.step===2)return`<header class="top"><button class="iconbtn" type="button" id="obBack">이전</button>${steps}<button class="iconbtn" type="button" id="obRandom">랜덤</button></header>
-    <div><h2 class="h2">어떤 드라이버로 살아볼까요?</h2></div>
-    ${hero}
-    <section class="card"><div class="avgrid">${AVATAR.map((_,i)=>`<button class="avopt" type="button" data-av="${i}" aria-pressed="${i===ob.av}" aria-label="드라이버 ${i+1}">${avatar(i,ob.helmet,64)}</button>`).join('')}</div></section>
-    <button class="btn" type="button" id="obNext2">다음</button>`;
+    <button class="btn" type="button" id="obNext2" ${ob.name.trim()?'':'disabled'}>다음</button>`;
   return`<header class="top"><button class="iconbtn" type="button" id="obBack">이전</button>${steps}<span style="width:56px"></span></header>
     <div><div class="eyebrow">네 후보 모두 능력치 합은 ${B.driver.start_stat_sum}이고, 분포만 달라요.</div><h2 class="h2">드라이버 스타일을 골라 주세요</h2></div>
     ${B.styles.map(s=>{const st=ob.cands[s.id],top=[...STATS].sort((a,b)=>st[b]-st[a]).slice(0,2);return`<button class="choice" type="button" data-style="${s.id}" aria-pressed="${ob.style===s.id}">
@@ -2636,7 +2672,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.4-d5',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.4-d6',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3111,8 +3147,8 @@ function sheetView(){
   if(sheet&&sheet.type==='brief'){const x=S.offers[sheet.i];
     return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">${S.year} 시즌 팀 브리핑</div>${teamBrief(offerTeam(x),x)}
       <div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" id="closeSheet">닫기</button><button class="btn" type="button" data-pickoffer="${sheet.i}">이 제안 선택</button></div></section></div>`}
-  if(sheet==='helmet')return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:88vh;overflow:auto"><div class="row"><h3 class="h2">헬멧 꾸미기</h3><button class="iconbtn" type="button" id="hRandom">랜덤</button></div>
-      <div class="row" style="justify-content:center">${helmet(S.p.helmet,S.p.num,150)}</div>${helmetEditor(S.p.helmet)}<button class="btn" type="button" id="closeSheet">완료</button></section></div>`;
+  if(sheet==='helmet')return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:88vh;overflow:auto"><div class="row"><h3 class="h2">헬멧·슈트 꾸미기</h3><button class="iconbtn" type="button" id="hRandom">랜덤</button></div>
+      <div class="hsuit" style="justify-content:center">${helmet(S.p.helmet,S.p.num,130)}${avatar(pAv(S.p),S.p.helmet,170,true)}</div><div class="lbl" style="margin:4px 0 8px">팀 컬러</div>${teamColors(S.p.helmet)}${helmetEditor(S.p.helmet)}<button class="btn" type="button" id="closeSheet">완료</button></section></div>`;
   if(sheet==='dev')return`<div class="sheet" id="sheetBg"><section class="card devnote" style="max-height:85vh;overflow:auto"><div class="eyebrow">개발자의 말</div>
       ${DEV_NOTE}
       ${DEV_DISC}
@@ -3154,9 +3190,10 @@ async function saveFile(filename,data){
 root.addEventListener('input',e=>{
   if(e.target.id==='fbText'){fbText=e.target.value;return}
   if(!ob||S)return;
-  if(e.target.id==='obName'){ob.name=e.target.value;ob.nameAuto=false;const t=document.querySelector('.obname');if(t)t.textContent=ob.name.trim()||'이름 없음';const b=document.getElementById('obNext1');if(b)b.disabled=!ob.name.trim()}
+  if(e.target.id==='obName'){ob.name=e.target.value;ob.nameAuto=false;const t=document.querySelector('.obname');if(t)t.textContent=ob.name.trim()||'이름 없음';const b=document.getElementById('obNext2');if(b)b.disabled=!ob.name.trim()}
   if(e.target.id==='obNum'){ob.num=clamp(parseInt(e.target.value)||2,2,99)}
 });
+root.addEventListener('toggle',e=>{if(e.target.classList&&e.target.classList.contains('hcust'))hcustOpen=e.target.open},true);
 root.addEventListener('change',e=>{if(e.target.id==='obNat'){ob.nat=e.target.value;if(!ob.avPick)ob.av=avDefault(ob.nat);if(ob.nameAuto)ob.name=genName(ob.nat);render()}if(e.target.id==='obNum'){ob.num=clamp(parseInt(e.target.value)||2,2,99);render()}});
 root.addEventListener('click',e=>{
   {const ib=e.target.closest('span.ibtn[data-sheet]');if(ib){openSheet(ib.dataset.sheet);return}}
@@ -3166,14 +3203,15 @@ root.addEventListener('click',e=>{
   if(t.id==='sheetBg'&&e.target===t){if(sheetBack){sheet=sheetBack;sheetBack=null;render();return}if(PRE(sheet)||sheet&&(sheet.type==='chres'||sheet.type==='num1'))return;sheet=null;chain=false;evPick=null;render();return}
   const id=t.id,d=t.dataset;
   // onboarding
-  if(id==='obRandom'){if(ob.step===1){ob.helmet=randomHelmet();ob.nat=pick(Object.keys(K.nationalities));if(!ob.avPick)ob.av=avDefault(ob.nat);ob.name=genName(ob.nat);ob.nameAuto=true;ob.num=ri(2,99)}else{ob.av=pick(AVATAR.map((_,i)=>i));ob.avPick=true}render();return}
+  if(id==='obRandom'){if(ob.step===1){ob.helmet=Math.random()<.5?randomHelmet():(([b,c])=>({...normHelmet(ob.helmet),base:b,sec:c}))(pick(Object.values(TEAM_COL)))}else{ob.av=pick(AVATAR.map((_,i)=>i));ob.avPick=true;ob.nat=pick(Object.keys(K.nationalities));ob.name=genName(ob.nat);ob.nameAuto=true;ob.num=ri(2,99)}render();return}
+  if(d.tcol){const tgt=ob||(S&&!S.p.retired?S.p:null);if(!tgt||!TEAM_COL[d.tcol])return;const[b,c]=TEAM_COL[d.tcol];tgt.helmet={...normHelmet(tgt.helmet),base:b,sec:c};if(S&&!ob)save();render();return}
   if(d.htab){hedTab=d.htab;render();return}
   if(d.av!=null&&ob){ob.av=+d.av;ob.avPick=true;render();return}
   if(d.hb||d.hs||d.hp||d.hv){const tgt=ob||(S&&!S.p.retired?S.p:null);if(!tgt)return;const h=normHelmet(tgt.helmet);
-    if(d.hb)h.base=d.hb;if(d.hs)h.sec=d.hs;if(d.hp)h.pat=d.hp;if(d.hv)h.vis=d.hv;tgt.helmet=h;if(S)save();render();return}
+    if(d.hb)h.base=d.hb;if(d.hs)h.sec=d.hs;if(d.hp)h.pat=d.hp;if(d.hv)h.vis=d.hv;tgt.helmet=h;hcustOpen=true;if(S)save();render();return}
   if(id==='hRandom'&&S){S.p.helmet=randomHelmet();save();render();return}
-  if(id==='obNext1'){ob.step=2;render();window.scrollTo(0,0);if(badName(ob.name))toast('이 이름은 랭킹에 올라가지 않아요. 게임은 그대로 할 수 있어요.');return}
-  if(id==='obNext2'){ob.step=3;render();window.scrollTo(0,0);return}
+  if(id==='obNext1'){ob.step=2;ob.avPick=true;render();window.scrollTo(0,0);return}
+  if(id==='obNext2'){ob.step=3;render();window.scrollTo(0,0);if(badName(ob.name))toast('이 이름은 랭킹에 올라가지 않아요. 게임은 그대로 할 수 있어요.');return}
   if(id==='obBack'){ob.step--;render();window.scrollTo(0,0);return}
   if(d.style){ob.style=d.style;render();return}
   if(id==='obDone'){newGame({name:ob.name.trim(),num:ob.num,nat:ob.nat,avatar:ob.av,helmet:ob.helmet,style:ob.style,stats:ob.cands[ob.style]});ob=null;tab='home';render();window.scrollTo(0,0);return}
