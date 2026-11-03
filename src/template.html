@@ -173,8 +173,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .tshelf.wc figcaption{color:var(--gold);font-weight:700;font-size:12px}.tcap{margin:0;text-align:center;color:var(--gold);font-weight:800;font-size:14px}
 .chip.red{background:#3D1B21;color:#FF8A95}
 .helmet{flex:none;position:relative;display:grid;place-items:center;border-radius:16px;background:var(--surface-2)}
-.himg{width:92%;height:auto;image-rendering:pixelated;display:block}
-.hnum{position:absolute;left:31%;top:57%;transform:translate(-50%,-50%);font-family:"Barlow Condensed",sans-serif;font-weight:700;color:#fff;-webkit-text-stroke:.06em #000;paint-order:stroke;line-height:1;pointer-events:none}
+.himg{width:83%;height:auto;display:block}
+.hnum{position:absolute;left:31.6%;top:80.4%;transform:translate(-50%,-50%) matrix(.886,.156,.174,.985,0,0);font-family:"Barlow Condensed",sans-serif;font-weight:700;color:#fff;-webkit-text-stroke:.06em #000;paint-order:stroke;line-height:1;pointer-events:none}
 .helmet svg{display:block;width:86%;height:auto;shape-rendering:crispEdges;image-rendering:pixelated}
 .hed{display:flex;flex-direction:column;gap:14px}
 .htabs{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;padding:4px;background:var(--surface-2);border-radius:12px}
@@ -185,7 +185,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .hed .sw{width:100%;height:auto;aspect-ratio:1;box-shadow:inset 0 0 0 1px rgba(128,128,128,.35)}
 .hgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .hopt{display:flex;flex-direction:column;align-items:center;gap:2px;border:2px solid transparent;background:var(--surface-2);border-radius:12px;padding:6px 2px 6px;color:var(--fg);font-size:12px}
-.hopt .himg{width:100%;max-width:70px}
+.hopt .himg{height:64px;width:auto}
 .hopt[aria-pressed="true"]{border-color:var(--accent)}
 .obhero{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;padding:4px 16px;border-radius:20px;background:radial-gradient(120% 90% at 30% 20%,#2a3550 0%,#171a22 70%);box-shadow:0 8px 24px rgba(0,0,0,.35)}
 .obhero .helmet{background:none}
@@ -2025,17 +2025,21 @@ function shade(hex,f){const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&2
 /* helmet sprites (data/helmets.json, one per pattern): green shell -> base, magenta pattern -> sec, cyan visor -> visor tint */
 const HVIS_COL={dark:'#2A2F3A',smoke:'#566074',gold:'#D9A520',blue:'#2F72D6'};
 const HIMG=[],HC={};
-function helmetCanvas(h){h=normHelmet(h);const pi=0,k=h.base+h.sec+h.vis;if(HC[k])return HC[k];
+/* 정면 헬멧(HELMETS[1], v1.4.4)이 기본. side=true면 옛 옆모습(HELMETS[0], 사이트 아이콘용 tools/brand.py) */
+function helmetCanvas(h,side){h=normHelmet(h);const pi=side?0:1,k=h.base+h.sec+h.vis+(side?'s':'');if(HC[k])return HC[k];
   const im=spriteImg(HIMG,HELMETS,pi);if(!im||!im.complete||!im.naturalWidth){spriteWait=true;return null}
   const B=hexHsl(h.base),Sx=hexHsl(h.sec),V=h.vis==='iri'?null:hexHsl(HVIS_COL[h.vis]||HVIS_COL.dark);
   return HC[k]=recolor(im,(hu,s,l,x,w)=>s>.2&&hu>.2&&hu<.45?[B,.45]:s>.2&&hu>.75&&hu<.95?[Sx,.45]:s>.2&&hu>=.45&&hu<.6?[V||[(x/w*1.6+.7)%1,.75,.5],.5]:null)}
-function helmetSrc(h){const c=helmetCanvas(h);if(c)return c.url;return HELMETS[0]}
+function helmetSrc(h){const c=helmetCanvas(h);if(c)return c.url;return HELMETS[1]}
 function helmetImg(h){if(helmetCanvas(h))return`<img class="himg" src="${helmetSrc(h)}" alt="">`;h=normHelmet(h);
-  return`<img class="himg" src="${HELMETS[0]}" data-hb="${h.base}" data-hs="${h.sec}" data-hvi="${h.vis}" alt="">`}
-function helmet(h,num,size=56){return`<div class="helmet" style="width:${size}px;height:${size}px">${helmetImg(h)}${num!=null?`<b class="hnum" style="font-size:${Math.round(size*.19)}px">${esc(num)}</b>`:''}</div>`}
-function drawHelmet(g,h,num,x0,y0,sc){const w=24*sc,c=helmetCanvas(h);if(!c)return;const ht=w*c.h/c.w;y0+=(w*.75-ht)/2+sc*2;
-  g.imageSmoothingEnabled=false;g.drawImage(c.canvas,x0,y0,w,ht);g.imageSmoothingEnabled=true;
-  g.font=`700 ${w*.19}px "Barlow Condensed",sans-serif`;g.textAlign='center';g.lineWidth=w*.025;g.strokeStyle='#000';g.strokeText(String(num),x0+w*.32,y0+ht*.66);g.fillStyle='#fff';g.fillText(String(num),x0+w*.32,y0+ht*.66)}
+  return`<img class="himg" src="${HELMETS[1]}" data-hb="${h.base}" data-hs="${h.sec}" data-hvi="${h.vis}" alt="">`}
+function helmet(h,num,size=56){return`<div class="helmet" style="width:${size}px;height:${size}px">${helmetImg(h)}${num!=null?`<b class="hnum" style="font-size:${Math.max(7,Math.round(size*.16))}px">${esc(num)}</b>`:''}</div>`}
+/* 번호: 보는 쪽 왼뺨(줄무늬 아래), 반시계로 기울이고 1의 자리가 아래로(곡면에 붙은 느낌). CSS .hnum과 같은 값 */
+const HNUM_M=[.886,.156,.174,.985];
+function drawHelmet(g,h,num,x0,y0,sc){const W0=24*sc,c=helmetCanvas(h);if(!c)return;const ht=W0*.92,w=ht*c.w/c.h;x0+=(W0-w)/2;y0+=(W0*.75-ht)/2+sc*2;
+  g.drawImage(c.canvas,x0,y0,w,ht);
+  g.save();g.translate(x0+w*.278,y0+ht*.83);g.transform(...HNUM_M,0,0);g.font=`700 ${ht*.17}px "Barlow Condensed",sans-serif`;g.textAlign='center';g.textBaseline='middle';
+  g.lineWidth=ht*.016;g.lineJoin='round';g.strokeStyle='#000';g.strokeText(String(num),0,0);g.fillStyle='#fff';g.fillText(String(num),0,0);g.restore()}
 let hedTab='col',hcustOpen=false;
 function helmetEditor(h){h=normHelmet(h);const tabs=[['col','색'],['vis','바이저']];
   const sw=(k,v)=>`<div class="swatches">${HCOL.map(c=>`<button class="sw" type="button" data-${k}="${c}" aria-label="${c}" aria-pressed="${c===v}" style="background:${c}"></button>`).join('')}</div>`;
@@ -2657,7 +2661,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.4-h2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.4-h3',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
