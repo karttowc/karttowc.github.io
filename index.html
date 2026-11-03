@@ -3312,15 +3312,15 @@ const HPAT=[['none','단색'],['visor','바이저 라인'],['swoosh','스윕'],[
 const HPAT_OLD={stripe:'visor',double:'center',cap:'two',diag:'swoosh',checker:'dots',stars:'dots',ring:'crown'};
 const HVIS=[['dark','다크'],['smoke','스모크'],['gold','골드 미러'],['blue','블루 미러'],['iri','오로라']];
 /* F1 팀 색 팔레트(v1.4.4): 8개씩 2줄. 블랙·실버·화이트·페라리 레드·파파야·옐로·샴페인 골드·라임 / 레이싱 그린·페트로나스 틸·라이트 블루·알핀 블루·윌리엄스 블루·네이비·딥 퍼플·BWT 핑크. 골드·퍼플은 팀 색 아님(나만의 헬멧용) */
-const HCOL=['#2B2D33','#A7ADB4','#F3F3F1','#E10600','#FF8000','#FFD000','#D4AF6A','#C8DC00',
+const HCOL=['#1E1F23','#A7ADB4','#F3F3F1','#E10600','#FF8000','#FFD000','#D4AF6A','#C8DC00',
   '#00594F','#27F4D2','#64C4FF','#0093CC','#005AFF','#1C2A4A','#4B2E6F','#FF87BC'];
 /* 옛 팔레트(v0.31·v0.32·v1.4.4-d3) → 지금 팔레트(옛 세이브·AI 헬멧) */
-const HCOL_OLD={'#111214':'#2B2D33','#4A4F57':'#A7ADB4','#6E1A2B':'#E10600','#C8102E':'#E10600','#6692FF':'#64C4FF',
+const HCOL_OLD={'#111214':'#1E1F23','#2B2D33':'#1E1F23','#4A4F57':'#A7ADB4','#6E1A2B':'#E10600','#C8102E':'#E10600','#6692FF':'#64C4FF',
   '#F28C28':'#FF8000','#1E5A3F':'#00594F','#5FC9B5':'#27F4D2','#6FA8DC':'#64C4FF','#E8747C':'#FF87BC','#EDEAE3':'#F3F3F1',
-  '#3182F6':'#005AFF','#E8002D':'#E10600','#F2C14E':'#D4AF6A','#9B5CF6':'#4B2E6F','#F5F5F5':'#F3F3F1','#1F8A4C':'#00594F','#16181D':'#2B2D33','#FF5CA8':'#FF87BC','#7A1F2B':'#E10600','#9AA3B2':'#A7ADB4'};
+  '#3182F6':'#005AFF','#E8002D':'#E10600','#F2C14E':'#D4AF6A','#9B5CF6':'#4B2E6F','#F5F5F5':'#F3F3F1','#1F8A4C':'#00594F','#16181D':'#1E1F23','#FF5CA8':'#FF87BC','#7A1F2B':'#E10600','#9AA3B2':'#A7ADB4'};
 /* 팀 컬러 프리셋: 로고 누르면 헬멧·슈트가 그 팀 색(메인, 포인트) */
-const TEAM_COL={mercedes:['#2B2D33','#27F4D2'],redbull:['#1C2A4A','#E10600'],ferrari:['#E10600','#FFD000'],mclaren:['#FF8000','#2B2D33'],astonmartin:['#00594F','#C8DC00'],
-  alpine:['#0093CC','#FF87BC'],racingbulls:['#F3F3F1','#005AFF'],williams:['#005AFF','#64C4FF'],haas:['#F3F3F1','#E10600'],audi:['#A7ADB4','#E10600'],cadillac:['#2B2D33','#F3F3F1']};
+const TEAM_COL={mercedes:['#1E1F23','#27F4D2'],redbull:['#1C2A4A','#E10600'],ferrari:['#E10600','#FFD000'],mclaren:['#FF8000','#1E1F23'],astonmartin:['#00594F','#C8DC00'],
+  alpine:['#0093CC','#FF87BC'],racingbulls:['#F3F3F1','#005AFF'],williams:['#005AFF','#64C4FF'],haas:['#F3F3F1','#E10600'],audi:['#A7ADB4','#E10600'],cadillac:['#1E1F23','#F3F3F1']};
 function teamColors(h){h=normHelmet(h);return`<div class="tcgrid">${K.teams.filter(t=>TEAM_COL[t.id]).map(t=>{const[b,c]=TEAM_COL[t.id];
   return`<button class="tcopt" type="button" data-tcol="${t.id}" aria-pressed="${h.base===b&&h.sec===c}" aria-label="${esc(t.name)}">${logo(t.id,30)}<span class="tcsw"><i style="background:${b}"></i><i style="background:${c}"></i></span><span class="tcn">${esc(t.name)}</span></button>`}).join('')}</div>`}
 function normHelmet(h){if(typeof h==='string')h={base:h,sec:'#EDEAE3',pat:'visor',vis:'dark'};
@@ -3965,7 +3965,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.4-h7',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.4-h8',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
