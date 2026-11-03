@@ -25,7 +25,8 @@ function botOffer(o,pr){const myM=S.p.series==='F1'&&S.p.role==='race'?teamDef(S
   const f=o.map(x=>({x,m:x.kind==='f1'?teamDef(x.teamId).machine:['resign','option','stay'].includes(x.kind)&&myM>=0?myM:null})).filter(y=>y.m!=null).sort((a,b)=>b.m-a.m);
   return f.length?f[0].x:[...o].sort((a,b)=>pr(a)-pr(b))[0]}
 
-let res={n:0,f1:0,ch1:0,ch5:0,debut:[],seasons:0};
+let res={n:0,f1:0,ch1:0,ch5:0,debut:[],seasons:0,rs:0,rr:0,ys:0,yr:0};
+if(process.env.RPC!=null)B.career.reserve_promote_chance=+process.env.RPC;
 for(let i=0;i<300;i++){smart=i%2===0;
   const st=styleStats(45,'racer');newGame({name:'T',num:7,nat:'KOR',helmet:'#fff',style:'racer',stats:st,focus:['race','quali']});
   let guard=0;
@@ -34,8 +35,9 @@ for(let i=0;i<300;i++){smart=i%2===0;
     const best=BOT||BOFF?botOffer(o,pr):[...o].sort((a,b)=>{if(a.kind==='f1'&&b.kind==='f1')return teamDef(b.teamId).machine-teamDef(a.teamId).machine;return pr(a)-pr(b)})[0];
     if(best.kind==='retire'&&S.p.age<38&&o.length>1){applyOffer(o.find(x=>x.kind!=='retire'))}else applyOffer(best);}
   res.n++;(res.pk=res.pk||[]).push(S.p.peak);(res.pot=res.pot||[]).push(S.p.potential);(res.w=res.w||[]).push(S.p.tot.wins);if(S.p.debutYear){res.f1++;res.debut.push(S.p.debutYear-S.startYear+14)}
+  {const H=S.p.history;for(let j=0;j+1<H.length;j++)if(H[j].role==='reserve'&&H[j].lk==='F1'){res.rs++;if(H[j+1].role==='race'&&H[j+1].lk==='F1')res.rr++;if(H[j].age<=30){res.ys++;if(H[j+1].role==='race'&&H[j+1].lk==='F1')res.yr++}}}
   if(S.p.tot.titles>=1)res.ch1++;if(S.p.tot.titles>=5)res.ch5++;
 }
 const avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
-const q=(a,p)=>[...a].sort((x,y)=>x-y)[Math.floor(a.length*p)];console.log('peak p10/50/90',q(res.pk,.1),q(res.pk,.5),q(res.pk,.9),'pot med',q(res.pot,.5),'wins med/p90',q(res.w,.5),q(res.w,.9));console.log('F1 debut',res.f1/res.n,'champ1+',res.ch1/res.n,'champ5+',res.ch5/res.n,'debut age avg',avg(res.debut).toFixed(1));
+const q=(a,p)=>[...a].sort((x,y)=>x-y)[Math.floor(a.length*p)];console.log('peak p10/50/90',q(res.pk,.1),q(res.pk,.5),q(res.pk,.9),'pot med',q(res.pot,.5),'wins med/p90',q(res.w,.5),q(res.w,.9));console.log('reserve->race',res.rr+'/'+res.rs,'age<=30',res.yr+'/'+res.ys);console.log('F1 debut',res.f1/res.n,'champ1+',res.ch1/res.n,'champ5+',res.ch5/res.n,'debut age avg',avg(res.debut).toFixed(1));
 `);
