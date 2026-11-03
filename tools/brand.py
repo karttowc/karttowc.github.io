@@ -4,9 +4,10 @@ Usage: python3 tools/build.py && python3 tools/brand.py   (writes og.png, favico
 import pathlib
 from playwright.sync_api import sync_playwright
 R=pathlib.Path(__file__).resolve().parent.parent
-RED={'base':'#E10600','sec':'#F5F5F5','pat':'visor','vis':'dark'}
-JS="""async h=>{for(let t=0;t<50;t++){if(avatarCanvas(1,h,true)&&helmetCanvas(h))break;await new Promise(r=>setTimeout(r,100))}
- return{av:avatarCanvas(1,h,true).url,hel:helmetCanvas(h).url,title:TITLE_IMG,tro:TROPHY.F1}}"""
+RED={'base':'#E10600','sec':'#F5F5F5','pat':'visor','vis':'dark'}  # og.png suit
+HEL={'base':'#C8102E','sec':'#EDEAE3','pat':'visor','vis':'dark'}  # icon helmet: game palette (rosso red + pearl white)
+JS="""async([h,hh])=>{for(let t=0;t<50;t++){if(avatarCanvas(1,h,true)&&helmetCanvas(hh))break;await new Promise(r=>setTimeout(r,100))}
+ return{av:avatarCanvas(1,h,true).url,hel:helmetCanvas(hh).url,title:TITLE_IMG,tro:TROPHY.F1}}"""
 OG="""<html><head><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans+KR:wght@700&display=swap">
 <style>*{margin:0;box-sizing:border-box}body{width:1200px;height:630px;overflow:hidden;background:linear-gradient(180deg,#070914 0%,#10142A 45%,#1A1838 75%,#0B0D16 100%);position:relative;font-family:'Barlow Condensed',sans-serif}
 .st{position:absolute;width:3px;height:3px;background:#fff;opacity:.6}
@@ -30,10 +31,7 @@ OG="""<html><head><link rel="stylesheet" href="https://fonts.googleapis.com/css2
 <div class="trk"><div class="kerb" style="top:0"></div><div class="kerb" style="top:48px"></div><div class="chk"></div></div>
 <div class="r"><div class="glow"></div><img class="tro" src="__TRO__"><img class="av" src="__AV__"></div>
 </body></html>"""
-ICON="""<html><body style="margin:0;width:512px;height:512px;background:transparent">
-<div style="width:512px;height:512px;border-radius:112px;background:linear-gradient(180deg,#1A1838,#0B0D16);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative">
-<div style="position:absolute;left:0;right:0;bottom:0;height:56px;background:repeating-conic-gradient(#fff 0 25%,#111 0 50%) 0 0/28px 28px"></div>
-<img src="__HEL__" style="width:430px;image-rendering:pixelated;position:relative;top:-14px"></div></body></html>"""
+
 import random
 random.seed(7)
 pts=[(random.randint(0,1200),random.randint(0,520)) for _ in range(90)]
@@ -41,19 +39,26 @@ stars=''.join(f'<i class="st" style="left:{x}px;top:{y}px"></i>' for x,y in pts 
 with sync_playwright() as p:
     b=p.chromium.launch(executable_path='/opt/pw-browsers/chromium') if pathlib.Path('/opt/pw-browsers/chromium').is_file() else p.chromium.launch();pg=b.new_page(viewport={'width':390,'height':844})
     pg.goto('file://'+str(R/'index.html'));pg.wait_for_timeout(500)
-    a=pg.evaluate(JS,RED)
+    a=pg.evaluate(JS,[RED,HEL])
     og=b.new_page(viewport={'width':1200,'height':630})
     og.set_content(OG.replace('__STARS__',stars).replace('__TITLE__',a['title']).replace('__AV__',a['av']).replace('__TRO__',a['tro']))
     og.wait_for_timeout(1500);og.screenshot(path=str(R/'og.png'))
-    ic=b.new_page(viewport={'width':512,'height':512})
-    ic.set_content(ICON.replace('__HEL__',a['hel']));ic.wait_for_timeout(300)
-    ic.screenshot(path=str(R/'favicon.png'),omit_background=True)
     b.close()
-from PIL import Image
-im=Image.open(R/'favicon.png').convert('RGBA')
+import base64,io
+from PIL import Image,ImageDraw
+# icon (v1.4.4): helmet pixel art scaled exactly 4x (crisp), navy rounded square, no checker flag
+N=568
+hel=Image.open(io.BytesIO(base64.b64decode(a['hel'].split(',')[1]))).convert('RGBA')
+hel=hel.resize((hel.width*4,hel.height*4),Image.NEAREST)
+bg=Image.new('RGBA',(N,N));d=ImageDraw.Draw(bg)
+for y in range(N):
+    t=y/(N-1);d.line([(0,y),(N,y)],fill=(int(26-15*t),int(24-11*t),int(56-34*t),255))
+bg.alpha_composite(hel,((N-hel.width)//2,(N-hel.height)//2))
+m=Image.new('L',(N,N),0);ImageDraw.Draw(m).rounded_rectangle([0,0,N-1,N-1],124,fill=255)
+im=Image.new('RGBA',(N,N),(0,0,0,0));im.paste(bg,(0,0),m);im=im.resize((512,512),Image.LANCZOS)
 im.resize((32,32),Image.LANCZOS).save(R/'favicon-32.png')
-# iOS rounds corners itself and dislikes transparency: flatten on the dark bg
-bg=Image.new('RGBA',im.size,(11,13,22,255));bg.alpha_composite(im);bg.convert('RGB').resize((180,180),Image.LANCZOS).save(R/'apple-touch-icon.png')
+# iOS rounds corners itself and dislikes transparency: full-bleed square
+bg.convert('RGB').resize((180,180),Image.LANCZOS).save(R/'apple-touch-icon.png')
 im.save(R/'favicon.png',optimize=True)
 im.save(R/'favicon.ico',sizes=[(16,16),(32,32),(48,48)])
 print('ok')
