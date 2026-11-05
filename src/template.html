@@ -133,8 +133,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .cxa .nm{font-size:30px;font-weight:700;opacity:0;animation:cxup .4s 1.35s forwards}
 .cxa .ln{font-size:15px;opacity:0;animation:cxup .4s 1.5s forwards;text-align:center}
 .cxa .tt{font-family:var(--num);font-size:22px;font-weight:600;opacity:0;animation:cxup .4s 1.65s forwards}
-.cxa .sg{position:relative;width:220px;height:74px;border-bottom:1px solid rgba(255,255,255,.35)}.cxa .sg svg{position:absolute;inset:0}
-.cxa .sg .stp{right:-34px;top:-20px;animation-delay:2.75s}
+.cxa .sgn{position:relative;width:220px;height:74px;border-bottom:1px solid rgba(255,255,255,.35)}.cxa .sgn svg{position:absolute;inset:0}
+.cxa .sgn .stp{right:-34px;top:-20px;animation-delay:2.75s}
 .cxa .conf i{position:absolute;top:-20px;width:8px;height:12px;animation:cxcf linear forwards;z-index:3}
 @keyframes cxcf{from{transform:translateY(-20px) rotate(0)}to{transform:translateY(110vh) rotate(540deg)}}
 .cxc{position:absolute;inset:0}
@@ -144,7 +144,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .cxc .lg{height:48px;display:grid;place-items:center;opacity:0;animation:cxup .4s 1s forwards}.cxc .lg img{max-height:48px;max-width:110px;object-fit:contain}.cxc .lg b{font-family:var(--num);font-size:36px}
 .cxc .nm{font-size:26px;font-weight:700;opacity:0;animation:cxup .4s 1.15s forwards}
 .cxc .ln{font-size:14px;color:rgba(255,255,255,.75);opacity:0;animation:cxup .4s 1.3s forwards}
-.cxc .sg{position:relative;width:170px;height:56px}.cxc .sg svg{position:absolute;inset:0}
+.cxc .sgn{position:relative;width:170px;height:56px}.cxc .sgn svg{position:absolute;inset:0}
 
 .cxpad{position:absolute;inset:0;z-index:9;background:rgba(6,8,15,.88);display:flex;flex-direction:column;justify-content:center;gap:12px;padding:24px}
 .cxpad h3{margin:0;font-size:20px}.cxpad p{margin:0;color:var(--dim);font-size:13px;line-height:1.5}
@@ -2698,7 +2698,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.6',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.7-d1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -2914,13 +2914,13 @@ function contractShow(o,done){
           <div class="brk"><b>BREAKING</b><div class="tk"><span>${I.news}</span></div></div>
           <div class="off">OFFICIAL</div><div class="duo"><div class="lg">${mark}</div><div class="hel">${avatar(pAv(p),p.helmet,150,true,p.num)}</div></div>
           <div class="nm">${esc(p.name)}</div><div class="ln">${esc(I.line)}</div><div class="tt">${esc(I.terms)}</div>
-          <div class="sg">${sigSVG(p.sig,220,74,'#fff')}<div class="stp" style="--stc:#fff">${I.logo?`<img src="${I.logo}" alt="">`:''}SIGNED</div></div>
+          <div class="sgn">${sigSVG(p.sig,220,74,'#fff')}<div class="stp" style="--stc:#fff">${I.logo?`<img src="${I.logo}" alt="">`:''}SIGNED</div></div>
           <div class="wf"></div><div class="fl">${Array.from({length:11},(_,i)=>`<i style="left:${8+Math.random()*78}%;top:${10+Math.random()*70}%;animation-delay:${(3.05+i*.08+Math.random()*.08).toFixed(2)}s"></i>`).join('')}</div>
           <div class="conf">${Array.from({length:46},(_,i)=>`<i style="left:${Math.random()*100}%;background:${['#F2C14E','#fff',I.color,'#3182F6'][i%4]};animation-duration:${2+Math.random()*1.6}s;animation-delay:${2.8+Math.random()*.8}s"></i>`).join('')}</div></div>`
         :`<div class="cxc"><div class="num">${esc(p.num)}</div><div class="hel">${helmet(p.helmet,p.num,110)}</div>
-          <div class="info"><div class="lg">${mark}</div><div class="nm">${esc(p.name)}</div><div class="ln">${esc(I.line)}</div><div class="sg">${sigSVG(p.sig,170,56,'#fff')}</div></div></div>`;
+          <div class="info"><div class="lg">${mark}</div><div class="nm">${esc(p.name)}</div><div class="ln">${esc(I.line)}</div><div class="sgn">${sigSVG(p.sig,170,56,'#fff')}</div></div></div>`;
       el.querySelector('.cxg').classList.add('open');
-      drawSig(el.querySelector(I.big?'.cxa .sg svg':'.cxc .sg svg'),I.big?1900:1500,800);
+      drawSig(el.querySelector(I.big?'.cxa .sgn svg':'.cxc .sgn svg'),I.big?1900:1500,800);
       if(I.big)later(()=>{const h=el.querySelector('.cxhint');if(h){h.textContent='탭해서 계속';h.classList.add('end')}},3300);else later(finish,3300)};
     later(()=>el.querySelector('.cxp').classList.add('out'),3300);later(open,3700);
     // tap while signing → jump straight to the shutter opening; tap after that → close
