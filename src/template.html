@@ -154,6 +154,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 
 .jtro{position:relative;display:inline-block;line-height:0}.jtro svg{display:block}.jtro b{position:absolute;left:0;right:0;top:17%;text-align:center;line-height:1;font-weight:900;color:#6B4A1B;letter-spacing:-.5px}
 .tshelf.jr{border-bottom-color:#3A3F4B;padding-top:6px}.tshelf.jr figcaption{font-size:10px}
+.awk{margin:0;font-size:13px;font-weight:700;color:var(--gold)}
 .crbig{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 0;text-align:center}.crbig b{font-size:22px}.crbig span{font-size:30px;font-weight:900}.n1row{display:flex;justify-content:center;gap:28px;padding:8px 0 4px}.n1row>div{display:flex;flex-direction:column;align-items:center;gap:4px}.n1row b{font-size:15px}.tcban{margin:0 0 12px;padding:12px;border:1px solid var(--gold);border-radius:12px;text-align:center;font-weight:900;font-size:17px;color:var(--gold);background:linear-gradient(180deg,rgba(242,193,78,.16),rgba(242,193,78,.04))}.tcban small{display:block;margin-top:3px;font-size:12px;font-weight:600;color:var(--dim)}.chres.win{background:radial-gradient(ellipse at 50% 20%,rgba(242,193,78,.18),transparent 65%),var(--surface)}
 .peekbtn{all:unset;box-sizing:border-box;align-self:flex-start;cursor:pointer;font-size:12px;font-weight:700;color:var(--accent);padding:6px 10px;border-radius:999px;background:rgba(49,130,246,.12);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}
 #peek{position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);pointer-events:none;padding:16px}
@@ -998,14 +999,12 @@ function finishSeason(){
    if(p.series==='F1'&&me.wins&&p.tot.wins===me.wins)a+=A.first_win;
    if(crown&&crown.res==='우승')a+=A.crown;
    if(G&&G.res==='win'&&g&&!g.slump)a+=A.gacha;
-   if(p.pot0==null)p.pot0=p.potential;
-   if(ovrOf(p.stats)<p.potential-A.near)a=0;// only when the ceiling is actually felt
-   a=Math.max(0,Math.min(a,p.pot0+A.max-p.potential));
-   if(a){p.potential+=a;awake=a;ev.push('한계를 넘어섰어요! 잠재력이 깨어나 더 성장할 수 있어요.')}}
+   awake=a?awaken(a):0;if(awake)ev.push(AWAKE_MSG)}
   // growth
   const played=me.starts>0,slump=grow(p,played,pos&&fieldN&&pos/fieldN>B.driver.slump.poor_ratio);
   if(slump)ev.push({tired:'슬럼프: 체력이 바닥나 몸이 무거웠어요. 능력치 일부가 떨어졌어요.',norace:'슬럼프: 실전 감각이 떨어져 능력치 일부가 내려갔어요.',poor:'슬럼프: 부진이 자신감까지 흔들었어요. 능력치 일부가 떨어졌어요.',random:'슬럼프: 이유 모를 부진에 능력치 일부가 떨어졌어요.'}[slump]);
   const ovrAfter=ovrOf(p.stats);p.peak=Math.max(p.peak,ovrAfter);
+  if(!p.limitSeen&&atLimit()){p.limitSeen=1;ev.push('성장이 더뎌지기 시작했어요. 큰 무대에서 증명하면 한계를 넘을 수 있어요.')}
   const deltas=STATS.map(k=>({k,v:p.stats[k],d:p.stats[k]-statsBefore[k]})).filter(x=>x.d!==0);
   const rec={lk:p.series==='ALT'?p.alt:p.series,year:S.year,age:p.age,series:p.series==='ALT'?altDef(p.alt).name:seriesDef(p.series).name,sid:p.series,team:teamName,color:teamColor,role:p.role,
     pos,field:fieldN,train:trName(),points:me.pts,wins:me.wins,podiums:me.pod,poles:me.poles,dnf:me.dnf,starts:me.starts,ovrBefore,ovrAfter,h2h,titled,crown,first:!!C.firstLeague,slump:slump||null};
@@ -1043,6 +1042,12 @@ function finishSeason(){
   S.season=null;S.evSeason=[];S.phase='result';sel=null;save();
 }
 
+// awakening: only drivers at their ceiling (OVR >= potential - near) can lift it, up to pot0 + max
+const AWAKE_MSG='한계를 넘어섰어요! 잠재력이 깨어나 더 성장할 수 있어요.';
+const atLimit=()=>ovrOf(S.p.stats)>=S.p.potential-B.driver.awaken.near;
+function awakeRoom(){const p=S.p,A=B.driver.awaken;if(p.pot0==null)p.pot0=p.potential;return atLimit()?Math.max(0,p.pot0+A.max-p.potential):0}
+function awaken(a){a=Math.min(a,awakeRoom());if(a>0)S.p.potential+=a;return Math.max(0,a)}
+const awakeHint=()=>awakeRoom()>0?'<p class="awk">성공하면 한계를 넘어설 수 있어요</p>':'';
 function grow(p,played,poor){
   const band=B.driver.growth_by_age.find(b=>p.age>=b.from&&p.age<=b.to)||B.driver.growth_by_age.at(-1);
   const rsv=p.series==='F1'&&p.role==='reserve',base=rnd(band.min,band.max),mult=played?1:rsv?.85:B.driver.no_race_multiplier,ovr=ovrOf(p.stats);
@@ -1565,7 +1570,7 @@ function showGacha(){
   box.innerHTML=`<div class="sheet"><section class="card"><div class="eyebrow">${f1?'여름 휴식기':'시즌 중반 휴식기'} · 한 번의 도전</div><h3 class="h2">${esc(g.title)}</h3>
     <div class="kv"><div class="row"><span>성공 확률</span><span class="num" style="font-size:22px;color:var(--gold)">${pct}%</span></div>
     <div class="row"><span>성공하면</span><span class="up">${esc(effText(g.win))}</span></div>
-    <div class="row"><span>실패하면</span><span class="down">${g.slump?`다음 레이스 부진 · 체력 -${g.fm||10}`:`부상 ${g.inj[0]===g.inj[1]?g.inj[0]:g.inj[0]+'~'+g.inj[1]}경기 결장 · 체력 -${g.fm||11}`}</span></div></div>
+    <div class="row"><span>실패하면</span><span class="down">${g.slump?`다음 레이스 부진 · 체력 -${g.fm||10}`:`부상 ${g.inj[0]===g.inj[1]?g.inj[0]:g.inj[0]+'~'+g.inj[1]}경기 결장 · 체력 -${g.fm||11}`}</span></div></div>${g.slump?'':awakeHint()}
     <button class="btn" type="button" data-gacha="go">도전한다</button><button class="btn ghost" type="button" data-gacha="rest">안전하게 쉰다</button></section></div>`;
 }
 function effChips(e){const a=[];const add=(l,v)=>a.push([v,`<span class="chip ${v>0?'up':'down'}" style="font-size:13px">${l} ${v>0?'+':''}${v}</span>`]);
@@ -1706,8 +1711,9 @@ function runChallenge(){
   if(res==='우승'&&PRIZE[c.id]){p.earn=(p.earn||0)+PRIZE[c.id];p.prizeY=(p.prizeY||0)+PRIZE[c.id]}
   applyEff({fans:res==='우승'?10:4,morale:-10,rep:2});
   const tc=res==='우승'&&tcMark();if(tc){p.challenges.at(-1).tc=1;if(S.notice)S.notice.lines.unshift(`${TC_MSG} 축하합니다!`)}
+  const aw=res==='우승'&&awaken(B.driver.awaken.crown);if(aw){p.challenges.at(-1).aw=1;if(S.notice)S.notice.lines.push(AWAKE_MSG)}
   S.challenge=null;save();
-  return`${c.name} ${res}!${tc?' '+TC_MSG:''}`;
+  return`${c.name} ${res}!${tc?' '+TC_MSG:''}${aw?' '+AWAKE_MSG:''}`;
 }
 const PRIZE={INDY500:50,LEMANS:5};
 const wonC=id=>S.p.challenges.some(c=>c.id===id&&c.res==='우승');
@@ -2267,7 +2273,7 @@ function driverTab(){
     ${STATS.map(k=>`<div class="statrow${dl?' dl':''}"><span${p.focus.includes(k)?' style="color:var(--accent)"':''}>${LBL[k]} <button class="ibtn" type="button" data-sheet="st_${k}" aria-label="${LBL[k]} 설명"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="currentColor" opacity=".18"/><circle cx="10" cy="10" r="8.25" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="6.2" r="1.25" fill="currentColor"/><rect x="9" y="8.6" width="2" height="6" rx="1" fill="currentColor"/></svg></button></span><div class="bar"><i style="width:${p.stats[k]}%"></i></div><b>${p.stats[k]}</b>${dl?`<em class="${(dl[k]||0)>0?'up':(dl[k]||0)<0?'dn':''}">${dl[k]?(dl[k]>0?'+':'')+dl[k]:''}</em>`:''}</div>`).join('')}</section>
   ${scoutCard()}
   <section class="card kv">
-    <div class="row"><span>잠재력</span><span>숨겨져 있어요</span></div>
+    <div class="row"><span>잠재력</span><span${atLimit()?' style="color:var(--gold)"':''}>${atLimit()?'한계에 다가옴':'숨겨져 있어요'}</span></div>
     <div class="row"><span>몸값</span><span class="num">${won(p.val||valueOf())}</span></div>
     <div class="row"><span>평판<button class="ibtn" type="button" data-sheet="st_rep" aria-label="평판 설명"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="currentColor" opacity=".18"/><circle cx="10" cy="10" r="8.25" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="6.2" r="1.25" fill="currentColor"/><rect x="9" y="8.6" width="2" height="6" rx="1" fill="currentColor"/></svg></button></span><span class="num">${p.rep} / 100</span></div>
     <div class="row"><span>인기</span><span class="num">${p.fans} / 100${p.fans>=25?' · 스폰서가 붙어요':''}</span></div>
@@ -2710,7 +2716,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.8',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.9-d1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3162,12 +3168,13 @@ function sheetView(){
   if(sheet==='ch'&&S.challenge){const ovr=ovrOf(S.p.stats),last=tcLast()===S.challenge.id,oth=Object.keys(TC_N).filter(k=>k!==S.challenge.id).map(k=>TC_N[k]);
     return`<div class="sheet" id="sheetBg"><section class="card${last?' chres win':''}"><div class="eyebrow">${last?'트리플 크라운까지 단 하나':'도전 이벤트 · 선택 사항'}</div>${PEEK}<h3 class="h2">${last?`${S.challenge.name}, 도전할까요?`:`${S.challenge.name} 출전 제안`}</h3>
       <p class="muted" style="margin:0">${last?`${jo(oth[0],'과','와')} ${jo(oth[1],'은','는')} 이미 우승했어요. ${S.challenge.name}만 이기면 모터스포츠 트리플 크라운이에요.`:`F1 시즌 사이에 한 번 출전해요. 체력이 꽤 깎이지만 인기와 평판이 올라요. ${S.challenge.id==='LEMANS'?'모나코, 인디 500과 함께 트리플 크라운의 한 조각이에요.':'르망, 모나코와 함께 트리플 크라운의 한 조각이에요.'}`}</p>
-      ${effChips({fans:4,morale:-10,rep:2})}<p class="muted" style="margin:0;font-size:13px">우승하면 인기 +10${PRIZE[S.challenge.id]?` · 우승 상금 <b style="color:var(--gold)">${won(PRIZE[S.challenge.id])}</b>`:''} · 우승 확률 약 ${Math.round(clamp(.05+(ovr-75)*.02,.03,.35)*100)}%</p><button class="btn" type="button" id="acceptCh">${last?'도전한다':'출전한다'}</button><button class="btn ghost" type="button" id="declineCh">이번엔 거절한다${chain?' (다음)':''}</button></section></div>`}
+      ${effChips({fans:4,morale:-10,rep:2})}<p class="muted" style="margin:0;font-size:13px">우승하면 인기 +10${PRIZE[S.challenge.id]?` · 우승 상금 <b style="color:var(--gold)">${won(PRIZE[S.challenge.id])}</b>`:''} · 우승 확률 약 ${Math.round(clamp(.05+(ovr-75)*.02,.03,.35)*100)}%</p>${awakeHint()}<button class="btn" type="button" id="acceptCh">${last?'도전한다':'출전한다'}</button><button class="btn ghost" type="button" id="declineCh">이번엔 거절한다${chain?' (다음)':''}</button></section></div>`}
   if(sheet&&sheet.type==='chres'){const c=sheet.c,w=c.res==='우승',tcW=w&&c.tc,pz=w&&!c.season&&PRIZE[c.id]?PRIZE[c.id]:0,col=w?'var(--gold)':c.res==='포디움'?'#C9D1DE':c.res==='리타이어'?'var(--bad)':'var(--fg)';
     const tc=[['모나코',S.p.monaco],['르망',wonC('LEMANS')],['인디 500',wonC('INDY500')]];
     return`<div class="sheet" id="sheetBg"><section class="card chres${w?' win':''}"><div class="eyebrow">${c.year} ${c.season?'시즌 하이라이트':'도전 결과'}</div>
       <div class="crbig">${w?px(TROPHY_MAP,TROPHY_PAL,84):''}<b style="color:${col}">${esc(c.name)}${tcW?' 우승':''}</b><span style="color:${col}">${tcW?'트리플 크라운!':c.res==='우승'?'우승!':c.res}</span></div>
       ${tcW?`<div class="tcban">${TC_MSG}<small>그레이엄 힐 이후 역사상 두 번째</small></div>`:''}
+      ${c.aw?`<p class="awk" style="text-align:center">${AWAKE_MSG}</p>`:''}
       <div class="kv nw">${pz?`<div class="row"><span>상금</span><b class="num" style="color:var(--gold)">+${won(pz)}</b></div>`:''}
         ${c.season?'':`<div class="row"><span>보상</span><span>${w?'인기 +10 · 평판 +2':'인기 +4 · 평판 +2'} · 체력 -10</span></div>`}
         ${c.id!=='DAKAR'?`<div class="row"><span>트리플 크라운</span><span>${tc.map(([n,v])=>`<b style="color:${v?'var(--gold)':'var(--dim)'}">${v?'✓':'·'} ${n}</b>`).join(' ')}</span></div>`:''}</div>
