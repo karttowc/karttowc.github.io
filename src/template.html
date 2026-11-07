@@ -991,6 +991,17 @@ function finishSeason(){
       else ev.push('아카데미 경고: 다음 시즌에도 하위권이면 방출돼요.')}
     else if(r<=B.career.academy.keep_top_fraction)p.academyBad=0;
   }
+  // awakening: big moments lift the hidden ceiling a little, for drivers already at it
+  let awake=0;
+  {const A=B.driver.awaken,G=Z.gacha,g=G&&GACHA.find(x=>x.id===G.id);let a=0;
+   if(titled)a+=p.series==='F1'?A.f1_title:A.title;
+   if(p.series==='F1'&&me.wins&&p.tot.wins===me.wins)a+=A.first_win;
+   if(crown&&crown.res==='우승')a+=A.crown;
+   if(G&&G.res==='win'&&g&&!g.slump)a+=A.gacha;
+   if(p.pot0==null)p.pot0=p.potential;
+   if(ovrOf(p.stats)<p.potential-A.near)a=0;// only when the ceiling is actually felt
+   a=Math.max(0,Math.min(a,p.pot0+A.max-p.potential));
+   if(a){p.potential+=a;awake=a;ev.push('한계를 넘어섰어요! 잠재력이 깨어나 더 성장할 수 있어요.')}}
   // growth
   const played=me.starts>0,slump=grow(p,played,pos&&fieldN&&pos/fieldN>B.driver.slump.poor_ratio);
   if(slump)ev.push({tired:'슬럼프: 체력이 바닥나 몸이 무거웠어요. 능력치 일부가 떨어졌어요.',norace:'슬럼프: 실전 감각이 떨어져 능력치 일부가 내려갔어요.',poor:'슬럼프: 부진이 자신감까지 흔들었어요. 능력치 일부가 떨어졌어요.',random:'슬럼프: 이유 모를 부진에 능력치 일부가 떨어졌어요.'}[slump]);
@@ -998,7 +1009,7 @@ function finishSeason(){
   const deltas=STATS.map(k=>({k,v:p.stats[k],d:p.stats[k]-statsBefore[k]})).filter(x=>x.d!==0);
   const rec={lk:p.series==='ALT'?p.alt:p.series,year:S.year,age:p.age,series:p.series==='ALT'?altDef(p.alt).name:seriesDef(p.series).name,sid:p.series,team:teamName,color:teamColor,role:p.role,
     pos,field:fieldN,train:trName(),points:me.pts,wins:me.wins,podiums:me.pod,poles:me.poles,dnf:me.dnf,starts:me.starts,ovrBefore,ovrAfter,h2h,titled,crown,first:!!C.firstLeague,slump:slump||null};
-  rec.rv=rvRes;if(p.tcY===S.year)rec.tc=true;if(homeW)rec.homeW=homeW;if(yrNew.length)rec.yr=yrNew;
+  rec.rv=rvRes;if(p.tcY===S.year)rec.tc=true;if(homeW)rec.homeW=homeW;if(yrNew.length)rec.yr=yrNew;if(awake)rec.awake=awake;
   if(C.why0&&pos&&me.starts>0){const fin=me.fp.filter(x=>x&&x<99).sort((a,b)=>a-b),med=fin.length?fin[Math.floor(fin.length/2)]:fieldN,P=B.race.points;
     const extra=me.dnf*(P[med-1]||0),myPts=me.pts+extra,rND=1+st.filter(e=>e!==me&&e.pts>myPts).length,W=C.why0;
     const r3a=W.r3a??W.r3;rec.why={r0:W.r0,drv:W.r0-W.r1,car:W.r1-W.r2,stam:W.r2-W.r3,adapt:W.r3-r3a,luck:r3a-rND,dnf:rND-pos,pos}}
@@ -1041,7 +1052,7 @@ function grow(p,played,poor){
   const FS=B.driver.focus_spread||GS;// focused stats swing less so the focus always shows
   STATS.forEach(k=>{const sp=base>0&&!rest&&p.focus.includes(k)?FS:GS;let g=base*rnd(sp[0],sp[1]);if(g<0)g*=AD[k]??1;
     if(g>0){g*=mult;if(rest)g*=B.driver.rest_multiplier;else if(p.focus.includes(k))g*=B.driver.focus_multiplier;
-      if(ovr>=p.potential)g=0;else if(ovr>=p.potential-B.driver.near_potential.distance)g*=B.driver.near_potential.multiplier}
+      const OP=B.driver.over_potential;if(ovr>=p.potential+OP.max)g=0;else if(ovr>=p.potential)g*=OP.multiplier;else if(ovr>=p.potential-B.driver.near_potential.distance)g*=B.driver.near_potential.multiplier}
     p.stats[k]=clamp(p.stats[k]+sround(g),1,99)});
   // slump: bad seasons can cost a little even when young
   const SL=B.driver.slump;if(!SL||p.age>=33)return null;
@@ -1988,7 +1999,7 @@ function buildReact(R,x){
   if(!f&&R.pos)f=pick(['큰 변수 없이 실력대로 나온 시즌이었어요.','눈에 띄는 변수 없이 꾸준히 달렸어요.']);
   if(f)E.push(f);
   // 4) what next
-  const st=p.stats,rs0=recStats()[0],weak=rs0.k,dO=R.ovrAfter-R.ovrBefore,trTxt=S.train!=='rest'&&p.focus.includes(weak)?'지금 훈련 방향이 맞아요.':`${LBL[weak]}${josa3(LBL[weak])} 든 훈련 프로그램을 골라 보세요${trOpen()?'':` (${S.progYear+PROG_LOCK}년에 변경 가능)`}.`;
+  const st=p.stats,rs0=recStats()[0]||{k:STATS.reduce((a,b)=>st[a]<=st[b]?a:b)},weak=rs0.k,dO=R.ovrAfter-R.ovrBefore,trTxt=S.train!=='rest'&&p.focus.includes(weak)?'지금 훈련 방향이 맞아요.':`${LBL[weak]}${josa3(LBL[weak])} 든 훈련 프로그램을 골라 보세요${trOpen()?'':` (${S.progYear+PROG_LOCK}년에 변경 가능)`}.`;
   let adv,pre='';
   if(dO<0)pre=R.slump&&R.slump!=='random'&&R.age<33?`OVR이 ${dO} 떨어졌어요. ${R.slump==='tired'?'체력이 바닥난 탓':R.slump==='norace'?'실전 감각이 떨어진 탓':'부진이 자신감을 흔든 탓'}이라 일시적이에요. `:R.age>=33?`OVR이 ${dO} 떨어졌어요. 나이에 따른 하락이 시작됐어요. `:`OVR이 ${dO} 떨어졌지만 일시적인 부진이에요. `;
   else if(dO>=4)pre=`OVR이 +${dO} 오르며 한 단계 성장했어요. `;
@@ -2693,12 +2704,13 @@ const DEV_NOTE=`      <p>안녕하세요, ‘카트부터 월챔까지’ 개발
 `,DEV_DISC=`<p class="muted" style="font-size:12px">※ 본 게임은 Formula 1 및 각 팀과 관련 없는 비공식 팬 게임입니다. F1 및 팀 명칭·상표는 각 권리자에게 있습니다.</p>`;
 // 게임 소식 (새 버전을 맨 위에 추가)
 const NOTES=[
+ {v:'1.4.8',d:'2026.11.7',t:'잠재력 개선',items:['잠재력에 닿아도 성장이 멈추지 않습니다. 잠재력을 넘어서도 조금씩 더 성장합니다','한계에 닿은 드라이버가 챔피언, F1 첫 우승, 르망·인디 500 우승, 휴식기 도전 성공을 해내면 잠재력이 깨어나 더 높이 성장할 수 있습니다','시작할 때 정해지는 잠재력의 차이를 줄였습니다. 잠재력이 낮게 시작해도 F1에 갈 기회가 늘었습니다','레이스 중 사건의 성공 확률이 체감과 다르다는 의견을 받았습니다. 표시된 확률과 실제 결과를 모으는 기능을 넣었고, 데이터가 쌓이면 확인해서 알려 드리겠습니다']},
  {v:'1.4.4',d:'2026.11.3',t:'팀 색 추가, 헬멧 변경',items:['F1 팀 색을 추가했습니다. 드라이버 만들기에서 팀 로고를 누르면 헬멧과 슈트가 그 팀 색으로 바뀝니다','헬멧을 정면 모습으로 바꿨습니다']},
  {v:'1.4.2',d:'2026.11.3',t:'리저브 드라이버 승격',items:['F1 리저브 두 번째 시즌부터 F1 레이스 제안이 없으면, 소속 팀(또는 관심이 큰 팀)이 약한 주전을 빼고 리저브를 레이스 드라이버로 올리기도 해서, 리저브 드라이버의 F1 진출 가능성을 개선했습니다(40%, 34세까지)']},
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.8-d1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.8-d2',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';

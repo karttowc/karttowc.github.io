@@ -39,8 +39,8 @@
   "start_ovr": 45,
   "start_stat_sum": 270,
   "potential": {
-   "mean": 78,
-   "sd": 7,
+   "mean": 74,
+   "sd": 5,
    "min": 62,
    "max": 97,
    "hidden": true
@@ -89,6 +89,21 @@
   "near_potential": {
    "distance": 5,
    "multiplier": 0.5
+  },
+  "over_potential": {
+   "note": "잠재력을 넘어도 성장은 이 배수로 계속, 잠재력+max에서 멈춤",
+   "multiplier": 0.5,
+   "max": 4
+  },
+  "awaken": {
+   "note": "잠재력 각성: OVR이 잠재력-near 이상일 때만, 순간마다 잠재력 +, 처음 값보다 max까지만",
+   "near": 3,
+   "title": 1,
+   "f1_title": 1,
+   "first_win": 1,
+   "crown": 1,
+   "gacha": 1,
+   "max": 4
   },
   "ovr_weights": {
    "quali": 1,
