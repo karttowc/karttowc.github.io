@@ -62,6 +62,11 @@ if S:
     if cnt:print('avg stat change / season (in season):',{k:round(v/cnt,2) for k,v in ins.items()});print('total preseason change:',dict(pre))
     ga=collections.Counter((d.get('ga') or '').split(':')[1] for d in S if d.get('ga'))
     if ga:print('break gamble:',dict(ga))
+    ir=[x.split(':') for d in S for x in d.get('incr') or []]
+    if ir:
+        B=collections.defaultdict(lambda:[0,0])
+        for pc,ok in ir:b=B[int(pc)//10*10];b[0]+=1;b[1]+=int(ok)
+        print('race incidents (shown % -> actual):',' · '.join(f"{k}%대 {v[1]}/{v[0]} = {100*v[1]/v[0]:.0f}%" for k,v in sorted(B.items())))
 # where careers stop: last series of careers with no retire record
 last={}
 for d in S:last[d['cid']]=d['lk']
