@@ -2207,7 +2207,7 @@ function offersCard(){
     ${topNews()}
     <div class="list">${o.map((x,i)=>`<div class="offerrow"><button class="item" type="button" data-offer="${i}" aria-pressed="${sel===i}">
       ${offerTeam(x)?bigLogo(offerTeam(x)):`<span class="dot">${x.kind==='retire'?'END':x.kind==='alt'?'ALT':SLOGO[x.series]?`<img src="${SLOGO[x.series]}" alt="${x.series}" style="width:80%;height:auto">`:x.series||''}</span>`}
-      <span class="body"><b>${esc(x.title)}</b>${offerTerms(x)}${x.tag?`<span style="color:var(--accent)">${esc(x.tag)}${x.tag==='월반'?`<span class="ibtn" role="button" tabindex="0" data-sheet="skip_${x.series}" aria-label="월반 설명">${ISVG}</span>`:x.academy?`<span class="ibtn" role="button" tabindex="0" data-sheet="acad_${x.academy}" aria-label="육성 계약 설명">${ISVG}</span>`:''}</span>`:''}</span><span class="tick"></span></button>
+      <span class="body"><b>${esc(x.title)}</b>${offerTerms(x)}${x.tag?`<span style="color:var(--accent)">${esc(x.tag)}${x.tag==='월반'?`<span class="ibtn" role="button" tabindex="0" data-sheet="skip_${x.series}" aria-label="월반 설명">${ISVG}</span>`:x.academy?`<span class="ibtn" role="button" tabindex="0" data-sheet="acad_${x.academy}" aria-label="육성 계약 설명">${ISVG}</span>`:/^리저브/.test(x.tag)?`<span class="ibtn" role="button" tabindex="0" data-sheet="rsv_" aria-label="리저브 설명">${ISVG}</span>`:''}</span>`:''}</span><span class="tick"></span></button>
       ${offerTeam(x)?`<button class="infobtn" type="button" data-brief="${i}">팀 정보</button>`:''}</div>`).join('')}</div>
     <button class="btn" type="button" id="chooseBtn" ${sel==null?'disabled':''}>이 진로로 갈게요</button></section>`;
 }
@@ -2716,7 +2716,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.9',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.10-d1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -2964,7 +2964,7 @@ function celebrate(R,done){
 }
 let chainSeen={},sheetBack=null;
 const PRE=s=>typeof s==='string'&&(/^ev\d/.test(s)||s==='train'||s==='ch');
-const INFO=s=>typeof s==='string'&&/^(st_|skip_|acad_)/.test(s);
+const INFO=s=>typeof s==='string'&&/^(st_|skip_|acad_|rsv_)/.test(s);
 function openSheet(s){if(INFO(s)&&PRE(sheet)||s==='train'&&sheet==='go')sheetBack=sheet;sheet=s;render()}
 const PEEK=`<button class="peekbtn" type="button">꾹 눌러 능력치 보기</button>`;
 function peekShow(){if(document.getElementById('peek'))return;const p=S.p,d=document.createElement('div');d.id='peek';
@@ -3129,6 +3129,15 @@ function sheetView(){
       <div class="row"><span class="up">금요일 연습</span><span>F3·F2에선 매 시즌 F1 차로 금요일 연습을 해요. 시즌이 끝날 때마다 퀄리파잉 페이스 +2, 휠투휠 +1, 평판 +3</span></div>
       <div class="row"><span class="down">조건</span><span>하위 1/3이면 경고, 두 번 연속이면 방출돼요.</span></div>
       <div class="row"><span class="down">주의</span><span>다른 팀 관심은 조금씩 식고, 다른 팀 F1 시트로 가면 계약이 끝나요.</span></div></div>
+    <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`}
+  if(sheet==='rsv_'){const p=S.p,n=p.series==='F1'&&p.role==='reserve'?(()=>{let n=0;for(let i=p.history.length-1;i>=0&&p.history[i].role==='reserve';i--)n++;return n})():0;
+    return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">진로 설명</div><h3 class="h2">리저브 드라이버</h3>
+    <p style="margin:0">F1 팀에 들어가지만 레이스는 뛰지 않아요. 주전이 빠질 때를 기다리며 팀 일을 해요.</p>
+    <div class="kv st"><div class="row"><span class="up">좋은 점</span><span>금요일 연습(FP1)으로 슈퍼 라이선스 포인트를 매년 10점 받아요. 주전이 다치면 대타로 F1 레이스에 나가요.</span></div>
+      <div class="row"><span class="up">레이스 시트</span><span>나를 높게 보는 팀(관심도 높음)은 시트 기준을 낮춰 줘요. 2시즌째부터는 내 팀이 약한 주전 대신 나를 올려 줄 때도 있어요.</span></div>
+      <div class="row"><span class="down">아쉬운 점</span><span>레이스가 없어 성장이 조금 느려요(85%).</span></div>
+      <div class="row"><span class="down">주의</span><span>승격은 주전과 실력 차가 작을 때만 와요. 리저브만 계속 온다면 F1 팀들이 아직 레이스 시트를 맡기기엔 부족하다고 보는 거예요.</span></div></div>
+    <p style="margin:0;font-weight:700">${n>=2?`벌써 리저브 ${n}시즌째예요. WEC·인디카 같은 다른 무대에서 우승해 이름을 알리는 것도 방법이에요.`:'실력을 키우며 기회를 기다리거나, 다른 무대에서 이름을 알리는 것도 방법이에요.'}</p>
     <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`}
   if(sheet==='st_morale'){const p=S.p,m=p.morale,rc=moraleRecover(),z=(a,b,c)=>`<i style="left:${a}%;width:${b-a}%;background:${c}"></i>`;
     return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">체력 설명</div><h3 class="h2">체력 <span class="num" style="color:var(--good)">${m}</span></h3>
