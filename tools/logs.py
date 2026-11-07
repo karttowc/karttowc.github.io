@@ -1,15 +1,19 @@
 """Fetch the anonymous play log (Google Sheet via Apps Script, tools/logsheet.gs) and print a quick summary.
-Usage: LOG_KEY=... python3 tools/logs.py [--old] [log files...]
+Usage: LOG_KEY=... python3 tools/logs.py [--old] [--since VER] [log files...]
   The key is the Apps Script KEY (not committed). Only records newer than the last run are fetched
   (cursor in play_logs_state.json); everything is kept in play_logs.json (both gitignored), the summary uses it all.
   --old  also fetch the whole first (v1) sheet once, to merge its records in.
+  --since VER  compare careers started before / from that version (default PATCH = the latest balance patch).
   Log files = "플레이 기록 파일 받기" downloads (unsent queue), merged in.
 """
 import os,sys,json,urllib.request,urllib.parse,collections
 URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec'  # v2 sheet (tools/logsheet.gs)
 OLD_URL='https://script.google.com/macros/s/AKfycbwQLNST9m47Rbh9GRou9a2Yrl0L0cYt8ImopVt-ZC0TKSZcxVAWrTCNkuFCChwJuKIE/exec'
 DB,ST='play_logs.json','play_logs_state.json'
-key=os.environ.get('LOG_KEY');args=sys.argv[1:];old='--old' in args;files=[a for a in args if a!='--old']
+PATCH='1.4.8'  # latest balance patch: update this whenever a balance change goes public (CLAUDE.md)
+key=os.environ.get('LOG_KEY');args=sys.argv[1:];old='--old' in args
+if '--since' in args:i=args.index('--since');PATCH=args[i+1];del args[i:i+2]
+files=[a for a in args if a!='--old']
 get=lambda u,q:json.load(urllib.request.urlopen(u+'?'+urllib.parse.urlencode(q),timeout=300))
 def parse(rows):
     for r in rows:
@@ -38,6 +42,17 @@ R=K['retire']
 if R:
     n=len(R);pct=lambda c:f"{100*sum(1 for d in R if c(d))/n:.0f}%"
     print(f"retired {n}: F1 debut {pct(lambda d:d['debut'])} · champ1+ {pct(lambda d:d['titles']>=1)} · champ5+ {pct(lambda d:d['titles']>=5)} · avg age {sum(d['age'] for d in R)/n:.1f}")
+# before / after the latest balance patch, by the version a career started in
+vt=lambda v:tuple(int(x) for x in str(v or '0').split('-')[0].split('.')) if str(v or '0').split('-')[0].replace('.','').isdigit() else (0,)
+cv={d['cid']:d.get('v') for d in K['new']}
+if R:
+    print(f"balance patch v{PATCH} (careers by start version):")
+    for lb,f in (('before',lambda c:vt(cv.get(c))<vt(PATCH)),('after',lambda c:c in cv and vt(cv[c])>=vt(PATCH))):
+        G=[d for d in R if f(d['cid'])];n=len(G)
+        if not n:print(f"  {lb}: no retired careers yet");continue
+        pc=lambda c:f"{100*sum(1 for d in G if c(d))/n:.0f}%"
+        print(f"  {lb} {n}: F1 debut {pc(lambda d:d['debut'])} · champ1+ {pc(lambda d:d['titles']>=1)} · champ5+ {pc(lambda d:d['titles']>=5)} · avg age {sum(d['age'] for d in G)/n:.1f}")
+    ac=sum(1 for c in cv if vt(cv[c])>=vt(PATCH));print(f"  careers started from v{PATCH}: {ac} (retired ones above; unfinished ones not counted)")
 S=K['season']
 if S:
     print('seasons by series:',dict(collections.Counter(d['lk'] for d in S)))
