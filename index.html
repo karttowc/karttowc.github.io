@@ -426,6 +426,13 @@ html,body{margin:0}
 .tfoot{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px 6px;margin-top:10px;font-size:12px}
 .tfoot button,.tfoot a{background:none;border:0;padding:6px 2px;color:#9AA0B8;font:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .tfoot i{color:#4A5068;font-style:normal}
+.fuel{display:flex;align-items:center;gap:10px;margin:14px 0 6px}
+.fuel .pump{font-size:28px;line-height:1}
+.fuel .gauge{flex:1;position:relative;height:18px;border-radius:9px;background:rgba(127,127,127,.18);overflow:hidden}
+.fuel .gauge i{position:absolute;inset:0 auto 0 0;width:100%;border-radius:9px;background:linear-gradient(90deg,#E10600,#F2C14E 55%,#2FBF71);transform-origin:left;animation:fuelFill 1.6s cubic-bezier(.3,.7,.3,1) .2s both}
+.fuel-ef{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--muted);margin:0 0 0 38px}
+@keyframes fuelFill{from{transform:scaleX(.04)}to{transform:scaleX(1)}}
+@media (prefers-reduced-motion:reduce){.fuel .gauge i{animation:none}}
 .tfoot .tver{flex-basis:100%;text-align:center;color:#6B7290;padding-top:2px}
 .tnews{position:absolute;top:14px;right:14px;width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.08);color:#D6DAEA;display:grid;place-items:center;cursor:pointer;z-index:3}
 .tnews:active{background:rgba(255,255,255,.16)}
@@ -3867,7 +3874,8 @@ function retiredView(){
     <div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" id="tHof">랭킹</button><button class="btn ghost" type="button" id="replayCer">은퇴식 보기</button></div>
   </section>
   <section class="card"><div class="row"><span class="muted">하면서 아쉬웠던 점이 있었나요?</span></div><button class="btn ghost" type="button" id="fbOpen">의견 보내기</button></section>
-  ${recordsBody()}${logBtn()?`<section class="card">${logBtn()}<p class="muted" style="margin:0;font-size:12px">인터넷이 막혀 기록을 못 보냈어요. 파일을 받아 개발자에게 전해 주면 밸런스에 써요.</p></section>`:''}`;
+  ${recordsBody()}${logBtn()?`<section class="card">${logBtn()}<p class="muted" style="margin:0;font-size:12px">인터넷이 막혀 기록을 못 보냈어요. 파일을 받아 개발자에게 전해 주면 밸런스에 써요.</p></section>`:''}
+  <p style="text-align:center;margin:4px 0 12px"><button class="dlink" type="button" data-sheet="fuel">개발자 연료 넣어주기 ⛽ ›</button></p>`;
 }
 function shareText(){const p=S.p,T=p.tot,s=similarDriver(),last=p.history.at(-1);
   return`🏁 카트부터 월챔까지\n${p.name} · ${S.startYear}–${last?last.year:S.year} · ${p.age}세 은퇴\n${T.titles?`🏆 월드 챔피언 ${T.titles}회 · `:''}F1 ${T.wins}승 · 포디움 ${T.podiums} · 최고 무대 ${bestStage(p)}\n${s.r.n}${wa(s.r.n)} 유사합니다!\nhttps://karttowc.github.io`}
@@ -4098,6 +4106,8 @@ const DEV_NOTE=`      <p>안녕하세요, ‘카트부터 월챔까지’ 개발
       <p>평소 F1을 좋아해서 직접 만들게 됐습니다. 처음에는 친구들끼리만 하려고 만든 게임인데, 생각보다 재밌어서 다른 분들과도 함께하고 싶어 공개하게 됐습니다.</p>
       <p>이 게임은 수익을 내지 않는 개인 팬 프로젝트이며, 현재 활발히 업데이트 중입니다. 새로운 기능과 밸런스 조정이 계속 추가되고 있으니, 업데이트 소식도 기대해 주세요. 버그나 아이디어가 있다면 언제든 알려 주세요. <button class="dlink" type="button" id="fbOpen">의견 보내러 가기 ›</button></p>
 `,DEV_DISC=`<p class="muted" style="font-size:12px">※ 본 게임은 Formula 1 및 각 팀과 관련 없는 비공식 팬 게임입니다. F1 및 팀 명칭·상표는 각 권리자에게 있습니다.</p>`;
+// 개발자 연료 넣어주기: 카카오페이 코드송금 링크 (계좌번호 안 들어 있음). 커리어 결산 맨 아래에서만 연다
+const FUEL_URL='https://qr.kakaopay.com/FR5iI9U5C';
 // 게임 소식 (새 버전을 맨 위에 추가)
 const NOTES=[
  {v:'1.4.8',d:'2026.11.7',t:'잠재력 개선',items:['잠재력에 닿아도 성장이 멈추지 않습니다. 잠재력을 넘어서도 조금씩 더 성장합니다','한계에 닿은 드라이버가 챔피언, F1 첫 우승, 르망·인디 500 우승, 휴식기 도전 성공을 해내면 잠재력이 깨어나 더 높이 성장할 수 있습니다','시작할 때 정해지는 잠재력의 차이를 줄였습니다. 잠재력이 낮게 시작해도 F1에 갈 기회가 늘었습니다','레이스 중 사건의 성공 확률이 체감과 다르다는 의견을 받았습니다. 표시된 확률과 실제 결과를 모으는 기능을 넣었고, 데이터가 쌓이면 확인해서 알려 드리겠습니다']},
@@ -4106,7 +4116,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.16',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.17',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -4609,6 +4619,11 @@ function sheetView(){
       ${DEV_NOTE}
       ${DEV_DISC}
       <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`;
+  if(sheet==='fuel')return`<div class="sheet" id="sheetBg"><section class="card devnote"><h3 class="h3">개발자 연료 넣어주기</h3>
+      <div class="fuel"><span class="pump">⛽</span><span class="gauge"><i></i></span></div><div class="fuel-ef"><span>E</span><span>F</span></div>
+      <p>이 게임은 개발자가 Claude(AI)와 함께 만들고 있어요.<br>연료(클로드 이용료)를 넣어 주시면 업데이트가 더 빨라져요.</p>
+      <p class="muted" style="font-size:13px">안 넣으셔도 게임은 똑같이 다 즐길 수 있어요. 카카오페이 송금으로 연결돼요.</p>
+      <div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" id="closeSheet">닫기</button><button class="btn" type="button" id="fuelGo">연료 넣기</button></div></section></div>`;
   if(sheet==='notes')return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">지금 버전 v${LOG_VER}</div><h3 class="h2">게임 소식</h3>
       ${NOTES.map(n=>`<details class="note"><summary><span class="nt"><b>${esc(n.t||'v'+n.v)}</b><span class="muted num">${n.v?`v${n.v} · `:''}${n.d}</span></span><i>›</i></summary>${n.dev?`<div class="devnote nbody">${DEV_NOTE}</div>`:`<ul>${n.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`}</details>`).join('')}
       <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`;
@@ -4724,6 +4739,7 @@ root.addEventListener('click',e=>{
   if(id==='logDl'){logDownload();return}
   if(id==='fbOpen'){sheet='fb';render();setTimeout(()=>{const x=document.getElementById('fbText');if(x)x.focus()},50);return}
   if(id==='fbSend'){fbSend();return}
+  if(id==='fuelGo'){window.open(FUEL_URL,'_blank','noopener');return}
   if(id==='logToggle'){if(logOff())lsSet('k2wc-log-off','0');else{lsSet('k2wc-log-off','1');lsSet(KEYL,'[]')}render();return}
   if(id==='toTitle'){sheet=null;title=true;render();window.scrollTo(0,0);return}
   if(id==='closeSheet'){if(sheetBack){sheet=sheetBack;sheetBack=null;render();return}sheet=null;chain=false;evPick=null;render();return}
