@@ -325,6 +325,8 @@
     "f1_debut_extra": 17.5,
   "debut_age_penalty_from": 25,
   "debut_age_penalty_per_year": 2,
+  "player_max_age": 45,
+  "ai_max_age": 46,
   "old_seat_from": 40,
   "old_seat_per_year": 5,
   "rookie_adapt": 3,
