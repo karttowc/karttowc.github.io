@@ -117,9 +117,15 @@
    "quali": 1.5,
    "wet": 1.2,
    "race": 1.0,
-   "consistency": 0.8,
+   "consistency": 0.4,
    "tyre": 0.4,
    "mental": 0.3
+  },
+  "veteran": {
+   "note": "33세부터 경험이 쌓이는 능력치는 떨어지는 대신 매년 조금 오름. 스타일 보너스는 그 스타일만 더",
+   "from": 33,
+   "gain": {"mental": [0, 1], "tyre": [0, 1]},
+   "style_gain": {"manager": {"tyre": [1, 1], "consistency": [0, 1]}}
   },
   "slump": {
    "base": 0.08,

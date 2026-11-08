@@ -777,9 +777,15 @@ const B = {
    "quali": 1.5,
    "wet": 1.2,
    "race": 1.0,
-   "consistency": 0.8,
+   "consistency": 0.4,
    "tyre": 0.4,
    "mental": 0.3
+  },
+  "veteran": {
+   "note": "33세부터 경험이 쌓이는 능력치는 떨어지는 대신 매년 조금 오름. 스타일 보너스는 그 스타일만 더",
+   "from": 33,
+   "gain": {"mental": [0, 1], "tyre": [0, 1]},
+   "style_gain": {"manager": {"tyre": [1, 1], "consistency": [0, 1]}}
   },
   "slump": {
    "base": 0.08,
@@ -2452,7 +2458,9 @@ function grow(p,played,poor){
   const AD=B.driver.age_decline_by_stat||{};
   const GS=B.driver.growth_spread||[.6,1.4];
   const FS=B.driver.focus_spread||GS;// focused stats swing less so the focus always shows
-  STATS.forEach(k=>{const sp=base>0&&!rest&&p.focus.includes(k)?FS:GS;let g=base*rnd(sp[0],sp[1]);if(g<0)g*=AD[k]??1;
+  const VT=B.driver.veteran,vg=VT&&p.age>=VT.from?{...VT.gain,...(VT.style_gain[p.style]||{})}:null;
+  STATS.forEach(k=>{if(vg&&vg[k]){p.stats[k]=clamp(p.stats[k]+ri(...vg[k]),1,99);return}// experience stats keep growing for veterans
+    const sp=base>0&&!rest&&p.focus.includes(k)?FS:GS;let g=base*rnd(sp[0],sp[1]);if(g<0)g*=AD[k]??1;
     if(g>0){g*=mult;if(rest)g*=B.driver.rest_multiplier;else if(p.focus.includes(k))g*=B.driver.focus_multiplier;
       const OP=B.driver.over_potential;if(ovr>=p.potential+OP.max)g=0;else if(ovr>=p.potential)g*=OP.multiplier;else if(ovr>=p.potential-B.driver.near_potential.distance)g*=B.driver.near_potential.multiplier}
     p.stats[k]=clamp(p.stats[k]+sround(g),1,99)});
@@ -2471,10 +2479,10 @@ function ageF1Grid(){
     d.age++;let delta=0;
     if(d.age<24)delta=ri(1,3);else if(d.age<=28)delta=ri(0,1);else if(d.age<=32)delta=0;else if(d.age<=35)delta=-ri(1,3);else delta=-ri(2,4);
     const o=ovrOf(d.stats);if(delta>0&&o+delta>d.potential)delta=Math.max(0,d.potential-o);
-    const AD=B.driver.age_decline_by_stat||{};STATS.forEach(k=>d.stats[k]=clamp(d.stats[k]+(delta<0?Math.round(delta*(AD[k]??1)):delta)+ri(-1,1),1,99));
+    const AD=B.driver.age_decline_by_stat||{},VT=B.driver.veteran,vg=VT&&d.age>=VT.from?VT.gain:null;STATS.forEach(k=>d.stats[k]=clamp(vg&&vg[k]?d.stats[k]+ri(...vg[k]):d.stats[k]+(delta<0?Math.round(delta*(AD[k]??1)):delta)+ri(-1,1),1,99));
     const rc=B.career.retire_chance_by_age[String(Math.min(d.age,41))]||0;
     const tier=teamDef(d.team).tier;
-    if(Math.random()<rc||d.age>=43){S.paddock.push(`${d.name}, ${d.age}세에 은퇴 발표`);continue}
+    if(Math.random()<rc||d.age>=46){S.paddock.push(`${d.name}, ${d.age}세에 은퇴 발표`);continue}
     if(ovrOf(d.stats)<B.career.f1_seat_ovr[tier]-4){S.paddock.push(`${d.name}, ${teamDef(d.team).name} 시트를 잃어`);S.f1Out.push(d);continue}
     if(Math.random()<(tier==='top'?.03:.09)){S.paddock.push(`${d.name}, ${jo(teamDef(d.team).name,'과','와')} 계약 만료로 결별`);S.f1Out.push(d);continue}
     keep.push(d);
@@ -2725,7 +2733,7 @@ const TIER_I=['bottom','mid','top'];
 function makeOffers(pos,field,h2h){
   const p=S.p,o=[],ovr=ovrOf(p.stats),r=pos?pos/field:1;S.leaveNote=null;
   const LR=S.last&&S.last.rec,champF2=LR&&LR.sid==='F2'&&LR.titled,f2Top=LR&&LR.sid==='F2'&&LR.pos&&LR.pos<=3,altRet=LR&&LR.sid==='ALT'&&LR.titled&&(LR.lk==='SF'||LR.lk==='FE')&&p.age<=29&&!p.debutYear;
-  if(p.age>=42)return[{kind:'retire',title:'은퇴',sub:'커리어를 마무리해요'}];
+  if(p.age>=45)return[{kind:'retire',title:'은퇴',sub:'커리어를 마무리해요'}];
   const slOK=p.age>=B.super_licence.min_age&&(slPoints()>=B.super_licence.points_needed||altRet);
   const inJunior=ORDER.includes(p.series);
   const juniorOffer=(series,tier,extra={})=>{const t=jTeam(series,tier);return{kind:'junior',series,team:{name:t.name,tier:t.tier},
@@ -4319,7 +4327,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.5.1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.0-d1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';

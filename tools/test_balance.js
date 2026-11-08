@@ -4,7 +4,7 @@ global.window={scrollTo(){}};global.localStorage={getItem(){return null},setItem
 const fs=require('fs');
 // BOT=real: follow real players' choice rates (tools/bot_profile.json, made by tools/bot_profile.py). BOT=offer: only their offer rule
 const BOFF=process.env.BOT==='offer',BOT=process.env.BOT==='real'?JSON.parse(fs.readFileSync(require('path').join(__dirname,'bot_profile.json'),'utf8')):null;
-eval(fs.readFileSync(require('path').join(__dirname,'../build/game.js'),'utf8')+`
+eval(fs.readFileSync(process.env.GAME||require('path').join(__dirname,'../build/game.js'),'utf8')+`
 let smart=false; // half the careers take the recommended program whenever it can change, half keep the style's program
 function quickSeason(){if(BOT)return botSeason();S.train=S.p.morale<40?'rest':'focus';if(trOpen()){if(smart)setProg(recProg().id);S.progYear=S.year;S.progFree=null}startSeason();if(S.season.gacha)resolveGacha(Math.random()<.5);S.season.incidents.forEach(i=>applyIncident(i,ri(0,1)));finishSeason()}
 const wpick=o=>{const ks=Object.keys(o);let r=Math.random()*ks.reduce((a,k)=>a+o[k],0);return ks.find(k=>(r-=o[k])<0)||ks[0]};
@@ -36,8 +36,8 @@ for(let i=0;i<300;i++){smart=i%2===0;
     if(best.kind==='retire'&&S.p.age<38&&o.length>1){applyOffer(o.find(x=>x.kind!=='retire'))}else applyOffer(best);}
   res.n++;(res.pk=res.pk||[]).push(S.p.peak);(res.pot=res.pot||[]).push(S.p.potential);(res.w=res.w||[]).push(S.p.tot.wins);if(S.p.debutYear){res.f1++;res.debut.push(S.p.debutYear-S.startYear+14)}
   {const H=S.p.history;for(let j=0;j+1<H.length;j++)if(H[j].role==='reserve'&&H[j].lk==='F1'){res.rs++;if(H[j+1].role==='race'&&H[j+1].lk==='F1')res.rr++;if(H[j].age<=30){res.ys++;if(H[j+1].role==='race'&&H[j+1].lk==='F1')res.yr++}}}
-  if(S.p.tot.titles>=1)res.ch1++;if(S.p.tot.titles>=5)res.ch5++;
+  if(S.p.tot.titles>=1)res.ch1++;if(S.p.tot.titles>=5)res.ch5++;if(S.p.tot.titles>=10)res.ch10=(res.ch10||0)+1;res.tmax=Math.max(res.tmax||0,S.p.tot.titles);(res.rage=res.rage||[]).push(S.p.age);
 }
 const avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
-const q=(a,p)=>[...a].sort((x,y)=>x-y)[Math.floor(a.length*p)];console.log('peak p10/50/90',q(res.pk,.1),q(res.pk,.5),q(res.pk,.9),'pot med',q(res.pot,.5),'wins med/p90',q(res.w,.5),q(res.w,.9));console.log('reserve->race',res.rr+'/'+res.rs,'age<=30',res.yr+'/'+res.ys);console.log('F1 debut',res.f1/res.n,'champ1+',res.ch1/res.n,'champ5+',res.ch5/res.n,'debut age avg',avg(res.debut).toFixed(1));
+const q=(a,p)=>[...a].sort((x,y)=>x-y)[Math.floor(a.length*p)];console.log('peak p10/50/90',q(res.pk,.1),q(res.pk,.5),q(res.pk,.9),'pot med',q(res.pot,.5),'wins med/p90',q(res.w,.5),q(res.w,.9));console.log('reserve->race',res.rr+'/'+res.rs,'age<=30',res.yr+'/'+res.ys);console.log('champ10+',(res.ch10||0)/res.n,'max titles',res.tmax,'retire age avg',avg(res.rage).toFixed(1));console.log('F1 debut',res.f1/res.n,'champ1+',res.ch1/res.n,'champ5+',res.ch5/res.n,'debut age avg',avg(res.debut).toFixed(1));
 `);
