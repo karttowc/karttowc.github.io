@@ -2073,6 +2073,21 @@ function scoutUpdate(pos,field,titled,ev){const p=S.p;if(!p.scout)scoutInit(p);
   if(top.length)ev.push(`관심 팀 변화: ${top.map(([id,d])=>`${teamDef(id).name} ${d>0?'+':''}${d}`).join(', ')}`);
 }
 const scv=id=>(S.p.scout||{})[id]||0;
+/* winter market for the WEC/IndyCar grids: form drifts, top teams poach the best driver of a smaller team (Palou: Coyne -> Ganassi),
+   and F1 drivers who lose their seat land there (Magnussen -> BMW WEC, Ericsson -> IndyCar). Moves in my league show in my news; F1 exits in the paddock news. */
+function altMarket(ev){const p=S.p;
+  for(const sid of Object.keys(ALT_DRV)){const R=altRoster(sid),mine=p.series==='ALT'&&p.alt===sid,L=altDef(sid).name;
+    R.forEach(d=>{const a=S.year-d.by;d.lv=r1(clamp(d.lv+rnd(-.25,.25)+(a<26?.15:0),-1.5,3.5))});
+    if(Math.random()<.35){const rk=altRank(sid),tierOf=n=>(rk.find(x=>x.n===n)||{}).tier,top=R.filter(d=>tierOf(d.t)==='top'),low=R.filter(d=>tierOf(d.t)!=='top'&&S.year-d.by<=33);
+      const star=low.sort((a,b)=>altLv(b)-altLv(a))[0],weak=top.sort((a,b)=>altLv(a)-altLv(b))[0];
+      if(star&&weak&&altLv(star)>altLv(weak)+.5&&!(mine&&p.team&&(star.t===p.team.name&&R.filter(d=>d.t===star.t).length<2))){const from=star.t;star.t=weak.t;weak.t=from;if(mine)ev.push(`${L} 이적: ${star.n}, ${from} → ${star.t}`)}}}
+  for(const d of (S.f1Out||[])){if(d.age>38||Math.random()<.7)continue;const sid=d.age>=28&&Math.random()<.6?'WEC':'INDY',R=altRoster(sid),rk=altRank(sid),o=ovrOf(d.stats);
+    const pool=R.filter(x=>!(p.series==='ALT'&&p.alt===sid&&p.team&&x.t===p.team.name)&&(o>=86||(rk.find(y=>y.n===x.t)||{}).tier!=='top'));if(!pool.length)continue;
+    const out=pick(pool.sort((a,b)=>altLv(a)-altLv(b)).slice(0,3)),i=R.indexOf(out);R[i]={t:out.t,n:d.name,nat:d.nationality,by:S.year-d.age,lv:clamp(Math.round((o-80)/2),-1,3)};
+    const msg=`${d.name}, ${altDef(sid).name} ${jo(out.t,'과','와')} 계약`;S.paddock.push(msg);if(p.series==='ALT'&&p.alt===sid)ev.push(`${altDef(sid).name} 이적: ${d.name}, F1에서 ${joRo(out.t)} 합류`)}}
+/* results feed back into the grid's form when I race there */
+function altForm(st){const p=S.p;if(p.series!=='ALT'||!ALT_DRV[p.alt])return;const R=altRoster(p.alt),n=st.length;
+  st.forEach((e,i)=>{if(e.isPlayer)return;const d=R.find(x=>x.n===e.name);if(d)d.lv=r1(clamp(d.lv+(i<3?.15:i>=n*2/3?-.1:0),-1.5,3.5))})}
 /* WEC/IndyCar interest per team (p.altSc[sid][team]). How the real paddocks hire:
    IndyCar takes F2 front-runners (Lundgaard, Armstrong, Hauger), ex-F1 drivers (Grosjean, Ericsson, Schumacher) and Super Formula winners (Palou); the big three only sign proven winners, rookies start at the small teams.
    WEC factory teams take ex-F1 and Formula E drivers (de Vries, Kubica, Cassidy, da Costa), value clean consistent driving, keep their line-ups for years (Toyota, Ferrari) and lean on their brand's academy. */
@@ -2302,7 +2317,7 @@ function finishSeason(){
    S.f1sum={year:S.year,champ:{name:fs[0].name,team:teamDef(fs[0].teamId).name,me:!!fs[0].isPlayer},
      top:fs.slice(0,5).map(e=>({name:e.name,team:e.team,color:e.color,pts:e.pts,me:!!e.isPlayer})),
      cons:Object.entries(cons).sort((a,b)=>b[1]-a[1]).map(([id,pts])=>({id,name:teamDef(id).name,color:teamDef(id).color,pts}))}}
-  const pos=me.starts>0?st.indexOf(me)+1:null, fieldN=st.length;
+  const pos=me.starts>0?st.indexOf(me)+1:null, fieldN=st.length;altForm(st);
   const rvRes=rivalResult(m,st,fieldN,f1st,pos);jrSeason(m,st,fieldN);
   // head to head
   let h2h=null;
@@ -2387,7 +2402,7 @@ function finishSeason(){
   S.last={rec,ev,deltas,standings:st.slice(0,12).map((e,i)=>({pos:i+1,name:e.name,team:e.team,color:e.color||null,pts:e.pts,wins:e.wins,me:!!e.isPlayer})),meRow:pos&&pos>12?{pos,name:me.name,team:me.team,color:me.color||null,pts:me.pts,wins:me.wins,me:true}:null};
   // world moves on
   if(!p.retired){scoutUpdate(pos,fieldN,titled,ev);altScoutUpdate(pos,fieldN,titled,ev)}
-  ageF1Grid();rivalMove(ev);jrMove();
+  ageF1Grid();altMarket(ev);rivalMove(ev);jrMove();
   S.year++;p.age++;
   const prevM={};S.teams.forEach(t=>prevM[t.id]=t.machine);
   const tierLines=[];updateMachines(tierLines);ev.push(...tierLines);updateAltMachines(ev);
@@ -2428,7 +2443,7 @@ function grow(p,played,poor){
 }
 
 function ageF1Grid(){
-  const keep=[];S.paddock=[];
+  const keep=[];S.paddock=[];S.f1Out=[];
   for(const d of S.f1){
     d.age++;let delta=0;
     if(d.age<24)delta=ri(1,3);else if(d.age<=28)delta=ri(0,1);else if(d.age<=32)delta=0;else if(d.age<=35)delta=-ri(1,3);else delta=-ri(2,4);
@@ -2437,8 +2452,8 @@ function ageF1Grid(){
     const rc=B.career.retire_chance_by_age[String(Math.min(d.age,41))]||0;
     const tier=teamDef(d.team).tier;
     if(Math.random()<rc||d.age>=43){S.paddock.push(`${d.name}, ${d.age}세에 은퇴 발표`);continue}
-    if(ovrOf(d.stats)<B.career.f1_seat_ovr[tier]-4){S.paddock.push(`${d.name}, ${teamDef(d.team).name} 시트를 잃어`);continue}
-    if(Math.random()<(tier==='top'?.03:.09)){S.paddock.push(`${d.name}, ${jo(teamDef(d.team).name,'과','와')} 계약 만료로 결별`);continue}
+    if(ovrOf(d.stats)<B.career.f1_seat_ovr[tier]-4){S.paddock.push(`${d.name}, ${teamDef(d.team).name} 시트를 잃어`);S.f1Out.push(d);continue}
+    if(Math.random()<(tier==='top'?.03:.09)){S.paddock.push(`${d.name}, ${jo(teamDef(d.team).name,'과','와')} 계약 만료로 결별`);S.f1Out.push(d);continue}
     keep.push(d);
   }
   S.f1=keep;
@@ -2655,7 +2670,7 @@ function altRoster(sid){
   const D=ALT_DRV[sid];if(!D)return null;S.altR=S.altR||{};
   if(!S.altR[sid])S.altR[sid]=Object.entries(D).flatMap(([t,L])=>L.map(([n,nat,by,lv])=>({t,n,nat,by,lv})));
   const R=S.altR[sid],lim=d=>40+[...d.n].reduce((a,c)=>a+c.charCodeAt(0),0)%4;
-  R.forEach((d,i)=>{if(S.year>K.start_year&&S.year-d.by>lim(d)){const nat=pick(NATS);R[i]={t:d.t,n:genName(nat),nat,by:S.year-ri(19,24),lv:ri(-1,2)}}});
+  R.forEach((d,i)=>{if(S.year>K.start_year&&S.year-d.by>lim(d)){const nat=pick(NATS);R[i]={t:d.t,n:genName(nat),nat,by:S.year-ri(19,24),lv:(ALT_TEAMS[sid].find(x=>x.n===d.t)||{}).tier==='top'?ri(1,2):ri(-1,2)}}});
   return R}
 /* WEC/IndyCar cars per team, kept in the save and moved every winter.
    WEC: Balance of Performance pulls the field back together, with the odd new evo kit. IndyCar: spec chassis, team strength drifts slowly, Honda vs Chevrolet edge flips year to year. */
@@ -4242,7 +4257,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.20-d7',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.20-d8',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
