@@ -418,6 +418,10 @@ html,body{margin:0}
 .note .nt .muted{font-size:13px}
 .note summary i{font-style:normal;color:var(--muted);font-size:20px;transition:transform .15s}
 .note[open] summary i{transform:rotate(90deg)}
+.note.hot{background:linear-gradient(135deg,#2A2414,var(--surface-2) 60%);box-shadow:inset 0 0 0 1px rgba(242,193,78,.45)}
+.note.hot summary b{color:var(--gold);font-size:17px}
+.note .nbig{display:inline-block;align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.06em;color:#14110A;background:var(--gold);border-radius:6px;padding:1px 7px;margin-bottom:2px}
+.note.hot ul{color:var(--fg)}
 .note ul{margin:8px 0 0;padding-left:18px;font-size:14px;color:var(--muted)}
 .note li{margin:2px 0}
 .devnote p{margin:0;line-height:1.7}
@@ -3000,6 +3004,7 @@ const DEV_NOTE=`      <p>안녕하세요, ‘카트부터 월챔까지’ 개발
 const FUEL_URL='https://qr.kakaopay.com/FR5iI9U5C';
 // 게임 소식 (새 버전을 맨 위에 추가)
 const NOTES=[
+ {v:'1.5.0',d:'2026.11.8',hot:true,t:'WEC·인디카 대개편',items:['WEC와 인디카가 F1만큼 자세해졌습니다. 2026 실제 드라이버 명단과 팀 로고가 들어갔고, 팀메이트와 맞대결 기록도 나옵니다','실제 서킷 달력으로 달립니다. WEC는 카타르 1812km부터 바레인 8시간까지 8라운드(르망은 포인트 2배), 인디카는 오벌·시가지·로드 코스 18라운드입니다','르망 24시와 인디 500이 시즌 안의 실제 레이스로 치러집니다','팀마다 머신 성능이 다르고 매년 바뀝니다. WEC는 BoP(성능 조정), 인디카는 혼다·쉐보레 엔진 차이가 있습니다','WEC·인디카 팀들도 팀별로 관심도를 매기고, 관심 있는 팀이 제안을 보냅니다. 관심도는 그 리그에 있을 때, F1 관심이 식었을 때, 제안이 왔을 때 보입니다','드라이버 시장이 움직입니다. 실력이 오르내리고, 강팀이 에이스를 데려가고, F1 시트를 잃은 드라이버가 넘어옵니다','패독 탭에 리그 칸이 생겼습니다. 그 리그의 챔피언, 제조사·팀 순위, 르망·인디 500 우승자, 이적 소식, 머신 판도를 볼 수 있습니다','인디카 점수가 실제처럼 1위 50점부터 출전한 모두에게 주어집니다','팀메이트에게 크게 밀리면 WEC·인디카에서도 경고를 받거나 계약이 해지됩니다']},
  {v:'1.4.20',d:'2026.11.8',t:'레이스 중 사건 확률 확인 결과',items:['레이스 중 사건의 성공 확률이 표시보다 낮게 느껴진다는 의견이 있어, 실제 플레이 기록을 모아 확인했습니다','약 2만 8천 번의 선택을 확인한 결과, 표시된 확률과 실제 성공률이 거의 같았습니다(60%대 → 실제 62%, 70%대 → 73%, 80%대 → 83%)','확률은 화면에 보이는 숫자 그대로 계산되며, 지금 확률에는 문제가 없습니다. 의견 보내 주셔서 감사합니다']},
  {v:'1.4.8',d:'2026.11.7',t:'잠재력 개선',items:['잠재력에 닿아도 성장이 멈추지 않습니다. 잠재력을 넘어서도 조금씩 더 성장합니다','한계에 닿은 드라이버가 챔피언, F1 첫 우승, 르망·인디 500 우승, 휴식기 도전 성공을 해내면 잠재력이 깨어나 더 높이 성장할 수 있습니다','시작할 때 정해지는 잠재력의 차이를 줄였습니다. 잠재력이 낮게 시작해도 F1에 갈 기회가 늘었습니다','레이스 중 사건의 성공 확률이 체감과 다르다는 의견을 받았습니다. 표시된 확률과 실제 결과를 모으는 기능을 넣었고, 데이터가 쌓이면 확인해서 알려 드리겠습니다']},
  {v:'1.4.4',d:'2026.11.3',t:'팀 색 추가, 헬멧 변경',items:['F1 팀 색을 추가했습니다. 드라이버 만들기에서 팀 로고를 누르면 헬멧과 슈트가 그 팀 색으로 바뀝니다','헬멧을 정면 모습으로 바꿨습니다']},
@@ -3007,7 +3012,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.5.0-d18',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.5.0',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3525,7 +3530,7 @@ function sheetView(){
       <p class="muted" style="font-size:13px">안 넣으셔도 게임은 똑같이 다 즐길 수 있어요. 카카오페이 송금으로 연결돼요.</p>
       <div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" id="closeSheet">닫기</button><button class="btn" type="button" id="fuelGo">연료 넣기</button></div></section></div>`;
   if(sheet==='notes')return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">지금 버전 v${LOG_VER}</div><h3 class="h2">게임 소식</h3>
-      ${NOTES.map(n=>`<details class="note"><summary><span class="nt"><b>${esc(n.t||'v'+n.v)}</b><span class="muted num">${n.v?`v${n.v} · `:''}${n.d}</span></span><i>›</i></summary>${n.dev?`<div class="devnote nbody">${DEV_NOTE}</div>`:`<ul>${n.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`}</details>`).join('')}
+      ${NOTES.map(n=>`<details class="note${n.hot?' hot':''}"${n.hot&&n===NOTES[0]?' open':''}><summary><span class="nt">${n.hot?'<span class="nbig">대규모 업데이트</span>':''}<b>${esc(n.t||'v'+n.v)}</b><span class="muted num">${n.v?`v${n.v} · `:''}${n.d}</span></span><i>›</i></summary>${n.dev?`<div class="devnote nbody">${DEV_NOTE}</div>`:`<ul>${n.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`}</details>`).join('')}
       <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`;
   if(sheet==='fb')return`<div class="sheet" id="sheetBg"><section class="card"><h3 class="h3">의견 보내기</h3>
       <textarea class="field" id="fbText" maxlength="300" rows="5" placeholder="불편한 점, 어려운 구간, 바랐던 기능 등 뭐든 좋아요" style="resize:none">${esc(fbText)}</textarea>
