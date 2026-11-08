@@ -2237,8 +2237,9 @@ function simulate(ents,races,orders,cal){
       if(Math.random()<B.race.dnf.mechanical+crash){e.dnf++;e.fp[r]=99;continue}
       e.pv=dw*((isWet?e.w:e.d)-(e.adapt?e.adapt(r):0))+cw*e.car+gauss()*sd;if(T&&T.q)e.pv+=T.q*(e.qv[r]-e.pv);fin.push(e)}
     fin.sort((a,b)=>b.pv-a.pv);
-    const pm=T&&T.pm||1;fin.forEach((e,i)=>{e.fp[r]=i+1;if(i<P.length)e.pts+=Math.round(P[i]*pm);if(i===0)e.wins++;if(i<3)e.pod++});
-    if(orders)orders.push({pm:pm>1?pm:undefined,wet:isWet,q:[...pr].sort((a,b)=>b.qv[r]-a.qv[r]).map(e=>e.key),fin:fin.map(e=>e.key),dnf:pr.filter(e=>e.fp[r]===99).map(e=>e.key)});
+    const pm=T&&T.pm||1,PT=ptsTab(T);fin.forEach((e,i)=>{e.fp[r]=i+1;if(i<PT.length)e.pts+=Math.round(PT[i]*pm);if(i===0)e.wins++;if(i<3)e.pod++});
+    if(T&&T.ip)pr.filter(e=>e.fp[r]===99).forEach((e,j)=>{const i=fin.length+j;if(i<PT.length)e.pts+=Math.round(PT[i]*pm)});
+    if(orders)orders.push({pm:pm>1?pm:undefined,ip:T&&T.ip?1:undefined,wet:isWet,q:[...pr].sort((a,b)=>b.qv[r]-a.qv[r]).map(e=>e.key),fin:fin.map(e=>e.key),dnf:pr.filter(e=>e.fp[r]===99).map(e=>e.key)});
   }
   return wet;
 }
@@ -2317,8 +2318,8 @@ function tally(upto){
   Z.orders.forEach((o,r)=>{if(r>upto)return;
     if(o.q[0])m[o.q[0]].poles++;
     o.q.forEach((k,i)=>m[k].qi[r]=i);
-    o.fin.forEach((k,i)=>{const e=m[k];e.starts++;e.fp[r]=i+1;if(i<P.length)e.pts+=Math.round(P[i]*(o.pm||1));if(i===0)e.wins++;if(i<3)e.pod++});
-    o.dnf.forEach(k=>{const e=m[k];e.starts++;e.dnf++;e.fp[r]=99})});
+    const PT=ptsTab(o);o.fin.forEach((k,i)=>{const e=m[k];e.starts++;e.fp[r]=i+1;if(i<PT.length)e.pts+=Math.round(PT[i]*(o.pm||1));if(i===0)e.wins++;if(i<3)e.pod++});
+    o.dnf.forEach((k,j)=>{const e=m[k];e.starts++;e.dnf++;e.fp[r]=99;const i=o.fin.length+j;if(o.ip&&i<PT.length)e.pts+=Math.round(PT[i]*(o.pm||1))})});
   return m;
 }
 function finishSeason(){
@@ -2404,7 +2405,7 @@ function finishSeason(){
   const rec={lk:p.series==='ALT'?p.alt:p.series,year:S.year,age:p.age,series:p.series==='ALT'?altDef(p.alt).name:seriesDef(p.series).name,sid:p.series,team:teamName,color:teamColor,role:p.role,tid:p.team&&p.team.id||null,
     pos,field:fieldN,train:trName(),points:me.pts,wins:me.wins,podiums:me.pod,poles:me.poles,dnf:me.dnf,starts:me.starts,ovrBefore,ovrAfter,h2h,titled,crown,first:!!C.firstLeague,slump:slump||null};
   rec.rv=rvRes;if(p.series==='F1'&&pos>1&&st[0]){rec.cp=st[0].pts;rec.cn=st[0].name}if(p.tcY===S.year)rec.tc=true;if(homeW)rec.homeW=homeW;if(yrNew.length)rec.yr=yrNew;if(awake)rec.awake=awake;
-  if(C.why0&&pos&&me.starts>0){const fin=me.fp.filter(x=>x&&x<99).sort((a,b)=>a-b),med=fin.length?fin[Math.floor(fin.length/2)]:fieldN,P=B.race.points;
+  if(C.why0&&pos&&me.starts>0){const fin=me.fp.filter(x=>x&&x<99).sort((a,b)=>a-b),med=fin.length?fin[Math.floor(fin.length/2)]:fieldN,P=ptsTab(Z.orders[0]);
     const extra=me.dnf*(P[med-1]||0),myPts=me.pts+extra,rND=1+st.filter(e=>e!==me&&e.pts>myPts).length,W=C.why0;
     const r3a=W.r3a??W.r3;rec.why={r0:W.r0,drv:W.r0-W.r1,car:W.r1-W.r2,stam:W.r2-W.r3,adapt:W.r3-r3a,luck:r3a-rND,dnf:rND-pos,pos}}
   rec.hl=Z.orders.map((o,r)=>({r,n:roundName(r),fp:me.fp[r]??null,pole:o.q[0]==='me',wet:!!o.wet})).filter(x=>(x.fp&&x.fp<=3)||x.pole);
@@ -2688,7 +2689,10 @@ const ALTCAL={WEC:[['카타르 1812km','루사일',0,0,1.5],['이몰라 6시간'
   ['로드 아메리카','로드 아메리카',1.2,.1,1],['혼다 인디 200','미드오하이오',1,.15,1],['뮤직 시티 GP','내슈빌 슈퍼스피드웨이',0,.1,1],['포틀랜드','포틀랜드 인터내셔널 레이스웨이',1,.15,1],['마컴','시가지',1,.3,1],['워싱턴 D.C.','시가지',.8,.3,1],
   ['밀워키 250 R1','밀워키 마일',0,.1,1],['밀워키 250 R2','밀워키 마일',0,.1,1],['몬터레이','라구나 세카',.6,.2,1]]};
 const ALT_CROWN={WEC:{r:3,id:'LEMANS',n:'르망 24시'},INDY:{r:6,id:'INDY500',n:'인디 500'}};
-const altCal=sid=>ALTCAL[sid]?ALTCAL[sid].map(x=>({w:x[2],q:x[3],pm:x[4]})):null;
+const altCal=sid=>ALTCAL[sid]?ALTCAL[sid].map(x=>({w:x[2],q:x[3],pm:x[4],ip:sid==='INDY'})):null;
+/* IndyCar pays the whole field (50 for a win down to 5), and a retired car is still classified behind the finishers */
+const INDY_PTS=[50,40,35,32,30,28,26,24,22,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,5,5,5,5,5,5,5,5];
+const ptsTab=o=>o&&o.ip?INDY_PTS:B.race.points;
 /* the grid for this year: real names at first, then retirements get replaced and kept in the save */
 function altRoster(sid){
   const D=ALT_DRV[sid];if(!D)return null;S.altR=S.altR||{};
@@ -4176,7 +4180,7 @@ function describe(t){
   if(t.pole)return{head:'폴 포지션을 잡았어요',note:{t:`${roundName(t.r)} 폴 포지션`,c:'blue'}};
   if(t.wet)return{head:'빗속에서 달리고 있어요'};
   if(t.rank<=3)return{head:'선두권을 지키고 있어요'};
-  if(t.rank<=10)return{head:'포인트권에서 싸우고 있어요'};
+  if(t.rank<=10)return{head:C.sid==='INDY'?'상위권에서 싸우고 있어요':'포인트권에서 싸우고 있어요'};
   return{head:'한 계단씩 올라가고 있어요'};
 }
 function startProgress(){
@@ -4304,7 +4308,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.5.0-d15',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.5.0-d16',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -4591,7 +4595,7 @@ function enterGame_unused(){}
 /* ---------- title decider at the final round ---------- */
 function deciderInfo(){const Z=S.season,L=Z.races-1;if(Z.races<2)return null;
   const m=tally(L-1),st=standingsOf(Object.values(m)),me=m.me;if(!me||!me.starts)return null;
-  const mi=st.indexOf(me),lead=st[0],P=B.race.points.map(x=>Math.round(x*(Z.orders[L].pm||1)));
+  const mi=st.indexOf(me),lead=st[0],P=ptsTab(Z.orders[L]).map(x=>Math.round(x*(Z.orders[L].pm||1)));
   const riv=mi===0?st[1]:lead;if(!riv)return null;
   const gap=me.pts-riv.pts;if(mi!==0&&lead.pts-me.pts>P[0])return null;if(mi===0&&gap>P[0])return null;
   const o=Z.orders[L],pos=k=>{const i=o.fin.indexOf(k);return i<0?null:i+1},qpos=k=>{const i=o.q.indexOf(k);return i<0?null:i+1};
