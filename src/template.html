@@ -2376,7 +2376,7 @@ function resultCard(){
       <div class="row"><span>출전 · 포인트</span><span class="num">${R.starts}경기${R.dnf?` · DNF ${R.dnf}`:''} · ${R.points}점</span></div></div>
       ${H.length?`<div class="hlchips">${H.map(x=>`<span class="hc ${x.fp===1?'p1':x.fp===2?'p2':x.fp===3?'p3':''}">${esc(x.n.replace(/ · .*/,''))} ${x.fp===1?'우승':x.fp&&x.fp<=3?'P'+x.fp:''}${x.pole?' · 폴':''}</span>`).join('')}</div>`:''}
       ${[...mine.slice(3),...rest].length?`<div class="newslist">${[...mine.slice(3),...rest].map(e=>`<div class="${tone(e)}">${withLogos(esc(e))}</div>`).join('')}</div>`:''}`:''}
-    <button class="btn" type="button" data-go="react">반응 보기</button></section>`;
+    ${nextCard()?`<button class="btn" type="button" data-go="react">반응 보기</button>`:`<div style="display:flex;gap:8px"><button class="btn ghost" type="button" data-go="react" style="flex:1">반응 보기</button><button class="btn" type="button" id="okBtn" style="flex:1">이적 시장으로</button></div>`}</section>`;
 }
 const mRank=id=>[...S.teams].sort((a,b)=>b.machine-a.machine).findIndex(x=>x.id===id)+1;
 function offerTerms(x){const clean=s=>String(s||'').replace(/ · 머신 [\d.]+/g,'');
@@ -2941,13 +2941,14 @@ const DEV_NOTE=`      <p>안녕하세요, ‘카트부터 월챔까지’ 개발
 const FUEL_URL='https://qr.kakaopay.com/FR5iI9U5C';
 // 게임 소식 (새 버전을 맨 위에 추가)
 const NOTES=[
+ {v:'1.4.20',d:'2026.11.8',t:'레이스 중 사건 확률 확인 결과',items:['레이스 중 사건의 성공 확률이 표시보다 낮게 느껴진다는 의견이 있어, 실제 플레이 기록을 모아 확인했습니다','약 2만 8천 번의 선택을 확인한 결과, 표시된 확률과 실제 성공률이 거의 같았습니다(60%대 → 실제 62%, 70%대 → 73%, 80%대 → 83%)','확률은 화면에 보이는 숫자 그대로 계산되며, 지금 확률에는 문제가 없습니다. 의견 보내 주셔서 감사합니다']},
  {v:'1.4.8',d:'2026.11.7',t:'잠재력 개선',items:['잠재력에 닿아도 성장이 멈추지 않습니다. 잠재력을 넘어서도 조금씩 더 성장합니다','한계에 닿은 드라이버가 챔피언, F1 첫 우승, 르망·인디 500 우승, 휴식기 도전 성공을 해내면 잠재력이 깨어나 더 높이 성장할 수 있습니다','시작할 때 정해지는 잠재력의 차이를 줄였습니다. 잠재력이 낮게 시작해도 F1에 갈 기회가 늘었습니다','레이스 중 사건의 성공 확률이 체감과 다르다는 의견을 받았습니다. 표시된 확률과 실제 결과를 모으는 기능을 넣었고, 데이터가 쌓이면 확인해서 알려 드리겠습니다']},
  {v:'1.4.4',d:'2026.11.3',t:'팀 색 추가, 헬멧 변경',items:['F1 팀 색을 추가했습니다. 드라이버 만들기에서 팀 로고를 누르면 헬멧과 슈트가 그 팀 색으로 바뀝니다','헬멧을 정면 모습으로 바꿨습니다']},
  {v:'1.4.2',d:'2026.11.3',t:'리저브 드라이버 승격',items:['F1 리저브 두 번째 시즌부터 F1 레이스 제안이 없으면, 소속 팀(또는 관심이 큰 팀)이 약한 주전을 빼고 리저브를 레이스 드라이버로 올리기도 해서, 리저브 드라이버의 F1 진출 가능성을 개선했습니다(40%, 34세까지)']},
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.20-d8',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.21-d9',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3211,7 +3212,7 @@ if(typeof document.addEventListener==='function'){document.addEventListener('poi
 document.addEventListener('contextmenu',e=>{if(e.target.closest('.peekbtn'))e.preventDefault()});}
 // the training plan only shows up in the chain when it can be changed
 function nextStep(){const p=S.p;
-  if(!chainSeen.tr&&trOpen()&&S.progFree!=='first'){chainSeen.tr=1;sheet='train';render();return}
+  if(!chainSeen.tr&&trOpen()&&S.progFree!=='first'&&S.trPick!==S.year){chainSeen.tr=1;sheet='train';render();return}
   if(S.events.length){sheet='ev0';render();return}
   if(S.challenge&&!chainSeen.ch){chainSeen.ch=1;sheet='ch';render();return}
   sheet='go';render()}
@@ -3548,8 +3549,8 @@ root.addEventListener('click',e=>{
   if(id==='chDone'){sheet=null;if(chain){nextStep();return}if(popQ.length){popNext();return}render();return}
   if(id==='num1Yes'||id==='num1No'){const p=S.p;if(id==='num1Yes'){p.num0=p.num;p.num=1;toast('다음 시즌부터 #1을 달아요')}save();popNext();return}
   if(id==='declineCh'){S.chLog=S.challenge.id+':no';S.challenge=null;save();if(chain){nextStep();return}sheet=null;render();return}
-  if(d.rest&&S.phase==='ready'){S.train=S.train==='rest'?'focus':'rest';save();render();return}
-  if(d.prog&&S.phase==='ready'){if(S.train==='rest')S.train='focus';if(trOpen())setProg(d.prog);save();render();return}
+  if(d.rest&&S.phase==='ready'){S.train=S.train==='rest'?'focus':'rest';S.trPick=S.year;save();render();return}
+  if(d.prog&&S.phase==='ready'){if(S.train==='rest')S.train='focus';if(trOpen())setProg(d.prog);S.trPick=S.year;save();render();return}
   if(id==='askRetire'){sheet='retire';render();return}
   if(id==='confirmRetire'){sheet=null;retireNow();render();window.scrollTo(0,0);return}
   if(id==='skipProg'){const b=document.getElementById('pInc');if(b&&b.innerHTML.trim())return;finishProgress();return}
