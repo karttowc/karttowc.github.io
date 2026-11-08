@@ -2127,7 +2127,7 @@ function nextMajorYear(){const MR=B.machine.major_regulation;
   return S.nextMajor}
 function updateMachines(ev){
   const MR=B.machine.major_regulation,major=S.year===nextMajorYear();
-  if(major)S.nextMajor=S.year+ri(...MR.cycle_range);
+  if(major){S.nextMajor=S.year+ri(...MR.cycle_range);(S.majors??=[]).push(S.year)}
   const before={};S.teams.forEach(t=>before[t.id]=t.tier);
   if(major){
     ev.push(`${S.year} 대규정 변경! 새 규정으로 머신 판도가 흔들렸어요.`);
@@ -2247,7 +2247,7 @@ function finishSeason(){
   let homeW=0;if(p.series==='F1')me.fp.forEach((x,r)=>{if(x===1&&isHome(r))homeW++});
   if(homeW)ev.push(`홈 GP 우승! 홈 관중 앞에서 시상대 맨 위에 섰어요.`);
   const st=standingsOf(ents);
-  let f1st=null;
+  let f1st=null;const prevSum=S.f1sum&&S.f1sum.year===S.year-1?S.f1sum:null;
   {let fe=p.series==='F1'?ents:null;
    if(!fe){fe=S.f1.map(d=>{const t=teamDef(d.team);return entrant({key:d.id,name:d.name,team:t.short,teamId:t.id,color:t.color,car:t.machine,...fromStats(d.stats)})});simulate(fe,seriesDef('F1').races,null,F1W)}
    const fs=standingsOf(fe),cons={};f1st=fs;fe.forEach(e=>{cons[e.teamId]=(cons[e.teamId]||0)+e.pts});
@@ -2316,7 +2316,7 @@ function finishSeason(){
   const ovrAfter=ovrOf(p.stats);p.peak=Math.max(p.peak,ovrAfter);
   if(!p.limitSeen&&atLimit()){p.limitSeen=1;ev.push('성장이 더뎌지기 시작했어요. 큰 무대에서 증명하면 한계를 넘을 수 있어요.')}
   const deltas=STATS.map(k=>({k,v:p.stats[k],d:p.stats[k]-statsBefore[k]})).filter(x=>x.d!==0);
-  const rec={lk:p.series==='ALT'?p.alt:p.series,year:S.year,age:p.age,series:p.series==='ALT'?altDef(p.alt).name:seriesDef(p.series).name,sid:p.series,team:teamName,color:teamColor,role:p.role,
+  const rec={lk:p.series==='ALT'?p.alt:p.series,year:S.year,age:p.age,series:p.series==='ALT'?altDef(p.alt).name:seriesDef(p.series).name,sid:p.series,team:teamName,color:teamColor,role:p.role,tid:p.team&&p.team.id||null,
     pos,field:fieldN,train:trName(),points:me.pts,wins:me.wins,podiums:me.pod,poles:me.poles,dnf:me.dnf,starts:me.starts,ovrBefore,ovrAfter,h2h,titled,crown,first:!!C.firstLeague,slump:slump||null};
   rec.rv=rvRes;if(p.tcY===S.year)rec.tc=true;if(homeW)rec.homeW=homeW;if(yrNew.length)rec.yr=yrNew;if(awake)rec.awake=awake;
   if(C.why0&&pos&&me.starts>0){const fin=me.fp.filter(x=>x&&x<99).sort((a,b)=>a-b),med=fin.length?fin[Math.floor(fin.length/2)]:fieldN,P=B.race.points;
@@ -2347,7 +2347,7 @@ function finishSeason(){
   S.offers=makeOffers(pos,fieldN,h2h);
   S.news=buildNews(tierLines,prevM);
   buildNotice();
-  S.react=buildReact(rec,{inc:Z.incidents||[],gacha:Z.gacha||null,monacoWin:p.series==='F1'&&me.fp[7]===1,wetN,wetPod,injured:ev.some(x=>x.includes('결장')),dnfAvg:(()=>{const f=me.fp.filter(x=>x&&x<99);return f.length?Math.round(f.reduce((a,b)=>a+b,0)/f.length):null})()});
+  S.react=buildReact(rec,{inc:Z.incidents||[],gacha:Z.gacha||null,monacoWin:p.series==='F1'&&me.fp[7]===1,wetN,wetPod,prevCons:prevSum&&prevSum.cons,gap:pos>1&&p.role==='race'?st[0].pts-me.pts:null,champ:st[0]&&st[0].name,injured:ev.some(x=>x.includes('결장')),dnfAvg:(()=>{const f=me.fp.filter(x=>x&&x<99);return f.length?Math.round(f.reduce((a,b)=>a+b,0)/f.length):null})()});
   logSeason(rec);S.logPre=null;S.logPick=null;
   S.season=null;S.evSeason=[];S.phase='result';sel=null;save();
 }
@@ -3258,6 +3258,7 @@ const FAN_MORE={
  ev_rally0:['비시즌에 랠리까지 뛰는 거 낭만 그 자체']
 };
 for(const k in FAN_MORE)FAN[k]=[...(FAN[k]||[]),...FAN_MORE[k]];
+FAN.matewon.push('{mate} 상대로 예선 {mqRo} 털었네 ㅋㅋ','예선 {mq}면 {mate|은|는} 할 말 없다');FAN.matelost.push('{mate}한테 예선 {mq}… 이건 좀 아프다','{mate|이|가} 그렇게 빠른 거임? 예선 {mq} 실화냐');
 FAN.firstGood=['첫 시즌에 이 정도면 대박','적응 끝나면 진짜 무서워질 듯','루키가 벌써 이러면 내년엔 어쩌려고','데뷔 시즌부터 존재감 확실함'];
 FAN.firstOk=['첫 시즌은 원래 적응기임','후반에 페이스 올라온 거 봄?','조급해하지 말자 내년부터가 진짜','새 차 적응하는 데 시간 걸리는 건 당연함'];
 FAN.backPts=['하위팀으로 포인트 따온 거 실화냐 ㅋㅋ','이 차로 1점이면 사실상 우승임','팀 공장 오늘 회식 확정','이 1점이 상금 수십억이다 진짜로','팀 보스 표정 봤냐 ㅋㅋ 함박웃음'];
@@ -3266,6 +3267,34 @@ FAN.youngrec=['최연소 기록 갈아치우는 걸 실시간으로 봤다','이
 FAN.triple=['트리플 크라운 축하합니다!!','모나코, 르망, 인디 500을 다 이긴 드라이버를 내가 응원했다니','그레이엄 힐 이후 두 번째 트리플 크라운, 이건 역사다','몇십 년 뒤에도 이름이 나올 기록이에요. 축하합니다','{name} 진짜 전설 인정합니다'];
 FAN.crownWin=['{crown} 우승은 진짜 레전드 업적이다','F1 못 간 게 아니라 다른 전설을 쓰는 중','{crown} 트로피 들어 올리는 거 보고 울었다','이거면 트리플 크라운 꿈꿔도 된다'];
 
+// situation comments: who, where, how it compares (filled from V in buildReact)
+Object.assign(FAN,{
+ stageGood:['{series} 첫해에 {pos}위면 대박','{series} 루키가 {pos}위? 내년엔 어쩌려고','{series} 오자마자 {pos}위, 적응이 너무 빠른데','{series} 첫 시즌 {pos}위면 할 만큼 했다'],
+ stageOk:['{series} 첫해 {pos}위면 나쁘지 않음, 원래 첫해는 적응기','{series} 레벨이 확실히 다르긴 하네. 내년부터 보자','{series} 첫 시즌은 다들 이 정도에서 시작함'],
+ oldTeamUp:['{oldteam} 떠난 거 신의 한 수였네','{oldteam} 남았으면 이 순위 못 찍었다','팀 순위 {myrank}위 vs {oldteam} {oldrank}위, 이적 대성공','{oldteam} 팬들 지금 배 아플 듯 ㅋㅋ'],
+ oldTeamDown:['{oldteam} 남았으면 어땠을까…','{oldteam} {oldrank}위 하는 거 보니까 좀 아깝다','이적 타이밍이 아쉬웠다. {oldteam} 올해 잘 나감','{oldteam} 버린 거 후회 중이냐 ㅠ'],
+ moveUp:['{oldteam}에서 {prevpos}위 → {team}에서 {pos}위, 이적 대성공','팀 바꾸고 날아다니네','{team|이랑|랑} 궁합 좋은 듯'],
+ moveDown:['{oldteam} 때가 더 좋았는데…','{team} 차가 안 맞는 듯. 작년 {prevpos}위였잖아','팀 옮기고 고전 중. 시간이 필요하다'],
+ bounce:['작년 {prevpos}위 → 올해 {pos}위 실화냐','{prevpos}위에서 {pos}위로, 이게 반등이지','작년에 욕하던 사람들 다 어디 감? ㅋㅋ','한 시즌 만에 {gain}계단 점프 ㄷㄷ'],
+ slide:['작년 {prevpos}위 하던 선수가 왜 이래','{prevpos}위 → {pos}위… 무슨 일 있었냐','한 해 쉬어 가는 거라고 믿는다'],
+ carOver:['{team} 차로 {pos}위는 말이 안 됨','이 차로 {pos}위면 드라이버가 다 한 거임','{team} 엔지니어들 이 선수한테 절해야 함','차 바꿔 주면 바로 우승 경쟁할 듯'],
+ carUnder:['{team} 차 받고 {pos}위는 좀…','차는 우승권인데 순위가 왜 이래','{team} 머신이면 최소 포디움 경쟁은 해야지'],
+ closeP2:['챔피언이랑 {gap}점 차… 한 경기만 더 있었어도','{gap}점 차 2위라니 너무 아깝다','{champ|이랑|랑} 마지막까지 싸운 거 진짜 멋있었다','내년엔 그 {gap}점 꼭 뒤집자'],
+ p2:['시즌 2위, 내년엔 1위만 남았다','{champ}만 없었으면 챔피언이었다','2위도 대단한 거임. 다음은 정상'],
+ repeat:['{streak}연패 ㄷㄷ 이제 시대가 열렸다','{streak}년 연속 챔피언, 막을 사람이 없네','{streak}연패면 이제 왕조라고 불러야 함'],
+ firstWin:['{seasons}시즌 만의 첫 승!! 기다린 보람 있다','첫 승까지 {seasons}시즌, 드디어 터졌다','이 첫 승 보려고 {seasons}년 응원했다 ㅠㅠ'],
+ loyal:['{team} {years}년째, 이제 팀의 얼굴','{team} 하면 이 선수지','{years}년 의리 ㄷㄷ {team} 레전드 각'],
+ youngChamp:['{age}살에 {series} 챔피언? 역대급 페이스','{age}살이 이걸 해낸다고?','이 나이에 {series} 정복이면 F1은 시간 문제'],
+ oldWc:['{age}살 월드 챔피언!!! 나이는 숫자일 뿐','{age}살에 월챔이라니 F1 역사가 바뀌었다','40 넘어서 월챔? 이건 영화로 만들어야 함','아저씨 소리 듣던 선수가 세계 정상 ㅠㅠ','{age}살 월챔 보고 우리 아빠가 운동 시작함','젊은 애들 다 제치고 {age}살이 챔피언 ㄷㄷ'],
+ oldFirstWc:['{age}살에 첫 월챔, 포기 안 하길 잘했다','이 첫 타이틀 보려고 {seasons}년 기다렸다','늦게 핀 꽃이 제일 예쁘다 진짜'],
+ vetWc:['{age}살 챔피언, 경험이 속도를 이겼다','베테랑의 운영이 다 했다','{age}살에도 정상, 클래스는 영원하다'],
+ engBad:['{engine} PU 언제 정신 차리냐','드라이버는 잘했다, 엔진이 문제','직선에서 다 뺏기는 거 보면 {engine} 파워가 문제임','{engine} 엔진만 아니었어도…'],
+ engSame:['같은 {engine} 엔진 쓰는 {other} 저 위에 있는 거 보면 섀시 문제','엔진은 {other|이랑|랑} 같은데 차이가 왜 이렇게 남?','{other|은|는} 같은 {engine} 엔진으로 날아다님. 공장 반성해라'],
+ engBeat:['고객팀이 {works} 이김 ㅋㅋ','{works} 엔진 받아서 {works}보다 위라니','워크스팀 {works} 체면 다 구겼다 ㅋㅋ'],
+ newRegUp:['새 규정 첫해 {engine} 엔진 대박','규정 바뀌자마자 {team} 확 올라왔네','이번 규정은 {team|이|가} 제대로 읽었다'],
+ newRegDown:['{engine} 새 PU 망한 듯','새 규정 첫해부터 이러면 몇 년 고생할 듯','규정 바뀌고 {team} 확 내려앉았네'],
+ engMove:['{oldeng} 버리고 {engine} 엔진 간 거 정답이었네','{engine} 파워 받으니까 다르네','엔진 바꾼 게 정답이었다']
+});
 const REPLY=['ㄹㅇ','ㅇㅈ','222','이건 인정','반박 불가','ㅋㅋㅋㅋ 공감','차빨 아님?','아닌데 드라이버 실력임','나만 그렇게 느낀 거 아니었네','이게 맞다','내년이 더 기대됨','진짜 그 장면 소름이었음'];
 function likes(){const v=Math.round(ri(4,40)*(1+S.p.fans/8));return v>=1000?Math.round(v/100)/10+'천':v}
 function buildReact(R,x){
@@ -3274,6 +3303,7 @@ function buildReact(R,x){
   // 1) verdict: against what the car and driver should have managed
   let v;
   if(!R.pos||R.role==='reserve')v=R.role==='reserve'?(R.starts?pick(['리저브였지만 대타 출전으로 존재감을 보였어요.','리저브로 기다리다 잡은 기회, 그 자체로 의미가 있었어요.']):pick(['리저브로 패독을 지킨 시즌이었어요. 시뮬레이터 작업으로 차곡차곡 쌓았어요.','레이스는 없었지만 팀 안에서 신뢰를 쌓은 시즌이에요.'])):'출전 기회가 없던 시즌이었어요.';
+  else if(R.titled&&R.sid==='F1'&&R.age>=40)v=pick([`${R.age}세 월드 챔피언! 나이를 경험으로 바꾼, F1 역사에 남을 시즌이에요.`,`${R.age}세에 정상에 섰어요. 젊은 드라이버들을 운영과 노련함으로 이겨 냈어요.`])+(H.slice(0,-1).some(h=>h.sid==='F1'&&h.titled)?'':' 오래 기다린 첫 타이틀이라 더 값져요.');
   else if(R.titled)v=R.sid==='F1'?pick([`월드 챔피언! 시즌 내내 흔들림 없이 타이틀을 지켜냈어요.`,`${R.wins}승으로 증명한 완벽한 시즌, 월드 챔피언이에요.`,`모두가 인정할 수밖에 없는 시즌이었어요. 챔피언 축하해요.`]):pick([`${R.series} 챔피언! 이 무대에서는 더 보여줄 게 없어요.`,`${R.wins}승으로 ${jo(R.series,'을','를')} 평정했어요.`,`챔피언다운 시즌이었어요. 다음 무대가 기다려요.`]);
   else if(R.first)v=`첫 시즌 ${R.field}명 중 ${R.pos}위. `+(R.pos/R.field<=.2?pick(['루키 시즌에 이 순위는 훌륭한 출발이에요.','데뷔 시즌부터 앞쪽에서 싸웠어요.']):R.pos/R.field<=.5?pick(['첫 시즌 치고 충분히 좋은 성적이에요.','적응하면서도 중위권 위를 지켰어요.']):R.pos/R.field<=.8?pick(['첫 시즌은 적응기예요. 초반만 지나면 페이스가 올라와요.','새 무대에 몸을 맞춘 시즌이에요. 진짜는 내년부터예요.']):'처음이라 쉽지 않았지만, 배운 게 많은 시즌이에요.');
   else if(R.pos<=3&&diff>=-2)v=pick([`${R.pos}위, 챔피언 경쟁까지 한 최고의 시즌이에요.`,`시즌 ${R.pos}위. 포디움 단골이 된 한 해였어요.`,`${R.pos}위로 정상 바로 아래까지 올라왔어요.`]);
@@ -3327,36 +3357,71 @@ function buildReact(R,x){
   else if(R.age>=33&&st.tyre>=st.quali)adv=pick(['퀄리파잉 속도는 줄어도 타이어 관리와 멘탈은 여전히 무기예요. 경험으로 버티는 시즌이 될 거예요.',`베테랑의 운영이 빛날 때예요. ${LBL[weak]}(${st[weak]})만 지켜 내면 돼요.`]);
   else adv=pick([`다음 시즌 과제는 ${LBL[weak]}${ieyo(LBL[weak])} (지금 ${st[weak]}). ${trTxt}`,`${LBL[weak]}(${st[weak]})만 끌어올리면 한 단계 더 올라설 수 있어요. ${trTxt}`,`다음 시즌엔 ${LBL[weak]}${josa(LBL[weak])} 키워 보세요 (지금 ${st[weak]}). ${rs0.why}.`]);
   E.push(pre+adv);
-  // fans: specific moments first, then general mood
-  const tags=[];
-  if(R.titled)tags.push(R.sid==='F1'?'wc':'champ');
-  (x.inc||[]).filter(i=>i.done&&i.j!=null).forEach(i=>{const k=i.id+i.j+(i.dnf?'dnf':i.ok?'ok':'bad');tags.push(FAN[k]?k:i.id+i.j+(i.ok?'ok':'bad'))});
-  if(x.gacha&&x.gacha.res)tags.push(x.gacha.res==='rest'?'g_rest':`g_${x.gacha.id}_${x.gacha.res}`);
-  if(x.monacoWin)tags.push('monaco');if(R.homeW)tags.unshift('homewin');if(R.yr)tags.unshift('youngrec');
-  if(p.xferDone&&p.xferDone.year===R.year)tags.unshift(p.xferDone.n?'xferOk':'xferNone');
-  (S.evSeason||[]).forEach(e=>{const k=`ev_${e.id}${e.j}`;if(FAN[k])tags.push(k)});
-  if(R.rv&&R.rv.same){tags.push(R.rv.ahead?'rivalWin':'rivalLose');if(R.rv.lk==='F1'&&R.sid==='F1'&&S.rival&&S.rival.h2h[0]+S.rival.h2h[1]>0&&!S.rival.f1Seen){S.rival.f1Seen=true;tags.unshift('rivalF1')}}
-  else if(S.rival&&S.rival.st==='out'&&!S.rival.outSeen&&S.rival.last&&S.rival.last.series===R.sid){S.rival.outSeen=true;tags.push('rivalOut')}
-  const podBefore=H.slice(0,-1).reduce((a,h)=>a+(h.podiums||0),0);if(R.podiums&&!podBefore)tags.push('firstpod');
+  // fans: the season's story first (who, where, compared with what); choices only as a side note
+  const tags=[],side=[],V={name,team:R.team||'',series:R.series,pos:R.pos,age:R.age,wins:R.wins,poles:R.poles||0,crown:R.crown?R.crown.n:'',champ:x.champ||null,gap:x.gap};
+  const race=R.role==='race'&&R.pos,past=H.slice(0,-1),same=past.filter(h=>h.lk===R.lk&&h.role==='race'&&h.pos);V.seasons=same.length+1;
+  const engOf=id=>(K.teams.find(t=>t.id===id)||{}).engine||null,tidOf=h=>h.tid||(K.teams.find(t=>t.name===h.team||t.short===h.team)||{}).id||null;
+  // headline: titles, by age and streak
+  if(R.titled){
+    if(R.sid==='F1'){const before=past.filter(h=>h.sid==='F1'&&h.titled).length;
+      if(R.age>=40){if(!before)tags.push('oldFirstWc');tags.push('oldWc')}else if(R.age>=36)tags.push('vetWc');tags.push('wc')}
+    else tags.push('champ');
+    let k=0;for(let i=H.length-1;i>=0&&H[i].lk===R.lk&&H[i].titled;i--)k++;
+    if(k>=2){V.streak=k;tags.push('repeat')}
+    const yg={F4:16,FRECA:17,F3:18,F2:19,F1:23}[R.sid];if(yg&&R.age<=yg&&!R.yr)tags.push('youngChamp')}
+  if(R.tc)tags.unshift('triple','triple');if(R.yr)tags.push('youngrec');
+  if(R.crown&&R.crown.res==='우승')tags.push('crownWin');
+  if(p.xferDone&&p.xferDone.year===R.year)tags.push(p.xferDone.n?'xferOk':'xferNone');
+  if(R.sid!=='F1'&&R.age>=24&&!p.debutYear)tags.push('giveup');
+  if(R.wins&&!R.titled&&same.length&&same.every(h=>!h.wins))tags.push('firstWin');
+  // story: new stage, old team, rise and fall, the car
+  if(R.first&&race){const good=R.pos/R.field<=.5;tags.push(good?'stageGood':'stageOk',good?'firstGood':'firstOk')}
+  const prev0=past.at(-1),cons=R.sid==='F1'&&S.f1sum&&S.f1sum.year===R.year?S.f1sum.cons:null,rk=id=>cons?cons.findIndex(c=>c.id===id):-1;
+  const myId=R.sid==='F1'?R.tid||tidOf(R):null,myR=rk(myId);if(myR>=0)V.myrank=myR+1;
+  let engTag=null;
+  if(race&&prev0&&prev0.lk===R.lk&&prev0.role==='race'&&prev0.pos){V.prevpos=prev0.pos;
+    if(prev0.team!==R.team){V.oldteam=prev0.team;const oid=tidOf(prev0),oR=rk(oid);
+      if(myR>=0&&oR>=0&&oid!==myId){V.oldrank=oR+1;tags.push(myR<oR?'oldTeamUp':'oldTeamDown');
+        const oe=engOf(oid),me2=engOf(myId);if(myR<oR&&oe&&me2&&oe!==me2){V.oldeng=oe;engTag='engMove'}}
+      else if(prev0.pos-R.pos>=3)tags.push('moveUp');else if(R.pos-prev0.pos>=3)tags.push('moveDown')}
+    else if(prev0.pos-R.pos>=5&&R.pos<=R.field*.5){V.gain=prev0.pos-R.pos;tags.push('bounce')}
+    else if(R.pos-prev0.pos>=5&&prev0.pos<=5)tags.push('slide')}
+  if(race&&Y){if(Y.car<=-3&&R.pos<=R.field*.5)tags.push('carOver');else if(Y.car>=3&&diff<=-3)tags.push('carUnder')}
+  if(race&&R.pos===2&&V.champ){tags.push(x.gap!=null&&x.gap<=20?'closeP2':'p2')}
+  // engine talk (F1 only, at most one)
+  if(race&&myR>=0&&!engTag){const eng=engOf(myId);V.engine=eng;
+    const pR=x.prevCons?x.prevCons.findIndex(c=>c.id===myId):-1,sameE=cons.filter(c=>c.id!==myId&&engOf(c.id)===eng);
+    const works=K.teams.find(t=>t.id!==myId&&t.engine===eng&&eng.startsWith(t.name)),wR=works?rk(works.id):-1,above=sameE.find(c=>rk(c.id)<=myR-3);
+    if((S.majors||[]).includes(R.year)&&pR>=0&&Math.abs(pR-myR)>=3)engTag=pR>myR?'newRegUp':'newRegDown';
+    else if(works&&wR-myR>=2&&Math.random()<.5){V.works=works.name;engTag='engBeat'}
+    else if(above&&Y&&Y.car<=0&&Math.random()<.5){V.other=above.name;engTag='engSame'}
+    else if(Y&&Y.car<=-3&&Math.random()<.5)engTag='engBad'}
+  else if(engTag)V.engine=engOf(myId);
+  if(engTag)tags.push(engTag);
+  if(x.monacoWin)tags.push('monaco');if(R.homeW)tags.splice(1,0,'homewin');
+  const podBefore=past.reduce((a,h)=>a+(h.podiums||0),0);if(R.podiums&&!podBefore)tags.push('firstpod');
   if(R.wins&&!R.titled)tags.push('win');if(R.poles>=3)tags.push('pole');
   if(x.wetN>=2&&x.wetPod>=2)tags.push('rainstar');
-  if(R.h2h){const q=R.h2h.q,tot=q[0]+q[1]||1;if(q[0]/tot<=(R.first?.2:.3))tags.push('matelost');if(q[0]/tot>=.7)tags.push('matewon')}
-  if(R.backPts)tags.push('backPts');if(R.crown&&R.crown.res==='우승')tags.unshift('crownWin');
+  if(R.h2h){const q=R.h2h.q,tot=q[0]+q[1]||1;V.mate=R.h2h.mate;V.mq=`${q[0]}:${q[1]}`;V.mqRo=joRo(V.mq);if(q[0]/tot<=(R.first?.2:.3))tags.push('matelost');if(q[0]/tot>=.7)tags.push('matewon')}
+  {let n=0;for(let i=H.length-1;i>=0&&H[i].team===R.team&&H[i].role==='race';i--)n++;if(n>=4&&race&&(n===4||Math.random()<.35)){V.years=n;tags.push('loyal')}}
+  if(R.backPts)tags.push('backPts');
   if(R.dnf>=3)tags.push('dnf');if(x.injured)tags.push('injury');
   if(R.sid==='F1'&&p.debutYear===R.year)tags.push('rookie');if(ORDER.includes(R.sid)&&R.pos&&R.pos<=5)tags.push('junior');
-  if(R.first&&R.pos&&R.role==='race'){tags.unshift(R.pos/R.field<=.5?'firstGood':'firstOk')}
   if(R.pos&&R.pos/R.field>(R.first?.85:.75)&&!tags.includes('dnf'))tags.push('poor');
-  if(R.age>=33)tags.push(R.ovrAfter<R.ovrBefore?'decline':'vet');
-  if(R.sid!=='F1'&&R.age>=24&&!p.debutYear)tags.unshift('giveup');
+  if(R.age>=33&&!R.titled)tags.push(R.ovrAfter<R.ovrBefore?'decline':'vet');
   if(p.morale<40)tags.push('tired');if(p.fans>=60)tags.push('star');
-  if(R.tc)tags.unshift('triple','triple');
-  if(R.role==='reserve'){tags.length=0;tags.push(R.starts>0?'reserveSub':'reserve')}
+  // choices made this season: incidents (retirements first), break challenge, preseason events
+  (x.inc||[]).filter(i=>i.done&&i.j!=null).forEach(i=>{const k=i.id+i.j+(i.dnf?'dnf':i.ok?'ok':'bad'),kk=FAN[k]?k:i.id+i.j+(i.ok?'ok':'bad');i.dnf?side.unshift(kk):side.push(kk)});
+  if(x.gacha&&x.gacha.res)side.push(x.gacha.res==='rest'?'g_rest':`g_${x.gacha.id}_${x.gacha.res}`);
+  (S.evSeason||[]).forEach(e=>side.push(`ev_${e.id}${e.j}`));
+  if(R.role==='reserve'){tags.length=0;side.length=0;tags.push(R.starts>0?'reserveSub':'reserve')}
   if(!tags.length)tags.push('mid');if(p.nat==='KOR')tags.push('kor');
-  const T=tags.filter(k=>FAN[k]);
-  const fill=s=>s.replace(/\{rival\}/g,S.rival?S.rival.name:'라이벌').replace(/\{name\}/g,name).replace(/\{team\}/g,R.team||'').replace(/\{wins\}/g,R.wins).replace(/\{poles\}/g,R.poles||0).replace(/\{crown\}/g,R.crown?R.crown.n:'');
-  const n=R.role==='reserve'?(R.starts>0?3:2):Math.min(7,Math.max(3,T.length>3?4:3)+Math.floor(p.fans/30)),fans=[],used=new Set();
-  for(let i=0;fans.length<n&&i<40;i++){const tg=T[i%T.length],txt=fill(pick(FAN[tg]));if(used.has(txt))continue;used.add(txt);
-    fans.push({nick:Math.random()<.25?ri(10,99)+pick(['lr','kx','ab','jm'])+'****':pick(NICKS),plat:pick(PLAT),txt,likes:likes(),ago:ri(2,59)+'분 전',re:Math.random()<.35?{nick:pick(NICKS),txt:pick(REPLY)}:null})}
+  const T=[...new Set(tags)].concat(tags.filter(k=>k==='triple').slice(1)).filter(k=>FAN[k]),SD=[...new Set(side)].filter(k=>FAN[k]);
+  const fill=s=>s.replace(/\{(\w+)(?:\|([^|}]*)\|([^}]*))?\}/g,(m,k,a,b)=>V[k]==null?'':a!=null?jo(V[k],a,b):String(V[k]));
+  const n=R.role==='reserve'?(R.starts>0?3:2):Math.min(7,Math.max(3,T.length>3?4:3)+Math.floor(p.fans/30)),nSide=SD.length?(n>=6?2:1):0,fans=[],used=new Set();
+  const one=tg=>{for(let t=0;t<6;t++){const txt=fill(pick(FAN[tg]));if(!used.has(txt)){used.add(txt);return{nick:Math.random()<.25?ri(10,99)+pick(['lr','kx','ab','jm'])+'****':pick(NICKS),plat:pick(PLAT),txt,likes:likes(),ago:ri(2,59)+'분 전',re:Math.random()<.35?{nick:pick(NICKS),txt:pick(REPLY)}:null}}}return null};
+  for(let i=0;fans.length<n-nSide&&i<40;i++){const f=one(T[i%T.length]);if(f)fans.push(f)}
+  SD.slice(0,nSide).forEach((tg,i)=>{const f=one(tg);if(f)fans.splice(Math.min(fans.length,3+i),0,f)});
   if(R.titled||R.tc)fans.forEach(f=>f.likes=typeof f.likes==='number'?f.likes*3:f.likes);
   return{year:R.year,series:R.series,sid:R.lk||R.sid,expert:E,fans,seen:false};
 }
@@ -4041,7 +4106,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.13',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.14-d1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
