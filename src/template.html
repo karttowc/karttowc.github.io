@@ -898,12 +898,12 @@ function startSeason(){
     const easy=p.series==='KART'&&!p.history.length?(B.career.first_kart_easy||0):0,carT=isAlt?ALT_CAR:sd.car,mean=AI_MEAN[p.series]-easy;
     const AR=isAlt?altRoster(p.alt):null,ts=AR&&ALT_TS[p.team.name];
     me=entrant({key:'me',name:p.name,team:ts?ts[0]:p.team.name,color:ts?ts[1]:null,car:carT[p.team.tier],isPlayer:true,...fromStats(p.stats)});ents.push(me);
-    if(AR){teamColor=ts?ts[1]:null;
+    if(AR){teamColor=ts?ts[1]:null;{const c=altCarOf(p.alt,p.team.name);if(c!=null)me.car=c}
       // real grid: the player takes the weakest seat of their team, the strongest one left is the teammate
       const tierOf=t=>(ALT_TEAMS[p.alt].find(x=>x.n===t)||{}).tier||'mid',own=AR.filter(d=>d.t===p.team.name).sort((a,b)=>altLv(b)-altLv(a)),drop=own.at(-1);
       const L=AR.filter(d=>d!==drop),avg=L.reduce((a,d)=>a+altLv(d),0)/(L.length||1);
       L.forEach((d,i)=>{const o=mean+(altLv(d)-avg)*ALT_LV+gauss()*2.5,T=ALT_TS[d.t]||['',null];
-        ents.push(entrant({key:'a'+i,name:d.n,team:T[0],color:T[1],car:carT[tierOf(d.t)],q:o+gauss()*2,d:o+gauss()*2,w:o+gauss()*3,cons:o,mental:o}))});
+        ents.push(entrant({key:'a'+i,name:d.n,team:T[0],color:T[1],car:altCarOf(p.alt,d.t)??carT[tierOf(d.t)],q:o+gauss()*2,d:o+gauss()*2,w:o+gauss()*3,cons:o,mental:o}))});
       if(own.length>1)mate=ents.find(e=>e.name===own[0].n)||null;field=ents.length}
     for(let i=ents.length;i<field;i++){const o=mean+gauss()*5,tier=Math.random()<.3?'top':Math.random()<.57?'mid':'bottom';
       ents.push(entrant({key:'a'+i,name:genName(pick(NATS)),team:'',car:carT[tier],q:o+gauss()*2,d:o+gauss()*2,w:o+gauss()*3,cons:o,mental:o}))}
@@ -1049,7 +1049,7 @@ function finishSeason(){
   ageF1Grid();rivalMove(ev);jrMove();
   S.year++;p.age++;
   const prevM={};S.teams.forEach(t=>prevM[t.id]=t.machine);
-  const tierLines=[];updateMachines(tierLines);ev.push(...tierLines);
+  const tierLines=[];updateMachines(tierLines);ev.push(...tierLines);updateAltMachines(ev);
   if(p.series==='F1'&&p.role==='race')p.noSeat=0;else if(p.age>=24)p.noSeat++;
   if(p.series==='F1'&&p.role==='race'&&p.contract)p.contract.left=Math.max(0,p.contract.left-1);
   S.offers=makeOffers(pos,fieldN,h2h);
@@ -1316,8 +1316,25 @@ function altRoster(sid){
   const R=S.altR[sid],lim=d=>40+[...d.n].reduce((a,c)=>a+c.charCodeAt(0),0)%4;
   R.forEach((d,i)=>{if(S.year>K.start_year&&S.year-d.by>lim(d)){const nat=pick(NATS);R[i]={t:d.t,n:genName(nat),nat,by:S.year-ri(19,24),lv:ri(-1,2)}}});
   return R}
+/* WEC/IndyCar cars per team, kept in the save and moved every winter.
+   WEC: Balance of Performance pulls the field back together, with the odd new evo kit. IndyCar: spec chassis, team strength drifts slowly, Honda vs Chevrolet edge flips year to year. */
+const ALT_ENG={'칩 가나시 레이싱':'H','안드레티 글로벌':'H','메이어 생크 레이싱':'H','레이할 레터맨 래니건':'H','데일 코인 레이싱':'H','팀 펜스키':'C','애로우 맥라렌':'C','ECR':'C','A.J. 포이트 레이싱':'C','정코스 홀린저 레이싱':'C'};
+const ALT_MB=[75.5,81];
+function altMach(sid){if(!ALT_DRV[sid])return null;S.altM=S.altM||{};
+  if(!S.altM[sid]){const M={};(ALT_TEAMS[sid]||[]).forEach(t=>M[t.n]=r1(ALT_CAR[t.tier]+rnd(-.5,.5)));S.altM[sid]=M}
+  return S.altM[sid]}
+const altCarOf=(sid,n)=>{const M=altMach(sid);return M&&M[n]!=null?M[n]+(sid==='INDY'&&S.altEng?(ALT_ENG[n]==='H'?1:-1)*S.altEng:0):null};
+function altRank(sid){const L=(ALT_TEAMS[sid]||[]).map(t=>({n:t.n,c:altCarOf(sid,t.n)??ALT_CAR[t.tier]})).sort((a,b)=>b.c-a.c),k=L.length/3;return L.map((x,i)=>({...x,tier:i<Math.round(k)?'top':i<Math.round(2*k)?'mid':'bottom',rank:i+1}))}
+const altTierOf=(sid,n)=>{const r=altRank(sid).find(x=>x.n===n);return r?r.tier:null};
+function updateAltMachines(ev){const p=S.p;
+  for(const sid of Object.keys(ALT_DRV)){const M=altMach(sid),ns=Object.keys(M),before={};ns.forEach(n=>before[n]=altCarOf(sid,n));
+    if(sid==='WEC'){const avg=ns.reduce((a,n)=>a+M[n],0)/ns.length;ns.forEach(n=>{M[n]=M[n]+rnd(-1.2,1.2)+(Math.random()<.15?2:0);M[n]=r1(clamp(M[n]-(M[n]-avg)*.3,...ALT_MB))})}
+    else{ns.forEach(n=>M[n]=r1(clamp(M[n]+rnd(-.6,.6),...ALT_MB)));S.altEng=r1(rnd(-.8,.8))}
+    if(p.series==='ALT'&&p.alt===sid&&p.team&&M[p.team.name]!=null){const R=altRank(sid),me=R.find(x=>x.n===p.team.name),d=r1(me.c-before[p.team.name]);
+      if(sid==='INDY'&&Math.abs(S.altEng)>=.4)ev.push(`올 시즌은 ${S.altEng>0?'혼다':'쉐보레'} 엔진이 앞선다는 평가예요.`);
+      ev.push(`${sid==='WEC'?'BoP 조정 후 ':''}${p.team.name} 예상 머신 ${r1(me.c)} (${R.length}팀 중 ${me.rank}번째${Math.abs(d)>=.5?`, ${d>0?'+':''}${d}`:''})`)}}}
 const altLv=d=>{const a=S.year-d.by;return d.lv-(a>36?(a-36)*.4:0)-(a<23?(23-a)*.4:0)};
-function altTeam(id,tier,excl){const L=ALT_TEAMS[id]||[],c=L.filter(t=>t.tier===tier&&t.n!==excl);return c.length?pick(c):L.length?pick(L):{n:altDef(id).name,tier}}
+function altTeam(id,tier,excl){const L=ALT_DRV[id]?altRank(id).map(x=>({...(ALT_TEAMS[id].find(t=>t.n===x.n)),tier:x.tier})):ALT_TEAMS[id]||[],c=L.filter(t=>t.tier===tier&&t.n!==excl);return c.length?pick(c):L.length?pick(L):{n:altDef(id).name,tier}}
 const TIER_I=['bottom','mid','top'];
 function makeOffers(pos,field,h2h){
   const p=S.p,o=[],ovr=ovrOf(p.stats),r=pos?pos/field:1;S.leaveNote=null;
@@ -1424,8 +1441,8 @@ function makeOffers(pos,field,h2h){
   if(needAlt){
     const alts=p.series==='ALT'?[altDef(p.alt),...K.alt_series.filter(a=>a.id!==p.alt).sort(()=>Math.random()-.5).slice(0,1)]:[...K.alt_series].sort(()=>Math.random()-.5).slice(0,2);
     const tier=ovr>=82?'top':ovr>=76?'mid':'bottom';
-    const altO=(a,tm,tag)=>({kind:'alt',altId:a.id,tier:tm.tier,altTeam:tm.n,altF1:tm.f1||null,title:tm.n,sub:`${a.name} · ${TIER_LBL[tm.tier]}${tm.f1?` · ${teamDef(tm.f1).name} F1과 연결`:''}${a.note?' · '+a.note:''}`,tag});
-    alts.forEach(a=>{const stay=p.series==='ALT'&&a.id===p.alt,cur=stay&&p.team?(ALT_TEAMS[a.id]||[]).find(t=>t.n===p.team.name):null;
+    const altO=(a,tm,tag)=>({kind:'alt',altId:a.id,tier:tm.tier,altTeam:tm.n,altF1:tm.f1||null,title:tm.n,sub:`${a.name} · ${TIER_LBL[tm.tier]}${altCarOf(a.id,tm.n)!=null?` · 머신 ${r1(altCarOf(a.id,tm.n))}`:''}${tm.f1?` · ${teamDef(tm.f1).name} F1과 연결`:''}${a.note?' · '+a.note:''}`,tag});
+    alts.forEach(a=>{const stay=p.series==='ALT'&&a.id===p.alt,cur=stay&&p.team?(ALT_TEAMS[a.id]||[]).map(t=>ALT_DRV[a.id]?{...t,tier:altTierOf(a.id,t.n)||t.tier}:t).find(t=>t.n===p.team.name):null;
       if(stay&&cur){o.push(altO(a,cur,'잔류'));if(TIER_I.indexOf(tier)>TIER_I.indexOf(cur.tier))o.push(altO(a,altTeam(a.id,tier,cur.n),'이적'))}
       else o.push(altO(a,altTeam(a.id,tier),stay?'잔류':p.series==='F2'&&p.age>=23?'새 출발':'다른 진로'))});
   }
@@ -2881,7 +2898,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.20-d4',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.20-d5',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
