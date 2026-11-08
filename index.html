@@ -2878,7 +2878,10 @@ function resolveGacha(go){
   const Z=S.season,G=Z.gacha,g=GACHA.find(x=>x.id===G.id);G.done=true;
   G.go=go;G.res=go?null:'rest';
   if(!go){applyEff({morale:6});save();return{ok:null,t:'쉬면서 체력을 챙겼어요 · 체력 +6'}}
-  if(Math.random()<gachaP(g)){G.res='win';const m=applyEff(g.win);const up=gachaBoost(g);save();return{ok:true,t:`성공! ${m}${up?' · 남은 레이스 페이스 상승':''}`}}
+  if(Math.random()<gachaP(g)){G.res='win';const m=applyEff(g.win);
+    // mirror of the slump: a good break means a flying next race
+    {const o=Z.orders[G.r],i=o?o.fin.indexOf('me'):-1;if(i>0){const ni=Math.max(0,i-ri(2,3));o.fin.splice(i,1);o.fin.splice(ni,0,'me')}}
+    const up=gachaBoost(g);save();return{ok:true,t:`성공! ${m} · 다음 레이스 컨디션 최고${up?' · 남은 레이스 페이스 상승':''}`}}
   G.res=g.slump?'slump':'inj';
   if(g.slump){const o=Z.orders[G.r],i=o.fin.indexOf('me');if(i>=0){const ni=Math.min(o.fin.length-1,i+g.slump);o.fin.splice(i,1);o.fin.splice(ni,0,'me')}
     applyEff({morale:-(g.fm||10)});save();return{ok:false,t:`실패… 피로가 쌓여 다음 레이스 페이스가 떨어져요 · 체력 -${g.fm||10}`}}
@@ -2892,7 +2895,7 @@ function showGacha(){
   const pct=Math.round(gachaP(g)*100),f1=Z.ctx.f1;
   box.innerHTML=`<div class="sheet"><section class="card"><div class="eyebrow">${f1?'여름 휴식기':'시즌 중반 휴식기'} · 한 번의 도전</div><h3 class="h2">${esc(g.title)}</h3>
     <div class="kv"><div class="row"><span>성공 확률</span><span class="num" style="font-size:22px;color:var(--gold)">${pct}%</span></div>
-    <div class="row"><span>성공하면</span><span class="up">${esc(effText(g.win))}${g.win.stats?' · 남은 레이스 반영':''}</span></div>
+    <div class="row"><span>성공하면</span><span class="up">${esc(effText(g.win))} · 다음 레이스 페이스 업${g.win.stats?' · 남은 레이스 반영':''}</span></div>
     <div class="row"><span>실패하면</span><span class="down">${g.slump?`다음 레이스 부진 · 체력 -${g.fm||10}`:`부상 ${g.inj[0]===g.inj[1]?g.inj[0]:g.inj[0]+'~'+g.inj[1]}경기 결장 · 체력 -${g.fm||11}`}</span></div></div>${g.slump?'':awakeHint()}
     <button class="btn" type="button" data-gacha="go">도전한다</button><button class="btn ghost" type="button" data-gacha="rest">안전하게 쉰다</button></section></div>`;
 }
@@ -4121,7 +4124,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.18',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.19-d1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
