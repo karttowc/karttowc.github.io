@@ -1511,6 +1511,12 @@ function makeOffers(pos,field,h2h){
     if(p.series==='F1'&&p.role==='reserve'&&!ids.includes(p.team.id)&&Math.random()<.5)ids.push(p.team.id);
     ids.slice(0,2).forEach(id=>{const t=teamDef(id);o.push({kind:'reserve',teamId:id,title:`${t.name} 리저브 드라이버`,sub:'대타 기회를 기다리며 FP1·시뮬레이터 작업 · 레이스가 없어 성장이 조금 느려요',color:t.color,short:t.short,tag:'리저브'})});
   }
+  // WEC/IndyCar seat: same rule as F1, a teammate who crushes me gets me a warning (if I still scored) or the sack
+  const altFire=(()=>{if(p.series!=='ALT'||!ALT_DRV[p.alt]||p.role!=='race'||!h2h||!p.team)return 0;
+    const h=(h2h.q[0]+h2h.r[0])/Math.max(1,h2h.q[0]+h2h.q[1]+h2h.r[0]+h2h.r[1]);if(h>=.25)return 0;
+    const tn=p.team.name,safe=(pos&&pos<=3)||(h2h.tp&&h2h.tp[1]>0&&h2h.tp[0]/h2h.tp[1]>=.35);
+    if(safe){evs.push(`${jo(tn,'이','가')} 경고를 보냈어요. 팀메이트에게 크게 밀린 건 문제래요. 내년에도 이러면 위험해요.`);return 0}
+    evs.push(`${jo(tn,'이','가')} 팀메이트에 크게 밀린 성적을 이유로 계약을 조기 해지했어요.`);S.leaveNote=`${jo(tn,'이','가')} 계약을 조기 해지했어요. 새 팀을 찾아야 해요.`;return 1})();
   // other series
   const needAlt=(champF2&&!o.some(x=>x.kind==='f1'))||p.age>=21&&(p.series==='F2'||p.series==='ALT'||(p.series==='F1'&&(p.role==='reserve'||!contracted())))&&!bound;
   if(needAlt){
@@ -1520,7 +1526,8 @@ function makeOffers(pos,field,h2h){
     const tier=ovr>=82?'top':ovr>=76?'mid':'bottom';
     const altO=(a,tm,tag)=>({kind:'alt',altId:a.id,tier:tm.tier,altTeam:tm.n,altF1:tm.f1||null,title:tm.n,sub:`${a.name} · ${TIER_LBL[tm.tier]}${altCarOf(a.id,tm.n)!=null?` · 머신 ${r1(altCarOf(a.id,tm.n))}`:''}${altScv(a.id,tm.n)>=40?` · 관심도 ${altScv(a.id,tm.n)}`:''}${tm.f1?` · ${teamDef(tm.f1).name} F1과 연결`:''}${a.note?' · '+a.note:''}`,tag});
     alts.forEach(a=>{const stay=p.series==='ALT'&&a.id===p.alt,cur=stay&&p.team?(ALT_TEAMS[a.id]||[]).map(t=>ALT_DRV[a.id]?{...t,tier:altTierOf(a.id,t.n)||t.tier}:t).find(t=>t.n===p.team.name):null;
-      if(stay&&cur){o.push(altO(a,cur,'잔류'));const up=ALT_DRV[a.id]?altPick(a.id,tier,cur.n):null;
+      if(stay&&cur&&altFire){const nx=altPick(a.id,tier,cur.n)||altTeam(a.id,tier,cur.n);if(nx&&nx.n!==cur.n)o.push(altO(a,nx,'이적'))}
+      else if(stay&&cur){o.push(altO(a,cur,'잔류'));const up=ALT_DRV[a.id]?altPick(a.id,tier,cur.n):null;
         if(up&&TIER_I.indexOf(up.tier)>TIER_I.indexOf(cur.tier))o.push(altO(a,up,'이적'));else if(!ALT_DRV[a.id]&&TIER_I.indexOf(tier)>TIER_I.indexOf(cur.tier))o.push(altO(a,altTeam(a.id,tier,cur.n),'이적'))}
       else o.push(altO(a,(ALT_DRV[a.id]&&altPick(a.id,tier))||altTeam(a.id,tier),stay?'잔류':p.series==='F2'&&p.age>=23?'새 출발':'다른 진로'))});
   }
@@ -2998,7 +3005,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.5.0-d16',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.5.0-d17',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
