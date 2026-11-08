@@ -784,6 +784,7 @@ const B = {
   "veteran": {
    "note": "33세부터 경험이 쌓이는 능력치는 떨어지는 대신 매년 조금 오름. 스타일 보너스는 그 스타일만 더",
    "from": 33,
+   "to": 37,
    "gain": {"mental": [0, 1], "tyre": [0, 1]},
    "style_gain": {"manager": {"tyre": [1, 1], "consistency": [0, 1]}}
   },
@@ -984,6 +985,8 @@ const B = {
     "f1_debut_extra": 17.5,
   "debut_age_penalty_from": 25,
   "debut_age_penalty_per_year": 2,
+  "old_seat_from": 40,
+  "old_seat_per_year": 5,
   "rookie_adapt": 3,
   "first_kart_easy": 5,
   "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 1.5, "dev_max": 4.5, "window": 4}
@@ -2458,7 +2461,7 @@ function grow(p,played,poor){
   const AD=B.driver.age_decline_by_stat||{};
   const GS=B.driver.growth_spread||[.6,1.4];
   const FS=B.driver.focus_spread||GS;// focused stats swing less so the focus always shows
-  const VT=B.driver.veteran,vg=VT&&p.age>=VT.from?{...VT.gain,...(VT.style_gain[p.style]||{})}:null;
+  const VT=B.driver.veteran,vg=VT&&p.age>=VT.from&&p.age<=VT.to?{...VT.gain,...(VT.style_gain[p.style]||{})}:null;
   STATS.forEach(k=>{if(vg&&vg[k]){p.stats[k]=clamp(p.stats[k]+ri(...vg[k]),1,99);return}// experience stats keep growing for veterans
     const sp=base>0&&!rest&&p.focus.includes(k)?FS:GS;let g=base*rnd(sp[0],sp[1]);if(g<0)g*=AD[k]??1;
     if(g>0){g*=mult;if(rest)g*=B.driver.rest_multiplier;else if(p.focus.includes(k))g*=B.driver.focus_multiplier;
@@ -2479,7 +2482,7 @@ function ageF1Grid(){
     d.age++;let delta=0;
     if(d.age<24)delta=ri(1,3);else if(d.age<=28)delta=ri(0,1);else if(d.age<=32)delta=0;else if(d.age<=35)delta=-ri(1,3);else delta=-ri(2,4);
     const o=ovrOf(d.stats);if(delta>0&&o+delta>d.potential)delta=Math.max(0,d.potential-o);
-    const AD=B.driver.age_decline_by_stat||{},VT=B.driver.veteran,vg=VT&&d.age>=VT.from?VT.gain:null;STATS.forEach(k=>d.stats[k]=clamp(vg&&vg[k]?d.stats[k]+ri(...vg[k]):d.stats[k]+(delta<0?Math.round(delta*(AD[k]??1)):delta)+ri(-1,1),1,99));
+    const AD=B.driver.age_decline_by_stat||{},VT=B.driver.veteran,vg=VT&&d.age>=VT.from&&d.age<=VT.to?VT.gain:null;STATS.forEach(k=>d.stats[k]=clamp(vg&&vg[k]?d.stats[k]+ri(...vg[k]):d.stats[k]+(delta<0?Math.round(delta*(AD[k]??1)):delta)+ri(-1,1),1,99));
     const rc=B.career.retire_chance_by_age[String(Math.min(d.age,41))]||0;
     const tier=teamDef(d.team).tier;
     if(Math.random()<rc||d.age>=46){S.paddock.push(`${d.name}, ${d.age}세에 은퇴 발표`);continue}
@@ -2647,10 +2650,12 @@ function seatCtx(){const p=S.p,LR=S.last&&S.last.rec;return{inF1Race:p.series===
   altRet:!!(LR&&LR.sid==='ALT'&&LR.titled&&(LR.lk==='SF'||LR.lk==='FE')&&p.age<=29&&!p.debutYear)}}
 // reserve with a team that rates them highly: a realistic way up via a non-top team (e.g. Red Bull junior -> Racing Bulls)
 const rsvBoost=t=>{const p=S.p;return p.series==='F1'&&p.role==='reserve'&&scv(t.id)>=90&&t.tier!=='top'?8:0};
+// 40+: teams want more from an ageing driver, so only the very best stay on (Alonso is the exception)
+const oldPen=()=>Math.max(0,S.p.age-B.career.old_seat_from+1)*B.career.old_seat_per_year;
 function f1SeatThr(t,c=seatCtx()){const p=S.p,ac=p.academy?K.academies.find(a=>a.id===p.academy):null,mine=ac&&ac.teams.includes(t.id);
   const resBonus=c.inF1Race?0:c.champF2?10:c.f2Top?5:c.altRet?10:0;
   const agePen=c.inF1Race?0:Math.max(0,p.age-B.career.debut_age_penalty_from+1)*B.career.debut_age_penalty_per_year*(c.altRet?.5:1);
-  const si=scv(t.id);return B.career.f1_seat_ovr[t.tier]+(t.tier==='top'?B.career.f1_top_extra||0:0)+agePen+(c.inF1Race?0:(B.career.f1_debut_extra||0))-repAdj()-fanAdj(t)-(mine?3:0)-(si>=90?5:si>=80?3:si>=60?1:0)-resBonus-rsvBoost(t)}
+  const si=scv(t.id);return oldPen()+B.career.f1_seat_ovr[t.tier]+(t.tier==='top'?B.career.f1_top_extra||0:0)+agePen+(c.inF1Race?0:(B.career.f1_debut_extra||0))-repAdj()-fanAdj(t)-(mine?3:0)-(si>=90?5:si>=80?3:si>=60?1:0)-resBonus-rsvBoost(t)}
 // real 2026 teams in the other series; f1 = the F1 team they feed (same manufacturer or engine partner)
 const ALT_TEAMS={
  WEC:[{n:'토요타 가주 레이싱',tier:'top'},{n:'페라리 AF 코르세',tier:'top',f1:'ferrari'},{n:'캐딜락 팀 JOTA',tier:'mid',f1:'cadillac'},{n:'BMW 팀 WRT',tier:'mid'},{n:'푸조 토탈에너지',tier:'mid'},
@@ -2761,10 +2766,10 @@ function makeOffers(pos,field,h2h){
   const inF1Race=p.series==='F1'&&p.role==='race';
   let bound=false,buyout=false;const evs=S.last?S.last.ev:[];
   if(inF1Race){
-    const tm=teamDef(p.team.id),thr=B.career.f1_seat_ovr[tm.tier]-repAdj();
+    const tm=teamDef(p.team.id),thr=B.career.f1_seat_ovr[tm.tier]-repAdj()+oldPen();
     const mateOvr=S.f1.filter(d=>d.team===tm.id).map(d=>ovrOf(d.stats))[0]||0;
     const h=h2h?(h2h.q[0]+h2h.r[0])/Math.max(1,h2h.q[0]+h2h.q[1]+h2h.r[0]+h2h.r[1]):.5;
-    const keepOK=ovr>=thr-3||(h>=.4&&ovr>=thr-6)||ovr>=mateOvr-2;
+    const keepOK=ovr>=thr-3||(h>=.4&&ovr>=thr-6)||ovr>=mateOvr-2+oldPen();
     const c=p.contract||{left:0,option:false,clause:false};
     const base={color:tm.color,short:tm.short,teamId:tm.id},curSal=c.sal||terms(tm).sal;
     const safe=(pos&&pos<=3)||(h2h&&h2h.tp&&h2h.tp[1]>0&&h2h.tp[0]/h2h.tp[1]>=.35);
@@ -4327,7 +4332,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.0-d1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.0-d2',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';

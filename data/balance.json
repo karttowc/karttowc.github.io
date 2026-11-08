@@ -124,6 +124,7 @@
   "veteran": {
    "note": "33세부터 경험이 쌓이는 능력치는 떨어지는 대신 매년 조금 오름. 스타일 보너스는 그 스타일만 더",
    "from": 33,
+   "to": 37,
    "gain": {"mental": [0, 1], "tyre": [0, 1]},
    "style_gain": {"manager": {"tyre": [1, 1], "consistency": [0, 1]}}
   },
@@ -324,6 +325,8 @@
     "f1_debut_extra": 17.5,
   "debut_age_penalty_from": 25,
   "debut_age_penalty_per_year": 2,
+  "old_seat_from": 40,
+  "old_seat_per_year": 5,
   "rookie_adapt": 3,
   "first_kart_easy": 5,
   "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 1.5, "dev_max": 4.5, "window": 4}
