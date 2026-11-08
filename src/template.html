@@ -1994,7 +1994,9 @@ function withLogos(h){if(!S||!S.teams)return h;
 const teamByShort=s=>S.teams.find(t=>t.short===s);
 /* WEC/IndyCar logos by short code (F1 makers reuse their F1 logo through the same code) */
 function altLogo(sh,sz=24){const u=K.alt_logos&&K.alt_logos[sh];return u?`<span class="lg" style="width:${sz}px;height:${sz}px"><img src="${u}" alt=""></span>`:''}
-const altLogoN=n=>{const T=ALT_TS[n];return T?(teamByShort(T[0])?logo(teamByShort(T[0]).id,24):altLogo(T[0],24)):''};
+/* WEC teams use broadcast-style tiles; FER/CAD/ALP/AMR keep a 'W:' key so F1 screens keep the F1 logo */
+const altW=sh=>K.alt_logos&&K.alt_logos['W:'+sh]?'W:'+sh:null;
+const altLogoN=n=>{const T=ALT_TS[n];if(!T)return'';const w=(ALT_TEAMS.WEC||[]).some(t=>t.n===n)&&altW(T[0]);return w?altLogo(w,24):teamByShort(T[0])?logo(teamByShort(T[0]).id,24):altLogo(T[0],24)};
 
 /* ---------- news tone: green good, red bad, white neutral ---------- */
 const ME_BAD=['방출됐어요','아카데미 경고','조기 해지','부상으로','리타이어'];
@@ -2377,7 +2379,7 @@ function readyCard(){
     <button class="btn" type="button" id="playBtn">${n?`결정하고 시즌 시작 (${n})`:`${S.year} 시즌 시작`}</button></section>`;
 }
 function standRows(){const st=S.last.standings;
-  return[...st,...(S.last.meRow?[S.last.meRow]:[])].map(e=>`<tr class="${e.me?'me':''}"><td class="num" style="width:28px">${e.pos}</td><td>${e.team&&teamByShort(e.team)?logo(teamByShort(e.team).id,24):altLogo(e.team,24)}${esc(e.name)}</td><td class="muted">${esc(e.team||'')}</td><td class="r num">${e.pts}</td></tr>`).join('')}
+  return[...st,...(S.last.meRow?[S.last.meRow]:[])].map(e=>`<tr class="${e.me?'me':''}"><td class="num" style="width:28px">${e.pos}</td><td>${e.team&&S.last.rec&&S.last.rec.lk==='WEC'&&altW(e.team)?altLogo(altW(e.team),24):e.team&&teamByShort(e.team)?logo(teamByShort(e.team).id,24):altLogo(e.team,24)}${esc(e.name)}</td><td class="muted">${esc(e.team||'')}</td><td class="r num">${e.pts}</td></tr>`).join('')}
 function resultBoard(){
   const R=S.last&&S.last.rec;if(!R)return'';
   const so=S.notice&&S.notice.so&&S.notice.so.year===R.year?S.notice.so:{year:R.year,sid:R.lk||R.sid,series:R.series,pos:R.pos,field:R.field,wins:R.wins,pod:R.podiums,poles:R.poles,pts:R.points,h2:R.h2h||null,prev:null};
@@ -3005,7 +3007,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.5.0-d17',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.5.0-d18',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3173,7 +3175,7 @@ function contractInfo(o){const p=S.p,y=S.year,N=a=>a.map(esc).join('<em>●</em>
   if(o.kind==='f1'){const t=teamDef(o.teamId);return{big:true,color:t.color,logo:teamLogo(t.id),name:t.name,en:TEAM_EN[t.id]||t.name,line:`${y} 시즌부터 ${t.name} 드라이버`,terms:`${o.years}년 · ${won(o.sal)}${o.option?' · +1년 옵션':''}`,
     news:N([`${p.name}, ${jo(t.name,"과","와")} ${o.years}년 계약 체결`,`연봉 ${won(o.sal)} · ${y} 시즌부터 레이스 시트`,`${t.name} 팬들 "드디어 왔다"`])}}
   if(o.kind==='reserve'){const t=teamDef(o.teamId);return{color:t.color,logo:teamLogo(t.id),name:t.name,line:`${y} 시즌 ${t.name} 리저브 드라이버`,terms:'FP1 · 시뮬레이터 작업'}}
-  if(o.kind==='alt'){const a=altDef(o.altId),T=ALT_TS[o.altTeam],tl=T&&(K.alt_logos&&K.alt_logos[T[0]]||(teamByShort(T[0])?teamLogo(teamByShort(T[0]).id):null));return{alt:true,color:o.altF1?teamDef(o.altF1).color:T?T[1]:'#3182F6',logo:tl||SLOGO[o.altId]||null,badge:tl||SLOGO[o.altId]?null:a.name,name:o.altTeam||a.name,line:`${y} 시즌 ${a.name} · ${o.altTeam||''}`,terms:`${TIER_LBL[o.tier]||''} 시트`}}
+  if(o.kind==='alt'){const a=altDef(o.altId),T=ALT_TS[o.altTeam],tl=T&&(o.altId==='WEC'&&altW(T[0])&&K.alt_logos[altW(T[0])]||K.alt_logos&&K.alt_logos[T[0]]||(teamByShort(T[0])?teamLogo(teamByShort(T[0]).id):null));return{alt:true,color:o.altF1?teamDef(o.altF1).color:T?T[1]:'#3182F6',logo:tl||SLOGO[o.altId]||null,badge:tl||SLOGO[o.altId]?null:a.name,name:o.altTeam||a.name,line:`${y} 시즌 ${a.name} · ${o.altTeam||''}`,terms:`${TIER_LBL[o.tier]||''} 시트`}}
   const ac=o.academy?K.academies.find(a=>a.id===o.academy):null,sd=seriesDef(o.series);
   return{color:ac?teamDef(ac.teams[0]).color:'#3182F6',logo:SLOGO[o.series]||null,badge:SLOGO[o.series]?null:o.series,name:o.team.name,line:`${y} ${sd.name} · ${o.team.name}`,terms:ac?`${ac.name} 입단`:(o.tag||'')}}
 // smooth stroke path: one Chaikin pass, then quadratic curves through midpoints (no corners)
