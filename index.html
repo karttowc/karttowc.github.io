@@ -1897,7 +1897,7 @@ const K = {
   {
    "id": "INDY",
    "name": "인디카",
-   "races": 17,
+   "races": 18,
    "field": 27,
    "note": "인디 500 포함"
   },
@@ -2169,7 +2169,7 @@ function simulate(ents,races,orders,cal){
       if(Math.random()<B.race.dnf.mechanical+crash){e.dnf++;e.fp[r]=99;continue}
       e.pv=dw*((isWet?e.w:e.d)-(e.adapt?e.adapt(r):0))+cw*e.car+gauss()*sd;if(T&&T.q)e.pv+=T.q*(e.qv[r]-e.pv);fin.push(e)}
     fin.sort((a,b)=>b.pv-a.pv);
-    const pm=T&&T.pm||1;fin.forEach((e,i)=>{e.fp[r]=i+1;if(i<P.length)e.pts+=P[i]*pm;if(i===0)e.wins++;if(i<3)e.pod++});
+    const pm=T&&T.pm||1;fin.forEach((e,i)=>{e.fp[r]=i+1;if(i<P.length)e.pts+=Math.round(P[i]*pm);if(i===0)e.wins++;if(i<3)e.pod++});
     if(orders)orders.push({pm:pm>1?pm:undefined,wet:isWet,q:[...pr].sort((a,b)=>b.qv[r]-a.qv[r]).map(e=>e.key),fin:fin.map(e=>e.key),dnf:pr.filter(e=>e.fp[r]===99).map(e=>e.key)});
   }
   return wet;
@@ -2249,7 +2249,7 @@ function tally(upto){
   Z.orders.forEach((o,r)=>{if(r>upto)return;
     if(o.q[0])m[o.q[0]].poles++;
     o.q.forEach((k,i)=>m[k].qi[r]=i);
-    o.fin.forEach((k,i)=>{const e=m[k];e.starts++;e.fp[r]=i+1;if(i<P.length)e.pts+=P[i]*(o.pm||1);if(i===0)e.wins++;if(i<3)e.pod++});
+    o.fin.forEach((k,i)=>{const e=m[k];e.starts++;e.fp[r]=i+1;if(i<P.length)e.pts+=Math.round(P[i]*(o.pm||1));if(i===0)e.wins++;if(i<3)e.pod++});
     o.dnf.forEach(k=>{const e=m[k];e.starts++;e.dnf++;e.fp[r]=99})});
   return m;
 }
@@ -2609,12 +2609,12 @@ const ALT_TS={'토요타 가주 레이싱':['TOY','#E60012'],'페라리 AF 코�
  '칩 가나시 레이싱':['CGR','#C8102E'],'팀 펜스키':['PEN','#F5C400'],'애로우 맥라렌':['AMC','#FF8000'],'안드레티 글로벌':['AND','#0B5FFF'],'메이어 생크 레이싱':['MSR','#E6007E'],
  '레이할 레터맨 래니건':['RLL','#5B6770'],'ECR':['ECR','#2E8B57'],'A.J. 포이트 레이싱':['AJF','#7B2CBF'],'정코스 홀린저 레이싱':['JHR','#111111'],'데일 코인 레이싱':['DCR','#00A3E0']};
 /* calendars: [round, circuit, rain x, quali carry-over, points x]. IndyCar ovals never run in the rain; WEC qualifying barely matters over 6~24 hours */
-const ALTCAL={WEC:[['카타르 1812km','루사일',0,0,1],['이몰라 6시간','이몰라',1.2,0,1],['스파 6시간','스파-프랑코르샹',2.6,0,1],['르망 24시','라 사르트',1.4,0,2],
-  ['상파울루 6시간','인테르라고스',2.4,0,1],['론스타 르망','COTA',.8,0,1],['후지 6시간','후지 스피드웨이',1.8,0,1],['바레인 8시간','사키르',0,0,1]],
- INDY:[['세인트피터즈버그','시가지',1,.3,1],['피닉스','오벌',0,.1,1],['알링턴','시가지',.8,.3,1],['버밍엄','바버 모터스포츠 파크',1.2,.15,1],['롱비치','시가지',.4,.3,1],
-  ['인디애나폴리스 GP','로드 코스',1,.15,1],['인디 500','인디애나폴리스 오벌',0,.05,1],['디트로이트','시가지',1,.3,1],['월드 와이드 테크놀로지 레이스웨이','오벌',0,.1,1],
-  ['로드 아메리카','로드 코스',1.2,.1,1],['미드오하이오','로드 코스',1,.15,1],['내슈빌','오벌',0,.1,1],['포틀랜드','로드 코스',1,.15,1],['토론토','시가지',1,.3,1],
-  ['밀워키 1','오벌',0,.1,1],['밀워키 2','오벌',0,.1,1],['라구나 세카','로드 코스',.6,.2,1]]};
+const ALTCAL={WEC:[['카타르 1812km','루사일',0,0,1.5],['이몰라 6시간','이몰라',1.2,0,1],['스파 6시간','스파-프랑코르샹',2.6,0,1],['르망 24시','라 사르트',1.4,0,2],
+  ['상파울루 6시간','인테르라고스',2.4,0,1],['론스타 르망','COTA',.8,0,1],['후지 6시간','후지 스피드웨이',1.8,0,1],['바레인 8시간','사키르',0,0,1.5]],
+ INDY:[['세인트피터즈버그','시가지',1,.3,1],['피닉스','피닉스 레이스웨이',0,.1,1],['알링턴','시가지',.8,.3,1],['앨라배마','바버 모터스포츠 파크',1.2,.15,1],['롱비치','시가지',.4,.3,1],
+  ['손시오 GP','인디애나폴리스 로드 코스',1,.15,1],['인디 500','인디애나폴리스 오벌',0,.05,1],['디트로이트','시가지',1,.3,1],['보마리토 500','월드 와이드 테크놀로지 레이스웨이',0,.1,1],
+  ['로드 아메리카','로드 아메리카',1.2,.1,1],['혼다 인디 200','미드오하이오',1,.15,1],['뮤직 시티 GP','내슈빌 슈퍼스피드웨이',0,.1,1],['포틀랜드','포틀랜드 인터내셔널 레이스웨이',1,.15,1],['마컴','시가지',1,.3,1],['워싱턴 D.C.','시가지',.8,.3,1],
+  ['밀워키 250 R1','밀워키 마일',0,.1,1],['밀워키 250 R2','밀워키 마일',0,.1,1],['몬터레이','라구나 세카',.6,.2,1]]};
 const ALT_CROWN={WEC:{r:3,id:'LEMANS',n:'르망 24시'},INDY:{r:6,id:'INDY500',n:'인디 500'}};
 const altCal=sid=>ALTCAL[sid]?ALTCAL[sid].map(x=>({w:x[2],q:x[3],pm:x[4]})):null;
 /* the grid for this year: real names at first, then retirements get replaced and kept in the save */
@@ -4184,7 +4184,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.20-d1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.20-d2',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -4471,11 +4471,11 @@ function enterGame_unused(){}
 /* ---------- title decider at the final round ---------- */
 function deciderInfo(){const Z=S.season,L=Z.races-1;if(Z.races<2)return null;
   const m=tally(L-1),st=standingsOf(Object.values(m)),me=m.me;if(!me||!me.starts)return null;
-  const mi=st.indexOf(me),lead=st[0],P=B.race.points;
+  const mi=st.indexOf(me),lead=st[0],P=B.race.points.map(x=>Math.round(x*(Z.orders[L].pm||1)));
   const riv=mi===0?st[1]:lead;if(!riv)return null;
   const gap=me.pts-riv.pts;if(mi!==0&&lead.pts-me.pts>P[0])return null;if(mi===0&&gap>P[0])return null;
   const o=Z.orders[L],pos=k=>{const i=o.fin.indexOf(k);return i<0?null:i+1},qpos=k=>{const i=o.q.indexOf(k);return i<0?null:i+1};
-  return{me,riv,gap,fm:pos('me'),fr:pos(riv.key),qm:qpos('me')||10,qr:qpos(riv.key)||10,P,name:Z.ctx.f1?roundName(L).replace(/^R\d+ · /,''):'최종전'}}
+  return{me,riv,gap,fm:pos('me'),fr:pos(riv.key),qm:qpos('me')||10,qr:qpos(riv.key)||10,P,name:Z.ctx.f1||ALTCAL[Z.ctx.sid]?roundName(L).replace(/^R\d+ · /,''):'최종전'}}
 function showDecider(D,done){
   const Z=S.season,col=Z.ctx.teamColor||'#3182F6',rc=D.riv.color||'#9AA0AE',pts=(p_)=>p_&&p_<=D.P.length?D.P[p_-1]:0;
   const car=c=>px(F1_MAP,{...CAR_PAL,R:c},96);
