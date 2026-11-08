@@ -2,6 +2,8 @@
 // 1) Sheet → Extensions → Apps Script, paste this, put the secret in KEY (never commit it).
 // 2) Deploy → New deployment → Web app, Execute as: Me, Who has access: Anyone → copy the /exec URL.
 // One tab per month (Asia/Seoul), e.g. "2026-11". Columns: recv(ms) uid cid kind json.
+// A batch from the game is written as ONE row (kind 'batch', json = array of records), split only to stay under the 50k-character cell limit.
+// Older rows hold one record each; tools/logs.py reads both.
 const KEY = '여기에_비밀키';
 const HEAD = ['recv', 'uid', 'cid', 'kind', 'json'], PAGE = 5000, MAXB = 50;
 
@@ -22,11 +24,16 @@ function doPost(e) {
   if (!Array.isArray(a)) a = [a];
   a = a.filter(d => d && typeof d === 'object').slice(0, MAXB);
   if (!a.length) return out({ ok: 0 });
-  const now = Date.now();
-  const rows = a.map(d => [now, String(d.uid || '').slice(0, 40), String(d.cid || '').slice(0, 40),
-    String(d.kind || '').slice(0, 20), JSON.stringify(d).slice(0, 40000)]);
+  const now = Date.now(), rows = [];
+  let cur = [], len = 2;
+  const push = () => { if (!cur.length) return; const d = cur[0];
+    rows.push([now, String(d.uid || '').slice(0, 40), cur.length > 1 ? '' : String(d.cid || '').slice(0, 40),
+      cur.length > 1 ? 'batch' : String(d.kind || '').slice(0, 20), JSON.stringify(cur.length > 1 ? cur : d).slice(0, 49000)]);
+    cur = []; len = 2; };
+  a.forEach(d => { const n = JSON.stringify(d).length + 1; if (cur.length && len + n > 45000) push(); cur.push(d); len += n; });
+  push();
   const lock = LockService.getScriptLock();
-  lock.waitLock(20000);
+  if (!lock.tryLock(25000)) return out({ ok: 0 });  // busy: the game keeps the batch and retries
   try {
     const sh = tab(Utilities.formatDate(new Date(now), 'Asia/Seoul', 'yyyy-MM'));
     sh.getRange(sh.getLastRow() + 1, 1, rows.length, HEAD.length).setValues(rows);
@@ -41,7 +48,7 @@ function doPost(e) {
       f.getRange(f.getLastRow() + 1, 1, fb.length, 6).setValues(fb);
     }
   } finally { lock.releaseLock(); }
-  return out({ ok: rows.length });
+  return out({ ok: a.length });
 }
 
 // GET ?key=KEY&tab=2026-11&row=120 → rows after row 120 of that tab, then later tabs, up to PAGE.

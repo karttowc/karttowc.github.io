@@ -17,8 +17,11 @@ files=[a for a in args if a!='--old']
 get=lambda u,q:json.load(urllib.request.urlopen(u+'?'+urllib.parse.urlencode(q),timeout=300))
 def parse(rows):
     for r in rows:
-        try:yield json.loads(r[4])
-        except Exception:pass
+        try:x=json.loads(r[4])
+        except Exception:continue
+        # a row is one record, or (logsheet.gs batch rows) a list of records
+        if isinstance(x,list):yield from (d for d in x if isinstance(d,dict))
+        else:yield x
 recs=json.load(open(DB)) if os.path.exists(DB) else []
 n0=len(recs)
 if key and old:recs+=parse(get(OLD_URL,{'key':key}))
