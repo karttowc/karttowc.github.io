@@ -4041,7 +4041,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.12',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.13-d1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -4053,8 +4053,10 @@ function logEv(kind,d){if(logOff()||!S)return;const q=logQ();q.push({uid:logUid(
 let logBusy=false;
 function logFlush(){if(logBusy||!rkNet()||logOff())return;const q=logQ();if(!q.length)return;logBusy=true;
   const b=LOG_V2?q.slice(0,30):[q[0]],sent=new Set(b.map(x=>x.t+x.kind));
-  fetch(LOG_URL,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain'},body:JSON.stringify(LOG_V2?b:b[0])})
-    .then(()=>{lsSet(KEYL,JSON.stringify(logQ().filter(x=>!sent.has(x.t+x.kind))));logBusy=false;logFlush()}).catch(()=>{logBusy=false})}
+  // read the reply (the web app allows CORS): only drop the batch once the sheet says it wrote it; a busy sheet (lock timeout) keeps it for a retry
+  logPost(LOG_V2?b:b[0]).then(()=>{lsSet(KEYL,JSON.stringify(logQ().filter(x=>!sent.has(x.t+x.kind))));logBusy=false;logFlush()}).catch(()=>{logBusy=false;clearTimeout(logRetry);logRetry=setTimeout(logFlush,60000)})}
+let logRetry=null;
+const logPost=body=>fetch(LOG_URL,{method:'POST',keepalive:true,headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)}).then(r=>r.json()).then(j=>{if(!(j&&j.ok>0))throw 0;return j});
 if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')logFlush()});
 function logSeason(rec){const p=S.p,c=currentLine(),Z=S.season||{},L=S.logPre||{};
   logEv('season',{year:rec.year,age:rec.age,lk:rec.lk,role:rec.role,tier:c.tier,team:rec.team,pos:rec.pos,field:rec.field,starts:rec.starts,wins:rec.wins,podiums:rec.podiums,poles:rec.poles,dnf:rec.dnf,
@@ -4072,8 +4074,7 @@ function fbSend(){const text=fbText.trim().slice(0,300);if(!text){toast('내용�
   const p=S&&S.p,d={uid:logUid(),cid:S&&S.cid||'',kind:'fb',v:LOG_VER,t:Date.now(),text,
     lk:p?p.series+(p.role&&p.role!=='race'?':'+p.role:''):null,phase:S?S.phase:'title',seasons:p&&p.history?p.history.length:0,year:S?S.year:null};
   fbLast=Date.now();
-  fetch(LOG_URL,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain'},body:JSON.stringify([d])})
-    .then(()=>{fbText='';sheet=null;render();toast('보냈어요. 고마워요!')}).catch(()=>{fbLast=0;toast('보내지 못했어요. 잠시 후 다시 시도해 주세요.')})}
+  logPost([d]).then(()=>{fbText='';sheet=null;render();toast('보냈어요. 고마워요!')}).catch(()=>{fbLast=0;toast('보내지 못했어요. 잠시 후 다시 시도해 주세요.')})}
 function logDownload(){const q=logQ();if(!q.length)return;const name=`kart-to-wc-log-${logUid().slice(0,6)}-${Date.now()}.json`,data=JSON.stringify(q);
   if(DL){saveFile(name,data);return}
   try{const u=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);toast('기록 파일을 받았어요')}catch(e){toast('파일을 받지 못했어요')}}
