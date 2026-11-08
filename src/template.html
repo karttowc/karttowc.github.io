@@ -763,11 +763,42 @@ function scoutUpdate(pos,field,titled,ev){const p=S.p;if(!p.scout)scoutInit(p);
   if(top.length)ev.push(`관심 팀 변화: ${top.map(([id,d])=>`${teamDef(id).name} ${d>0?'+':''}${d}`).join(', ')}`);
 }
 const scv=id=>(S.p.scout||{})[id]||0;
+/* WEC/IndyCar interest per team (p.altSc[sid][team]). How the real paddocks hire:
+   IndyCar takes F2 front-runners (Lundgaard, Armstrong, Hauger), ex-F1 drivers (Grosjean, Ericsson, Schumacher) and Super Formula winners (Palou); the big three only sign proven winners, rookies start at the small teams.
+   WEC factory teams take ex-F1 and Formula E drivers (de Vries, Kubica, Cassidy, da Costa), value clean consistent driving, keep their line-ups for years (Toyota, Ferrari) and lean on their brand's academy. */
+function altScoutUpdate(pos,field,titled,ev){const p=S.p;p.altSc=p.altSc||{};p.altScD={};
+  const perf=pos?Math.min(1,1-(pos-1)/Math.max(1,field-1)):.15,st=p.stats,sl=p.series==='ALT'?p.alt:p.series,ac=p.academy?K.academies.find(a=>a.id===p.academy):null;
+  const hasSF=p.history.some(h=>h.sid==='ALT'&&h.lk==='SF'),f1Race=p.series==='F1'&&p.role==='race';let best=null;
+  for(const sid of Object.keys(ALT_DRV)){const M=p.altSc[sid]=p.altSc[sid]||{},R=altRank(sid),I=sid==='INDY';p.altScD[sid]={};
+    for(const r of R){const tm=(ALT_TEAMS[sid]||[]).find(t=>t.n===r.n)||{};if(p.series==='ALT'&&p.alt===sid&&p.team&&p.team.name===r.n)continue;
+      let d;
+      if(p.series==='ALT'&&p.alt===sid)d=(perf-.5)*40+(titled?12:0)+(r.tier==='top'?(perf-.8)*30:0);
+      else if(p.series==='ALT')d=(perf-.5)*16+(titled?10:0)+((I?sl==='SF':sl==='FE')&&(titled||perf>.7)?6:0);
+      else if(f1Race)d=(perf-.5)*16+6+(p.age>=27?3:0);
+      else if(p.series==='F1')d=4;
+      else if(sl==='F2')d=I?(perf-.5)*24+(titled?12:0)+(pos&&pos<=3?4:0):(perf-.5)*10+(titled?6:0);
+      else if(sl==='F3')d=(perf-.5)*(I?10:4);
+      else d=0;
+      d+=I?((st.race+st.mental)/2-75)*.15:((st.consistency+st.mental)/2-75)*.15;
+      if(I){if(p.age<19)d-=4;if(p.age>=33)d-=(p.age-32)*2;if(p.nat==='USA')d+=2;if(tm.f1&&ac&&ac.teams.includes(tm.f1))d+=5}
+      else{if(p.age<20)d-=6;if(p.age>=38)d-=(p.age-37)*2;if(tm.f1&&((ac&&ac.teams.includes(tm.f1))||(p.series==='F1'&&p.team&&p.team.id===tm.f1)))d+=5;if(r.n==='토요타 가주 레이싱'&&(p.nat==='JPN'||hasSF))d+=4}
+      if(r.tier==='top'){if(perf<.75&&!f1Race&&!(p.series==='ALT'&&titled))d-=3;if(d>0&&!(p.series==='ALT'&&p.alt===sid)&&!f1Race)d*=.6;else if(!I&&d>0)d*=.7}
+      if(r.tier==='bottom')d+=1.5;
+      d+=gauss()*3;const v0=M[r.n]||0,v=clamp(Math.round(v0+d),0,100);M[r.n]=v;p.altScD[sid][r.n]=v-v0;
+      if(v>=60&&v0<60&&p.age>=19&&(!best||v>best.v))best={n:r.n,sid,v}}}
+  if(best)ev.push(`${altDef(best.sid).name} ${best.n}의 관심이 뜨거워요! (관심도 ${best.v})`)}
+const altScv=(sid,n)=>((S.p.altSc||{})[sid]||{})[n]||0;
+/* pick a WEC/IndyCar team for an offer: the keenest team I'm good enough for; 80+ interest opens one tier up, 90+ any team */
+function altPick(sid,tier,excl){const ti=TIER_I.indexOf(tier),R=altRank(sid).filter(x=>x.n!==excl).map(x=>({...x,v:altScv(sid,x.n)}));
+  const ok=R.filter(x=>x.v>=25&&(TIER_I.indexOf(x.tier)<=ti||x.v>=90||(x.v>=80&&TIER_I.indexOf(x.tier)<=ti+1))).sort((a,b)=>(b.v+rnd(0,10)+TIER_I.indexOf(b.tier)*15)-(a.v+rnd(0,10)+TIER_I.indexOf(a.tier)*15));
+  if(!ok.length)return null;const t=(ALT_TEAMS[sid]||[]).find(x=>x.n===ok[0].n);return t?{...t,tier:ok[0].tier,v:ok[0].v}:null}
 function scoutCard(){const p=S.p;if(!p.scout)return'';
   const own=p.series==='F1'&&p.team&&p.team.id;
   const L=S.teams.filter(t=>t.id!==own).map(t=>({t,v:scv(t.id),d:(p.scoutD||{})[t.id]||0})).sort((a,b)=>b.v-a.v).slice(0,3);
   return`<section class="card"><div class="row"><h3 class="h3">나를 지켜보는 팀</h3><span class="muted" style="font-size:12px">스카우트 관심도</span></div>
     ${L.map(x=>`<div class="scrow">${logo(x.t.id,24)}<span class="nm">${esc(x.t.name)}</span><div class="bar"><i style="width:${x.v}%;background:${x.v>=80?'var(--gold)':x.v>=60?'var(--good)':'var(--accent)'}"></i></div><b class="num">${x.v}</b>${x.d?`<span class="delta ${x.d<0?'down':''}">${x.d>0?'+':''}${x.d}</span>`:'<span class="delta" style="opacity:0">0</span>'}</div>`).join('')}
+    ${(()=>{const A=Object.keys(ALT_DRV).flatMap(sid=>Object.entries((p.altSc||{})[sid]||{}).map(([n,v])=>({sid,n,v,d:((p.altScD||{})[sid]||{})[n]||0}))).filter(x=>x.v>=30).sort((a,b)=>b.v-a.v).slice(0,2);
+      return A.length?`<div class="muted" style="font-size:12px;margin-top:2px">다른 무대</div>`+A.map(x=>`<div class="scrow">${altLogoN(x.n)}<span class="nm">${esc(x.n)}</span><div class="bar"><i style="width:${x.v}%;background:${x.v>=80?'var(--gold)':x.v>=60?'var(--good)':'var(--accent)'}"></i></div><b class="num">${x.v}</b>${x.d?`<span class="delta ${x.d<0?'down':''}">${x.d>0?'+':''}${x.d}</span>`:'<span class="delta" style="opacity:0">0</span>'}</div>`).join(''):''})()}
     <p class="muted" style="margin:0;font-size:12px">${p.series==='F1'?'80 이상: 이적 기준 완화 · 90 이상: 먼저 영입 제안':'60 이상: 육성 계약 제안 · 80 이상: 리저브·시트 기준 완화 · 90 이상: 쟁탈전'}</p></section>`}
 /* ---------- rival ---------- */
 function newRival(p){const style=pick(B.styles).id,o=ovrOf(p.stats)+ri(-1,2);
@@ -1045,7 +1076,7 @@ function finishSeason(){
   const valBefore=p.val||valueOf();p.rep=recentForm();p.repBonus=Math.round((p.repBonus||0)*.5);p.val=valueOf();p.valPeak=Math.max(p.valPeak||0,p.val);rec.val=p.val;rec.valBefore=valBefore;
   S.last={rec,ev,deltas,standings:st.slice(0,12).map((e,i)=>({pos:i+1,name:e.name,team:e.team,color:e.color||null,pts:e.pts,wins:e.wins,me:!!e.isPlayer})),meRow:pos&&pos>12?{pos,name:me.name,team:me.team,color:me.color||null,pts:me.pts,wins:me.wins,me:true}:null};
   // world moves on
-  if(!p.retired)scoutUpdate(pos,fieldN,titled,ev);
+  if(!p.retired){scoutUpdate(pos,fieldN,titled,ev);altScoutUpdate(pos,fieldN,titled,ev)}
   ageF1Grid();rivalMove(ev);jrMove();
   S.year++;p.age++;
   const prevM={};S.teams.forEach(t=>prevM[t.id]=t.machine);
@@ -1439,12 +1470,15 @@ function makeOffers(pos,field,h2h){
   // other series
   const needAlt=(champF2&&!o.some(x=>x.kind==='f1'))||p.age>=21&&(p.series==='F2'||p.series==='ALT'||(p.series==='F1'&&(p.role==='reserve'||!contracted())))&&!bound;
   if(needAlt){
-    const alts=p.series==='ALT'?[altDef(p.alt),...K.alt_series.filter(a=>a.id!==p.alt).sort(()=>Math.random()-.5).slice(0,1)]:[...K.alt_series].sort(()=>Math.random()-.5).slice(0,2);
+    const hotA=Object.keys(ALT_DRV).filter(id=>id!==p.alt&&Math.max(0,...Object.values((p.altSc||{})[id]||{}))>=50).sort((x,y)=>Math.max(...Object.values(p.altSc[y]))-Math.max(...Object.values(p.altSc[x])));
+    const others=[...hotA.map(altDef),...K.alt_series.filter(a=>a.id!==p.alt&&!hotA.includes(a.id)).sort(()=>Math.random()-.5)];
+    const alts=p.series==='ALT'?[altDef(p.alt),...others.slice(0,1)]:others.slice(0,2);
     const tier=ovr>=82?'top':ovr>=76?'mid':'bottom';
-    const altO=(a,tm,tag)=>({kind:'alt',altId:a.id,tier:tm.tier,altTeam:tm.n,altF1:tm.f1||null,title:tm.n,sub:`${a.name} · ${TIER_LBL[tm.tier]}${altCarOf(a.id,tm.n)!=null?` · 머신 ${r1(altCarOf(a.id,tm.n))}`:''}${tm.f1?` · ${teamDef(tm.f1).name} F1과 연결`:''}${a.note?' · '+a.note:''}`,tag});
+    const altO=(a,tm,tag)=>({kind:'alt',altId:a.id,tier:tm.tier,altTeam:tm.n,altF1:tm.f1||null,title:tm.n,sub:`${a.name} · ${TIER_LBL[tm.tier]}${altCarOf(a.id,tm.n)!=null?` · 머신 ${r1(altCarOf(a.id,tm.n))}`:''}${altScv(a.id,tm.n)>=40?` · 관심도 ${altScv(a.id,tm.n)}`:''}${tm.f1?` · ${teamDef(tm.f1).name} F1과 연결`:''}${a.note?' · '+a.note:''}`,tag});
     alts.forEach(a=>{const stay=p.series==='ALT'&&a.id===p.alt,cur=stay&&p.team?(ALT_TEAMS[a.id]||[]).map(t=>ALT_DRV[a.id]?{...t,tier:altTierOf(a.id,t.n)||t.tier}:t).find(t=>t.n===p.team.name):null;
-      if(stay&&cur){o.push(altO(a,cur,'잔류'));if(TIER_I.indexOf(tier)>TIER_I.indexOf(cur.tier))o.push(altO(a,altTeam(a.id,tier,cur.n),'이적'))}
-      else o.push(altO(a,altTeam(a.id,tier),stay?'잔류':p.series==='F2'&&p.age>=23?'새 출발':'다른 진로'))});
+      if(stay&&cur){o.push(altO(a,cur,'잔류'));const up=ALT_DRV[a.id]?altPick(a.id,tier,cur.n):null;
+        if(up&&TIER_I.indexOf(up.tier)>TIER_I.indexOf(cur.tier))o.push(altO(a,up,'이적'));else if(!ALT_DRV[a.id]&&TIER_I.indexOf(tier)>TIER_I.indexOf(cur.tier))o.push(altO(a,altTeam(a.id,tier,cur.n),'이적'))}
+      else o.push(altO(a,(ALT_DRV[a.id]&&altPick(a.id,tier))||altTeam(a.id,tier),stay?'잔류':p.series==='F2'&&p.age>=23?'새 출발':'다른 진로'))});
   }
   // transfer request: better teams poach if I beat their weaker driver
   const req=p.xfer===S.year-1,hotPo=inF1Race&&!req&&S.teams.some(t=>t.id!==p.team.id&&scv(t.id)>=90&&t.machine>teamDef(p.team.id).machine);
@@ -2898,7 +2932,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.20-d5',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.20-d6',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
