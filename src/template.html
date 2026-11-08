@@ -2714,7 +2714,7 @@ function rkSort(a){return a.sort((x,y)=>y.titles-x.titles||y.wins-x.wins||(y.tro
 // numbers a real career can't reach (edited save / rigged randomness): the career stays, it just isn't sent to the ranking
 function tampered(p=S.p){return(p.pot0!=null&&p.potential>p.pot0+B.driver.awaken.max)||p.history.some(h=>h.sid==='F1'&&h.role==='race'&&h.starts>=20&&h.wins===h.starts)}
 const flagged=(p=S.p)=>!!(p.x||tampered(p));
-const TAMP_MSG=`<b style="font-size:17px">비정상적인 플레이가 감지되었습니다.</b><br><span class="muted">이 커리어는 랭킹에 올라가지 않습니다.</span>`,TAMP_FB=`<p class="muted" style="margin:8px 0 0;font-size:13px">오류인가요? <button class="dlink" type="button" id="fbOpen" style="font-size:13px;text-decoration:underline">의견 보내기</button></p>`;
+const TAMP_MSG=`<b style="font-size:17px">비정상적인 플레이가 감지되었습니다.</b><br><span class="muted">이 커리어는 랭킹에 올라가지 않습니다.</span>`,TAMP_FB=`<p class="muted" style="margin:8px 0 0;font-size:13px">잘못 감지된 것 같다면 <button class="dlink" type="button" id="fbOpen" style="font-size:13px;text-decoration:underline">의견 보내기</button></p>`;
 function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.random().toString(36).slice(2,8);const a=hofLoad();if(a.some(x=>x.cid===S.cid))return;const p=S.p,T=p.tot;
   a.push({cid:S.cid,name:p.name,num:p.num,nat:p.nat,helmet:p.helmet,start:S.startYear,end:S.year,age:p.age,titles:T.titles,wins:T.wins,podiums:T.podiums,starts:T.starts,top:bestStage(p),tro:altTrophies(p).length,earn:p.earn||0,
     peak:p.peak,jr:p.jr.length,...(flagged(p)?{x:1}:{}),trs:[...(tripleCrown()?['트리플 크라운']:[]),...altTrophies(p).map(t=>t.n),...p.jr.map(j=>`${j.name} 챔피언`)]});
