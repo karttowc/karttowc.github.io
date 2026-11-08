@@ -719,7 +719,7 @@ function rookie(team){
 }
 
 /* ---------- state ---------- */
-let newsTab='all',newsMore=false,hlMore=false,fanMore=false,chain=false,resMore=false,evPick=null;
+let padLg='alt',newsTab='all',newsMore=false,hlMore=false,fanMore=false,chain=false,resMore=false,evPick=null;
 let S=null, tab='home', ob=null, sel=null, DL=null, sheet=null, cardURL=null;
 const KEY='k2wc-save-v1';
 function save(){try{if(S.p&&!S.p.x&&tampered(S.p))S.p.x=1;localStorage.setItem(KEY,JSON.stringify(S));const p=S.p;localStorage.setItem('k2wc-last',JSON.stringify({name:p.name,num:p.num0||p.num,nat:p.nat,avatar:p.avatar,helmet:p.helmet}))}catch(e){}}
@@ -2477,17 +2477,20 @@ function altCard(){const X=altLeague();if(!X)return'';const{sid,A,L}=X,H=altHead
     <button class="btn ghost" type="button" data-sheet="altnews">${ALT_TLBL[sid]}·머신 판도</button></section>`}
 function paddockTab(){
   const N=S.news&&S.news.heads?S.news:null,F=S.f1sum;
-  return`<header class="top"><h1>패독</h1></header>
-  ${(()=>{const NT=S.notice&&S.notice.year===S.year?S.notice:null,L=NT?NT.lines.filter(l=>l!==statusLine(NT)):[];
-    return L.length?`<section class="card"><h3 class="h3">우리 팀 소식${NT.team?' · '+withLogos(esc(NT.team)):''}</h3><div class="newslist">${L.map(l=>`<div class="${/^(F1|WEC|인디카|IndyCar)[^:]{0,6} 소식:/.test(l)?'':tone(l,{mine:true})}">${withLogos(esc(l))}</div>`).join('')}</div></section>`:''})()}
-  ${altCard()}
-  ${N?`<section class="card" style="gap:12px"><div class="eyebrow">${N.year} 시즌을 앞두고</div><h3 class="h3">${altLeague()?'F1 ':''}패독 소식</h3>${(()=>{const nm=nextMajorYear(),l=nm-S.year;return`<div class="regpin"><span>다음 대규정</span><b>${N.major&&nm>S.year?S.year+'년 시행 중 · 다음 '+nm+'년':l<=0?S.year+'년 시행':nm+'년'}</b><em>${l===1?S.year+' 시즌 다음':l>1?l+'시즌 뒤':'이번 시즌'}</em></div>`})()}
+  const AL=altLeague(),tn=(()=>{const NT=S.notice&&S.notice.year===S.year?S.notice:null,L=NT?NT.lines.filter(l=>l!==statusLine(NT)):[];
+    return L.length?`<section class="card"><h3 class="h3">우리 팀 소식${NT.team?' · '+withLogos(esc(NT.team)):''}</h3><div class="newslist">${L.map(l=>`<div class="${/^(F1|WEC|인디카|IndyCar)[^:]{0,6} 소식:/.test(l)?'':tone(l,{mine:true})}">${withLogos(esc(l))}</div>`).join('')}</div></section>`:''})(),f1=`${N?`<section class="card" style="gap:12px"><div class="eyebrow">${N.year} 시즌을 앞두고</div><h3 class="h3">패독 소식</h3>${(()=>{const nm=nextMajorYear(),l=nm-S.year;return`<div class="regpin"><span>다음 대규정</span><b>${N.major&&nm>S.year?S.year+'년 시행 중 · 다음 '+nm+'년':l<=0?S.year+'년 시행':nm+'년'}</b><em>${l===1?S.year+' 시즌 다음':l>1?l+'시즌 뒤':'이번 시즌'}</em></div>`})()}
     <div class="segs"><button type="button" data-ntab="all" aria-pressed="${newsTab==='all'}">전체</button><button type="button" data-ntab="team" aria-pressed="${newsTab==='team'}">팀별</button></div>
     ${newsBody(N)}
     <button class="btn ghost" type="button" data-sheet="news">컨스트럭터 순위·머신 판도</button></section>`:''}
   ${F?`<section class="card"><div class="row"><h3 class="h3">${F.year} F1 드라이버 순위</h3><span class="muted" style="font-size:12px">상위 5명</span></div>
     <table class="tbl"><tbody>${F.top.map((e,i)=>`<tr class="${e.me?'me':''}"><td class="num" style="width:24px">${i+1}</td><td>${e.team&&teamByShort(e.team)?logo(teamByShort(e.team).id,22):''}${esc(e.name)}</td><td class="r num">${e.pts}</td></tr>`).join('')}</tbody></table></section>`:''}
   ${!N&&!F?`<section class="card"><p class="muted" style="margin:0">첫 시즌을 마치면 패독 소식이 여기에 떠요.</p></section>`:''}`;
+  // racing in WEC/IndyCar: one tab per league, my league open first
+  if(!AL)return`<header class="top"><h1>패독</h1></header>${tn}${f1}`;
+  const lg=padLg==='f1'?'f1':'alt';
+  return`<header class="top"><h1>패독</h1></header>
+  <div class="segs"><button type="button" data-padlg="alt" aria-pressed="${lg==='alt'}">${esc(AL.L)}</button><button type="button" data-padlg="f1" aria-pressed="${lg==='f1'}">F1</button></div>
+  ${lg==='alt'?tn+altCard():f1}`;
 }
 function reactTab(){
   const X=S.react;if(X)X.seen=true;
@@ -2991,7 +2994,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.21-d10',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.21-d11',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3583,6 +3586,7 @@ root.addEventListener('click',e=>{
       feed.unshift({t:`휴식기 · ${res.t}`,c:res.ok===true?'gold':res.ok===false?'bad':'blue'});paintFeed()},go?900:0);return}
   if(id==='gachaOk'){document.getElementById('pInc').innerHTML='';progTimer=setTimeout(stepProgress,400);return}
   if(d.inc!=null&&S.phase==='progress'){const inc=S.season.incidents.find(x=>x.r===progI&&!x.done);if(!inc)return;const res=applyIncident(inc,+d.inc);document.getElementById('pInc').innerHTML='';feed.unshift({t:`${roundName(inc.r)} · ${res.t}`,c:res.c});paintFeed();toast(res.t);progTimer=setTimeout(stepProgress,600);return}
+  if(d.padlg){padLg=d.padlg;newsMore=false;render();window.scrollTo(0,0);return}
   if(d.ntab){newsTab=d.ntab;newsMore=false;render();return}
   if(d.nmore){newsMore=!newsMore;render();return}
   if(d.hlmore){hlMore=!hlMore;render();return}
