@@ -861,8 +861,8 @@ function simulate(ents,races,orders,cal){
       if(Math.random()<B.race.dnf.mechanical+crash){e.dnf++;e.fp[r]=99;continue}
       e.pv=dw*((isWet?e.w:e.d)-(e.adapt?e.adapt(r):0))+cw*e.car+gauss()*sd;if(T&&T.q)e.pv+=T.q*(e.qv[r]-e.pv);fin.push(e)}
     fin.sort((a,b)=>b.pv-a.pv);
-    fin.forEach((e,i)=>{e.fp[r]=i+1;if(i<P.length)e.pts+=P[i];if(i===0)e.wins++;if(i<3)e.pod++});
-    if(orders)orders.push({wet:isWet,q:[...pr].sort((a,b)=>b.qv[r]-a.qv[r]).map(e=>e.key),fin:fin.map(e=>e.key),dnf:pr.filter(e=>e.fp[r]===99).map(e=>e.key)});
+    const pm=T&&T.pm||1;fin.forEach((e,i)=>{e.fp[r]=i+1;if(i<P.length)e.pts+=P[i]*pm;if(i===0)e.wins++;if(i<3)e.pod++});
+    if(orders)orders.push({pm:pm>1?pm:undefined,wet:isWet,q:[...pr].sort((a,b)=>b.qv[r]-a.qv[r]).map(e=>e.key),fin:fin.map(e=>e.key),dnf:pr.filter(e=>e.fp[r]===99).map(e=>e.key)});
   }
   return wet;
 }
@@ -896,8 +896,16 @@ function startSeason(){
     races=sd.races;field=Math.min(sd.field,30);seriesName=sd.name;teamName=p.team.name;
     // a gentler field for the very first kart season, so a new player gets a taste of the podium
     const easy=p.series==='KART'&&!p.history.length?(B.career.first_kart_easy||0):0,carT=isAlt?ALT_CAR:sd.car,mean=AI_MEAN[p.series]-easy;
-    me=entrant({key:'me',name:p.name,team:p.team.name,car:carT[p.team.tier],isPlayer:true,...fromStats(p.stats)});ents.push(me);
-    for(let i=1;i<field;i++){const o=mean+gauss()*5,tier=Math.random()<.3?'top':Math.random()<.57?'mid':'bottom';
+    const AR=isAlt?altRoster(p.alt):null,ts=AR&&ALT_TS[p.team.name];
+    me=entrant({key:'me',name:p.name,team:ts?ts[0]:p.team.name,color:ts?ts[1]:null,car:carT[p.team.tier],isPlayer:true,...fromStats(p.stats)});ents.push(me);
+    if(AR){teamColor=ts?ts[1]:null;
+      // real grid: the player takes the weakest seat of their team, the strongest one left is the teammate
+      const tierOf=t=>(ALT_TEAMS[p.alt].find(x=>x.n===t)||{}).tier||'mid',own=AR.filter(d=>d.t===p.team.name).sort((a,b)=>altLv(b)-altLv(a)),drop=own.at(-1);
+      const L=AR.filter(d=>d!==drop),avg=L.reduce((a,d)=>a+altLv(d),0)/(L.length||1);
+      L.forEach((d,i)=>{const o=mean+(altLv(d)-avg)*ALT_LV+gauss()*2.5,T=ALT_TS[d.t]||['',null];
+        ents.push(entrant({key:'a'+i,name:d.n,team:T[0],color:T[1],car:carT[tierOf(d.t)],q:o+gauss()*2,d:o+gauss()*2,w:o+gauss()*3,cons:o,mental:o}))});
+      if(own.length>1)mate=ents.find(e=>e.name===own[0].n)||null;field=ents.length}
+    for(let i=ents.length;i<field;i++){const o=mean+gauss()*5,tier=Math.random()<.3?'top':Math.random()<.57?'mid':'bottom';
       ents.push(entrant({key:'a'+i,name:genName(pick(NATS)),team:'',car:carT[tier],q:o+gauss()*2,d:o+gauss()*2,w:o+gauss()*3,cons:o,mental:o}))}
     if((p.series==='F2'||p.series==='F3')&&S.jr){let k=2;S.jr.filter(d=>d.st==='on'&&d.series===p.series).forEach(d=>{if(k<ents.length){ents[k]=entrant({key:d.id,name:d.name,team:d.team,car:carT[d.tier]||carT.mid,...fromStats(d.stats)});k++}})}
     const rv=S.rival;if(rv&&rv.st==='on'&&!rv.f1&&rv.series===p.series&&ents[1])ents[1]=entrant({key:'rival',name:rv.name,team:'',car:carT[pick(['top','mid','mid','bottom'])],...fromStats(rv.stats)});
@@ -911,7 +919,7 @@ function startSeason(){
    const avgD=oth.reduce((a,e)=>a+e.d,0)/n,avgC=oth.reduce((a,e)=>a+e.car,0)/n,pvO=oth.map(e=>dw*e.d+cw*e.car);
    const rk=v=>1+pvO.filter(x=>x>v).length,dNo=me.d-mb;
    var why0={r0:rk(dw*avgD+cw*avgC),r1:rk(dw*dNo+cw*avgC),r2:rk(dw*dNo+cw*me.car),r3:rk(dw*me.d+cw*me.car),r3a:rk(dw*(me.d-avgAd)+cw*me.car)}}
-  const orders=[];simulate(ents,races,orders,p.series==='F1'?F1W:null);
+  const orders=[];simulate(ents,races,orders,p.series==='F1'?F1W:p.series==='ALT'?altCal(p.alt):null);
   // low stamina: tired mistakes turn some finishes into retirements
   if(p.morale<40){const pr=(40-p.morale)*.004;orders.forEach(o=>{const i=o.fin.indexOf('me');if(i>=0&&Math.random()<pr){o.fin.splice(i,1);o.dnf.push('me')}})}
   const cand=[];orders.forEach((o,r)=>{if(r>0&&o.fin.includes('me'))cand.push(r)});
@@ -933,7 +941,7 @@ function tally(upto){
   Z.orders.forEach((o,r)=>{if(r>upto)return;
     if(o.q[0])m[o.q[0]].poles++;
     o.q.forEach((k,i)=>m[k].qi[r]=i);
-    o.fin.forEach((k,i)=>{const e=m[k];e.starts++;e.fp[r]=i+1;if(i<P.length)e.pts+=P[i];if(i===0)e.wins++;if(i<3)e.pod++});
+    o.fin.forEach((k,i)=>{const e=m[k];e.starts++;e.fp[r]=i+1;if(i<P.length)e.pts+=P[i]*(o.pm||1);if(i===0)e.wins++;if(i<3)e.pod++});
     o.dnf.forEach(k=>{const e=m[k];e.starts++;e.dnf++;e.fp[r]=99})});
   return m;
 }
@@ -978,8 +986,9 @@ function finishSeason(){
   if(p.num===1&&p.num0&&!(p.series==='F1'&&titled)){ev.push(`챔피언 자리를 내줘서 다음 시즌부터 다시 ${jo('#'+p.num0,'을','를')} 달아요.`);p.num=p.num0;delete p.num0}
   // crown jewel inside the season: WEC -> Le Mans, IndyCar -> Indy 500
   let crown=null;
-  if(p.series==='ALT'&&(p.alt==='WEC'||p.alt==='INDY')&&me.starts>0){const cid=p.alt==='WEC'?'LEMANS':'INDY500',cn=p.alt==='WEC'?'르망 24시':'인디 500',rr=pos?1-(pos-1)/Math.max(1,fieldN-1):.2;
-    const win=clamp(.03+rr*.3+(ovrOf(p.stats)-78)*.01,.02,.4),x=Math.random(),res=x<win?'우승':x<win*2.5?'포디움':x<.88?'완주':'리타이어';
+  // the crown jewel is a real round of the calendar now: its result is the race result
+  const CR=p.series==='ALT'&&ALT_CROWN[p.alt],crF=CR&&me.fp[CR.r];
+  if(CR&&crF){const cid=CR.id,cn=CR.n,res=crF===1?'우승':crF<=3?'포디움':crF<99?'완주':'리타이어';
     p.challenges.push({id:cid,name:cn,year:S.year,res,season:true});crown={id:cid,n:cn,res};
     if(res==='우승'){p.fans=clamp(p.fans+6,0,100);const tcN=tcMark();if(tcN)tcPop={id:cid,name:cn};ev.unshift(`${cn} 우승!${tcN?' '+TC_MSG:tcLast()?' 트리플 크라운까지 하나 남았어요.':''}`)}else ev.push(`${cn} ${res==='포디움'?'포디움':res==='완주'?'완주':'리타이어'}`)}
   // super licence
@@ -1264,6 +1273,50 @@ const ALT_TEAMS={
   {n:'나카지마 레이싱',tier:'mid',f1:'astonmartin'},{n:'세루모·인깅',tier:'mid',f1:'haas'},{n:'B-Max 레이싱',tier:'bottom',f1:'astonmartin'},{n:'KCMG',tier:'bottom',f1:'haas'},{n:'팀 고',tier:'bottom',f1:'haas'}],
  GT3:[{n:'만타이 (포르쉐)',tier:'top'},{n:'슈베르트 (BMW)',tier:'top'},{n:'윈워드 (메르세데스-AMG)',tier:'top'},{n:'에밀 프라이 (페라리)',tier:'mid'},{n:'아프트 (람보르기니)',tier:'mid'},{n:'그라서 (람보르기니)',tier:'mid'},
   {n:'란트그라프 (메르세데스-AMG)',tier:'mid'},{n:'컴투유 (애스턴마틴)',tier:'bottom'},{n:'되르 (맥라렌)',tier:'bottom'},{n:'HRT (포드)',tier:'bottom'},{n:'란트 (포르쉐)',tier:'bottom'}]};
+/* real 2026 grids for WEC (Hypercar, one name per car) and IndyCar: [name, nat, birth year, level -1..3] keyed by ALT_TEAMS name.
+   AI pace = league mean + (level - grid average) * ALT_LV, so the field stays as strong as before. Ages each year, retires 40~43 and a new name takes the seat. */
+const ALT_DRV={
+ WEC:{'토요타 가주 레이싱':[['카무이 고바야시','JPN',1986,3],['세바스티앙 부에미','SUI',1988,3]],
+  '페라리 AF 코르세':[['알레산드로 피에르 구이디','ITA',1983,3],['안토니오 푸오코','ITA',1996,2],['로베르트 쿠비차','POL',1984,1]],
+  '캐딜락 팀 JOTA':[['알렉스 린','GBR',1993,1],['얼 뱀버','NZL',1990,1]],
+  'BMW 팀 WRT':[['드리스 반투어','BEL',1991,1],['셸던 반 더 린드','RSA',1999,1]],
+  '푸조 토탈에너지':[['스토펠 반도른','BEL',1992,1],['닉 캐시디','NZL',1994,1]],
+  '애스턴마틴 THOR 팀':[['해리 팅크넬','GBR',1991,0],['알렉스 리베라스','ESP',1993,0]],
+  '알핀 인듀어런스 팀':[['안토니우 펠릭스 다 코스타','POR',1991,1],['쥘 구농','FRA',1994,0]],
+  '제네시스 마그마 레이싱':[['앙드레 로테러','GER',1981,0],['마티외 자미네','FRA',1994,0]]},
+ INDY:{'칩 가나시 레이싱':[['알렉스 팔로우','ESP',1997,3],['스콧 딕슨','NZL',1980,2],['키핀 심슨','CAY',2004,-1]],
+  '팀 펜스키':[['조셉 뉴가든','USA',1990,2],['스콧 맥러플린','NZL',1993,2],['데이비드 말루카스','USA',2001,1]],
+  '애로우 맥라렌':[['파토 오워드','MEX',1999,2],['크리스티안 룬가르','DEN',2001,2],['놀란 시걸','USA',2004,0]],
+  '안드레티 글로벌':[['카일 커크우드','USA',1998,2],['윌 파워','AUS',1981,1],['마커스 에릭손','SWE',1990,1]],
+  '메이어 생크 레이싱':[['펠릭스 로젠크비스트','SWE',1991,1],['마커스 암스트롱','NZL',2000,1]],
+  '레이할 레터맨 래니건':[['그레이엄 레이할','USA',1989,0],['루이스 포스터','GBR',2003,0],['믹 슈마허','GER',1999,0]],
+  'ECR':[['알렉산더 로시','USA',1991,0],['크리스티안 라스무센','DEN',2000,0]],
+  'A.J. 포이트 레이싱':[['산티노 페루치','USA',1998,0],['카이오 콜레','BRA',2002,-1]],
+  '정코스 홀린저 레이싱':[['리누스 비케이','NED',2000,0],['스팅 레이 롭','USA',2001,-1]],
+  '데일 코인 레이싱':[['로맹 그로장','FRA',1986,0],['데니스 하우거','NOR',2003,0]]}};
+const ALT_LV=2.5;
+/* team short label + colour for standings */
+const ALT_TS={'토요타 가주 레이싱':['TOY','#E60012'],'페라리 AF 코르세':['FER','#DC0000'],'캐딜락 팀 JOTA':['CAD','#C9A44C'],'BMW 팀 WRT':['BMW','#1C69D4'],
+ '푸조 토탈에너지':['PEU','#B5CC2E'],'애스턴마틴 THOR 팀':['AMR','#00665E'],'알핀 인듀어런스 팀':['ALP','#0090FF'],'제네시스 마그마 레이싱':['GEN','#A0522D'],
+ '칩 가나시 레이싱':['CGR','#C8102E'],'팀 펜스키':['PEN','#F5C400'],'애로우 맥라렌':['AMC','#FF8000'],'안드레티 글로벌':['AND','#0B5FFF'],'메이어 생크 레이싱':['MSR','#E6007E'],
+ '레이할 레터맨 래니건':['RLL','#5B6770'],'ECR':['ECR','#2E8B57'],'A.J. 포이트 레이싱':['AJF','#7B2CBF'],'정코스 홀린저 레이싱':['JHR','#111111'],'데일 코인 레이싱':['DCR','#00A3E0']};
+/* calendars: [round, circuit, rain x, quali carry-over, points x]. IndyCar ovals never run in the rain; WEC qualifying barely matters over 6~24 hours */
+const ALTCAL={WEC:[['카타르 1812km','루사일',0,0,1],['이몰라 6시간','이몰라',1.2,0,1],['스파 6시간','스파-프랑코르샹',2.6,0,1],['르망 24시','라 사르트',1.4,0,2],
+  ['상파울루 6시간','인테르라고스',2.4,0,1],['론스타 르망','COTA',.8,0,1],['후지 6시간','후지 스피드웨이',1.8,0,1],['바레인 8시간','사키르',0,0,1]],
+ INDY:[['세인트피터즈버그','시가지',1,.3,1],['피닉스','오벌',0,.1,1],['알링턴','시가지',.8,.3,1],['버밍엄','바버 모터스포츠 파크',1.2,.15,1],['롱비치','시가지',.4,.3,1],
+  ['인디애나폴리스 GP','로드 코스',1,.15,1],['인디 500','인디애나폴리스 오벌',0,.05,1],['디트로이트','시가지',1,.3,1],['월드 와이드 테크놀로지 레이스웨이','오벌',0,.1,1],
+  ['로드 아메리카','로드 코스',1.2,.1,1],['미드오하이오','로드 코스',1,.15,1],['내슈빌','오벌',0,.1,1],['포틀랜드','로드 코스',1,.15,1],['토론토','시가지',1,.3,1],
+  ['밀워키 1','오벌',0,.1,1],['밀워키 2','오벌',0,.1,1],['라구나 세카','로드 코스',.6,.2,1]]};
+const ALT_CROWN={WEC:{r:3,id:'LEMANS',n:'르망 24시'},INDY:{r:6,id:'INDY500',n:'인디 500'}};
+const altCal=sid=>ALTCAL[sid]?ALTCAL[sid].map(x=>({w:x[2],q:x[3],pm:x[4]})):null;
+/* the grid for this year: real names at first, then retirements get replaced and kept in the save */
+function altRoster(sid){
+  const D=ALT_DRV[sid];if(!D)return null;S.altR=S.altR||{};
+  if(!S.altR[sid])S.altR[sid]=Object.entries(D).flatMap(([t,L])=>L.map(([n,nat,by,lv])=>({t,n,nat,by,lv})));
+  const R=S.altR[sid],lim=d=>40+[...d.n].reduce((a,c)=>a+c.charCodeAt(0),0)%4;
+  R.forEach((d,i)=>{if(S.year>K.start_year&&S.year-d.by>lim(d)){const nat=pick(NATS);R[i]={t:d.t,n:genName(nat),nat,by:S.year-ri(19,24),lv:ri(-1,2)}}});
+  return R}
+const altLv=d=>{const a=S.year-d.by;return d.lv-(a>36?(a-36)*.4:0)-(a<23?(23-a)*.4:0)};
 function altTeam(id,tier,excl){const L=ALT_TEAMS[id]||[],c=L.filter(t=>t.tier===tier&&t.n!==excl);return c.length?pick(c):L.length?pick(L):{n:altDef(id).name,tier}}
 const TIER_I=['bottom','mid','top'];
 function makeOffers(pos,field,h2h){
@@ -2666,10 +2719,10 @@ const JRCAL={KART:{t:['사르노','프란차코르타','겡크','크리스티안
  F3:{t:['앨버트 파크','사키르','이몰라','몬테카를로','카탈루냐','레드불링','실버스톤','스파','헝가로링','몬차'],n:2,lb:['스프린트','피처']},
  F2:{t:['앨버트 파크','사키르','제다','이몰라','몬테카를로','카탈루냐','레드불링','실버스톤','스파','헝가로링','몬차','바쿠','루사일','야스 마리나'],n:2,lb:['스프린트','피처']}};
 let progTimer=null,progI=0,feed=[];
-function roundName(r){const C=S.season.ctx;if(C.f1)return`R${r+1} · ${F1CAL[r%F1CAL.length]} GP`;const J=JRCAL[C.sid];if(!J)return`${r+1}라운드`;
+function roundName(r){const C=S.season.ctx;if(C.f1)return`R${r+1} · ${F1CAL[r%F1CAL.length]} GP`;const A=ALTCAL[C.sid];if(A)return`R${r+1} · ${A[r%A.length][0]}`;const J=JRCAL[C.sid];if(!J)return`${r+1}라운드`;
   const i=Math.floor(r/J.n),k=r%J.n;return`R${i+1} · ${J.t[i%J.t.length]}${J.n>1?' '+(J.lb?J.lb[k]:`레이스 ${k+1}`):''}`}
 // progress line: "8 / 24 · 모나코 GP · 몬테카를로"
-function roundLine(r,n){const C=S.season.ctx,T=F1TR[r%F1TR.length];return`${r+1} / ${n}${C.f1?` · ${T[0]} GP · ${T[1]}`:JRCAL[C.sid]?` · ${roundName(r)}`:' 라운드'}`}
+function roundLine(r,n){const C=S.season.ctx,T=F1TR[r%F1TR.length];const A=ALTCAL[C.sid]&&ALTCAL[C.sid][r%ALTCAL[C.sid].length];return`${r+1} / ${n}${C.f1?` · ${T[0]} GP · ${T[1]}`:A?` · ${A[0]} · ${A[1]}`:JRCAL[C.sid]?` · ${roundName(r)}`:' 라운드'}`}
 function progressView(){
   const C=S.season.ctx;
   return`<section class="prog">${stepper()}<div class="eyebrow">${C.year} ${sLogo(C.sid)}시즌 · ${withLogos(esc(C.teamName))}${C.role==='reserve'?' 리저브':''}</div>
@@ -2682,13 +2735,14 @@ function progressView(){
 function roundInfo(r){
   const Z=S.season,m=tally(r),me=m.me,o=Z.orders[r],ab=Z.meAbsent.includes(r);
   const rank=me.starts>0?standingsOf(Object.values(m)).findIndex(e=>e.key==='me')+1:null;
-  return{r,wet:o.wet,tc:Z.ctx.f1&&r===7&&tcLast()==='MONACO',home:Z.ctx.f1&&isHome(r),absent:ab,fp:ab?null:me.fp[r]??null,pole:o.q[0]==='me',pts:me.pts,rank,wins:me.wins};
+  const CR=ALT_CROWN[Z.ctx.sid],cr=CR&&CR.r===r;return{r,wet:o.wet,cr:cr?CR:null,tc:Z.ctx.f1&&r===7&&tcLast()==='MONACO'||cr&&tcLast()===CR.id,home:Z.ctx.f1&&isHome(r),absent:ab,fp:ab?null:me.fp[r]??null,pole:o.q[0]==='me',pts:me.pts,rank,wins:me.wins};
 }
 function describe(t){
   const C=S.season.ctx;
   if(t.absent||t.fp==null)return{head:C.role==='reserve'?'패독에서 기회를 기다리고 있어요':'부상에서 회복하고 있어요'};
   if(t.fp===1&&t.home&&!t.tc)return{head:'홈 GP 우승!',note:{t:`${roundName(t.r)} 우승 · 홈 관중 앞에서!`,c:'gold'},hl:1};
   if(t.fp===1&&t.tc)return{head:'트리플 크라운!',note:{t:`${roundName(t.r)} 우승 · ${TC_MSG}`,c:'gold'},hl:1};
+  if(t.fp===1&&t.cr)return{head:`${t.cr.n} 우승!`,note:{t:`${roundName(t.r)} 우승${t.wet?' (빗속 레이스)':''}`,c:'gold'},hl:1};
   if(t.fp===1)return{head:t.wins===1?'첫 우승을 차지했어요!':'우승했어요!',note:{t:`${roundName(t.r)} 우승${t.wet?' (빗속 레이스)':''}`,c:'gold'},hl:1};
   if(t.fp===99)return{head:'리타이어했어요',note:{t:`${roundName(t.r)} 리타이어`,c:'bad'},hl:1};
   if(t.fp<=3)return{head:'포디움에 올랐어요',note:{t:`${roundName(t.r)} ${t.fp}위 포디움`,c:'blue'},hl:1};
@@ -2822,7 +2876,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.19',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.20-d1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
