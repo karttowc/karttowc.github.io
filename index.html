@@ -2776,19 +2776,19 @@ const INC=[
    {label:'바로 피트인',stat:'tyre',good:[-3,-1],bad:[1,2]},
    {label:'트랙 포지션 유지',stat:'race',good:[-2,0],bad:[1,4]}]},
  {id:'battle',title:'앞차와 치열한 배틀',desc:'세 바퀴째 따라붙고 있어요. 추월 각이 보여요.',choices:[
-   {label:'과감하게 추월한다',stat:'race',good:[-2,-1],bad:[1,3],dnf:.12},
+   {label:'과감하게 추월한다',stat:'race',good:[-3,-2],bad:[1,3],dnf:.12},
    {label:'기다리며 압박한다',stat:'consistency',good:[-1,0],bad:[0,1]}]},
  {id:'tyre',title:'타이어 마모가 심해요',desc:'엔지니어가 전략을 물어요.',choices:[
    {label:'원스톱으로 버틴다',stat:'tyre',good:[-3,-1],bad:[2,5]},
    {label:'투스톱으로 바꾼다',stat:null,good:[0,1],bad:[1,2]}]},
  {id:'damage',title:'프런트 윙이 손상됐어요',desc:'첫 랩 접촉으로 다운포스가 줄었어요.',choices:[
    {label:'피트에서 교체한다',stat:null,good:[1,2],bad:[3,4]},
-   {label:'그대로 달린다',stat:'consistency',good:[0,1],bad:[2,4],dnf:.25}]},
+   {label:'그대로 달린다',stat:'consistency',good:[-1,0],bad:[2,4],dnf:.15}]},
  {id:'order',f1:true,title:'팀 무전: 팀메이트에게 자리를 내줘라',desc:'팀메이트의 챔피언십을 위해 필요하대요.',choices:[
    {label:'팀 오더를 따른다',fixed:{delta:1,eff:{rep:4,morale:-3}}},
    {label:'무시하고 달린다',fixed:{delta:0,eff:{fans:4,morale:-3}}}]},
  {id:'start',title:'스타트 직전, 앞이 막혀 있어요',desc:'첫 코너 인사이드에 틈이 보여요.',choices:[
-   {label:'과감하게 인사이드로',stat:'race',good:[-3,-1],bad:[1,3],dnf:.08},
+   {label:'과감하게 인사이드로',stat:'race',good:[-4,-2],bad:[1,3],dnf:.08},
    {label:'안전하게 자리를 지킨다',stat:'consistency',good:[-1,0],bad:[0,1]}]},
  {id:'undercut',title:'앞차와의 피트 싸움',desc:'엔지니어가 언더컷이냐 오버컷이냐 묻고 있어요.',choices:[
    {label:'먼저 들어간다 (언더컷)',stat:'quali',good:[-2,-1],bad:[0,2]},
@@ -2797,11 +2797,11 @@ const INC=[
    {label:'소프트로 재출발',stat:'race',good:[-3,-1],bad:[0,3]},
    {label:'하드로 끝까지',stat:'tyre',good:[-2,0],bad:[0,2]}]},
  {id:'matefight',f1:true,title:'마지막 랩, 팀메이트가 바로 앞',desc:'같은 팀 차가 바로 앞에 있어요. 팀은 "순위 유지"라고 무전했어요.',choices:[
-   {label:'그래도 공격한다',stat:'race',good:[-1,-1],bad:[1,3],dnf:.2,eff:{fans:3}},
+   {label:'그래도 공격한다',stat:'race',good:[-1,-1],bad:[1,3],dnf:.12,eff:{fans:5}},
    {label:'순위를 유지한다',fixed:{delta:0,eff:{rep:3}}}]},
  {id:'fuel',title:'연료가 아슬아슬해요',desc:'엔지니어가 연료를 아끼라고 지시했어요.',choices:[
    {label:'리프트 앤 코스트로 아낀다',fixed:{delta:1,eff:{rep:1}}},
-   {label:'무시하고 계속 밀어붙인다',stat:'consistency',good:[-2,0],bad:[0,2],dnf:.1}]},
+   {label:'무시하고 계속 밀어붙인다',stat:'consistency',good:[-3,-1],bad:[0,2],dnf:.1}]},
  {id:'limits',title:'트랙 리밋 경고 2회째',desc:'한 번 더 넘으면 5초 페널티예요.',choices:[
    {label:'라인을 조심한다',stat:'consistency',good:[0,0],bad:[1,1]},
    {label:'신경 쓰지 않고 푸시',stat:'race',good:[-2,-1],bad:[2,4]}]},
@@ -2813,7 +2813,7 @@ const INC=[
    {label:'무전으로 화를 낸다',fixed:{delta:2,eff:{fans:2,morale:-3}}}]},
  {id:'brake',title:'브레이크 온도가 치솟아요',desc:'이대로면 브레이크가 터질 수도 있어요.',choices:[
    {label:'브레이크를 아껴 탄다',stat:'tyre',good:[0,1],bad:[1,2]},
-   {label:'그대로 밀어붙인다',stat:'race',good:[-1,0],bad:[1,3],dnf:.15}]},
+   {label:'그대로 밀어붙인다',stat:'race',good:[-3,-1],bad:[1,3],dnf:.15}]},
  {id:'vsc',title:'버추얼 세이프티카!',desc:'싸게 피트 스톱을 할 기회예요.',choices:[
    {label:'바로 피트인',stat:'tyre',good:[-3,-1],bad:[0,2]},
    {label:'트랙에 남는다',stat:'race',good:[-1,0],bad:[1,3]}]}
@@ -2842,7 +2842,7 @@ const GACHA=[
  {id:'boxing',title:'복싱으로 반사신경 키우기',ev:'복싱 훈련',p:.65,win:{stats:{mental:3,race:3}},inj:[1,1]},
  {id:'mtb',title:'산악자전거로 지구력 훈련',ev:'산악자전거 훈련',p:.65,win:{stats:{consistency:3,tyre:3}},inj:[1,2]},
  {id:'kart',title:'옛 라이벌들과 카트 레이스!',ev:'카트 레이스',p:.6,win:{stats:{race:3,quali:1}},slump:4},
- {id:'simnight',title:'시뮬레이터로 밤샘 퀄리파잉 연습',p:.6,win:{stats:{quali:3}},slump:6,fm:7},
+ {id:'simnight',title:'시뮬레이터로 밤샘 퀄리파잉 연습',p:.6,win:{stats:{quali:4}},slump:6,fm:7},
  {id:'skydive',title:'스폰서랑 스카이다이빙 이벤트!',ev:'스카이다이빙',p:.75,win:{fans:15,morale:5,rep:5},inj:[1,2]},
  {id:'rainold',title:'구형 머신으로 빗길 테스트',ev:'빗길 테스트',p:.6,win:{stats:{wet:4}},slump:4},
  {id:'padel',title:'드라이버들과 파델 테니스',ev:'파델 테니스',p:.7,win:{fans:8,rep:3},slump:4},
@@ -2850,7 +2850,7 @@ const GACHA=[
  {id:'esports',title:'프로게이머들과 24시간 심레이싱',p:.65,win:{stats:{quali:2},fans:5},slump:5},
  {id:'rallyx',title:'주말에 랠리 출전!',ev:'랠리',p:.6,win:{stats:{wet:4,consistency:2,race:2}},inj:[1,2]},
  {id:'cycle',title:'알프스 사이클 투어',ev:'사이클 투어',p:.7,win:{stats:{consistency:2},morale:4},slump:4},
- {id:'surf',title:'친구들과 서핑 여행',ev:'서핑',p:.75,win:{stats:{mental:3},fans:3},slump:4},
+ {id:'surf',title:'친구들과 서핑 여행',ev:'서핑',p:.7,win:{stats:{mental:3},fans:3},slump:4},
  {id:'football',title:'학교 친구들과 축구 시합',ev:'축구 시합',p:.7,win:{stats:{consistency:2,race:1}},slump:4},
  {id:'rentkart',title:'카트 동호회 형들이랑 레이스 연습!',ev:'카트 연습',p:.65,win:{stats:{race:2}},slump:3,fm:5},
  {id:'gamenight',title:'친구들이랑 밤새 레이싱 게임 대회',p:.65,win:{stats:{quali:2}},slump:3,fm:5},
@@ -4116,7 +4116,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.17',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.4.18-d1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
