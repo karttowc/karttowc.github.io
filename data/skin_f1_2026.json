@@ -216,15 +216,15 @@
    "birth_year": 1998,
    "team": "mercedes",
    "style": "qualifier",
-   "ovr": 88,
-   "potential": 89,
+   "ovr": 84,
+   "potential": 86,
    "stats": {
-    "quali": 95,
-    "race": 86,
-    "tyre": 85,
-    "wet": 88,
-    "consistency": 88,
-    "mental": 86
+    "quali": 91,
+    "race": 82,
+    "tyre": 81,
+    "wet": 84,
+    "consistency": 84,
+    "mental": 82
    }
   },
   {
@@ -234,15 +234,15 @@
    "birth_year": 2006,
    "team": "mercedes",
    "style": "racer",
-   "ovr": 84,
+   "ovr": 88,
    "potential": 92,
    "stats": {
-    "quali": 81,
-    "race": 93,
-    "tyre": 81,
-    "wet": 81,
-    "consistency": 83,
-    "mental": 85
+    "quali": 85,
+    "race": 97,
+    "tyre": 85,
+    "wet": 85,
+    "consistency": 87,
+    "mental": 89
    }
   },
   {
