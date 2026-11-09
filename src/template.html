@@ -493,11 +493,11 @@ html,body{margin:0}
 .hof .rk.m0{background-image:linear-gradient(180deg,#FFF3C4 0%,#F2C14E 45%,#A8741C 55%,#F7D77A 100%)}
 .hof .rk.m1{background-image:linear-gradient(180deg,#FFFFFF 0%,#C9CFD8 45%,#7D8592 55%,#E3E7ED 100%)}
 .hof .rk.m2{background-image:linear-gradient(180deg,#FFD9B8 0%,#D08A52 45%,#7E4622 55%,#E9A774 100%)}
-.hof .row2.p0,.hof .row2.p1,.hof .row2.p2{border-top:0;margin-top:6px;padding:8px 10px 8px 8px;border-radius:14px;position:relative}
+.hof .row2.p0,.hof .row2.p1,.hof .row2.p2{border-top:0;margin-top:8px;padding:14px 10px 14px 8px;border-radius:14px;position:relative}
 .hof .row2.p0{background:linear-gradient(100deg,rgba(242,193,78,.16),rgba(242,193,78,.03) 60%);box-shadow:inset 0 0 0 1px rgba(242,193,78,.35)}
 .hof .row2.p1{background:linear-gradient(100deg,rgba(201,207,216,.13),rgba(201,207,216,.02) 60%);box-shadow:inset 0 0 0 1px rgba(201,207,216,.28)}
 .hof .row2.p2{background:linear-gradient(100deg,rgba(208,138,82,.14),rgba(208,138,82,.02) 60%);box-shadow:inset 0 0 0 1px rgba(208,138,82,.3)}
-.hof .row2.p2+.row2{margin-top:6px}
+.hof .row2.p2+.row2{margin-top:8px}
 .hof .rkch::-webkit-scrollbar{display:none}
 .hof .rkn{display:flex;align-items:baseline;gap:8px}.hof .rkn b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hof .rkn i{margin-left:auto;flex:none;font-style:normal;font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums}
 .hof .rkmeta{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -3087,7 +3087,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.3-d1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
