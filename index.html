@@ -361,6 +361,7 @@ label.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--
 .segs{display:flex;background:var(--surface-2);border-radius:12px;padding:4px;gap:4px}
 .segs button{flex:1;border:0;background:none;border-radius:9px;padding:8px;color:var(--muted);font-weight:500}
 .segs button[aria-pressed="true"]{background:var(--surface);color:var(--fg)}
+.lgsegs button{display:flex;align-items:center;justify-content:center;gap:0;font-weight:600}.lgsegs button img{margin-right:5px!important}
 .tgroup{display:flex;flex-direction:column;gap:8px}
 .tgroup + .tgroup{border-top:1px solid var(--line);padding-top:14px}
 .thead{display:flex;align-items:center;gap:10px;background:none;border:0;padding:0;text-align:left;width:100%}
@@ -2078,7 +2079,7 @@ function rookie(team){
 }
 
 /* ---------- state ---------- */
-let padLg='alt',newsTab='all',newsMore=false,hlMore=false,fanMore=false,chain=false,resMore=false,evPick=null;
+let padLg=null,newsTab='all',newsMore=false,hlMore=false,fanMore=false,chain=false,resMore=false,evPick=null;
 let S=null, tab='home', ob=null, sel=null, DL=null, sheet=null, cardURL=null;
 const KEY='k2wc-save-v1';
 function rngChk(){if(S&&S.p&&!S.p.retired&&S.p.x!==2&&rngBad())S.p.x=2}
@@ -3588,7 +3589,8 @@ function buildReact(R,x){
   if(dO<0)pre=R.slump&&R.slump!=='random'&&R.age<33?`OVR이 ${dO} 떨어졌어요. ${R.slump==='tired'?'체력이 바닥난 탓':R.slump==='norace'?'실전 감각이 떨어진 탓':'부진이 자신감을 흔든 탓'}이라 일시적이에요. `:R.age>=33?`OVR이 ${dO} 떨어졌어요. 나이에 따른 하락이 시작됐어요. `:`OVR이 ${dO} 떨어졌지만 일시적인 부진이에요. `;
   else if(dO>=4)pre=`OVR이 +${dO} 오르며 한 단계 성장했어요. `;
   if(p.morale<45)adv=`체력이 ${p.morale}까지 떨어졌어요. 다음 시즌은 휴식과 회복을 먼저 챙기세요.`;
-  else if(R.sid!=='F1'&&R.age>=24&&!p.debutYear)adv='냉정하게 말하면 F1 문이 좁아지고 있어요. 다른 리그에서 이름을 알리는 것도 방법이에요.';
+  else if(R.titled&&!ORDER.includes(R.sid)&&R.sid!=='F1')adv=pick([`이제 이 무대의 주인이에요. ${LBL[weak]}(${st[weak]})까지 다듬어서 타이틀을 지켜 보세요.`,`챔피언도 과제는 있어요. ${LBL[weak]}(${st[weak]})만 더 올리면 왕조를 세울 수 있어요.`]);
+  else if(ORDER.includes(R.sid)&&R.age>=24&&!p.debutYear)adv='냉정하게 말하면 F1 문이 좁아지고 있어요. 다른 리그에서 이름을 알리는 것도 방법이에요.';
   else if(p.series==='F1'&&p.role==='race'&&p.contract&&p.contract.left===1)adv=`계약이 1년 남았어요. 다음 시즌 성적이 재계약을 좌우해요. ${LBL[weak]}(${st[weak]})부터 챙기세요.`;
   else if(R.titled&&R.sid==='F1')adv=pick([`이제 타이틀을 지키는 싸움이에요. ${LBL[weak]}(${st[weak]})까지 다듬으면 빈틈이 없어요.`,`챔피언에게도 과제는 있어요. ${LBL[weak]}(${st[weak]})만 더 올리면 왕조를 노려볼 만해요.`]);
   else if(R.titled)adv=pick([`다음 무대에선 상대가 훨씬 세져요. ${LBL[weak]}(${st[weak]})부터 준비하세요.`,`챔피언 타이틀을 들고 올라가요. ${LBL[weak]}(${st[weak]})이 다음 무대의 열쇠예요.`]);
@@ -3802,7 +3804,7 @@ function topNews(){const N=S.news;if(!N||!N.heads)return'';const out=[],nm=nextM
     if(ch&&!ch.me&&R)out.push({t:`${ch.name}, ${R.year} ${R.series} 챔피언`,c:''});
     N.heads.filter(h=>/F2를 거쳐/.test(h.t)).slice(0,1).forEach(h=>out.push({t:h.t,c:''}));
     (S.jrNews||[]).filter(x=>x.s===p.series||p.series==='FRECA'&&x.s==='F3').slice(0,2).forEach(x=>out.push({t:x.t,c:''}));
-    if(out.length)return`<div class="topnews"><div class="tnh"><b>이번 이적 시장 주요 소식</b><button type="button" data-sheet="news">판도 전체 ›</button></div>
+    if(out.length)return`<div class="topnews"><div class="tnh"><b>이번 이적 시장 주요 소식</b><button type="button" data-sheet="${myLg()==='f1'?'news':'altnews_'+myLg()}">판도 전체 ›</button></div>
     ${out.slice(0,3).map(x=>`<div class="tn ${x.c}">${withLogos(esc(x.t))}</div>`).join('')}</div>`}
   if(N.major)out.push({t:`${S.year} 시즌부터 새 규정 시행! 머신 판도가 원점에서 다시 시작해요`,c:'reg'});
   else if(nm-S.year===1)out.push({t:`${S.year} 시즌은 지금 규정의 마지막 해 · 대규정 변경은 ${nm}년부터`,c:''});
@@ -3810,7 +3812,7 @@ function topNews(){const N=S.news;if(!N||!N.heads)return'';const out=[],nm=nextM
   const lines=[...(N.lines||[])].filter(l=>!/대규정/.test(l)).sort((a,b)=>(own&&b.includes(own))-(own&&a.includes(own)));
   lines.slice(0,2).forEach(l=>out.push({t:l,c:tone(l)}));
   N.heads.filter(h=>!/챔피언|대규정|다음 대규정|\[루머\].*영입 검토/.test(h.t)).slice(0,3).forEach(h=>out.push({t:h.t,c:tone(h.t)}));
-  return`<div class="topnews"><div class="tnh"><b>이번 이적 시장 주요 소식</b><button type="button" data-sheet="news">판도 전체 ›</button></div>
+  return`<div class="topnews"><div class="tnh"><b>이번 이적 시장 주요 소식</b><button type="button" data-sheet="${myLg()==='f1'?'news':'altnews_'+myLg()}">판도 전체 ›</button></div>
     ${out.slice(0,3).map(x=>`<div class="tn ${x.c}">${withLogos(esc(x.t))}</div>`).join('')}</div>`}
 function offersCard(){
   const o=S.offers;
@@ -3840,7 +3842,12 @@ function whyCard(){const H=S.p.history,R=H.at(-1),Y=R&&R.why;if(!Y||(S.react&&S.
   return`<div class="why"><div class="wh"><b>순위 변동을 만든 요인</b><span>작년 ${X.pos}위 → 올해 ${Y.pos}위 <em class="${mv>0?'up2':mv<0?'dn2':''}">${mv>0?'▲'+mv:mv<0?'▼'+(-mv):'–'}</em></span></div>
     ${rows.map(([ic,l,v])=>`<div class="wr"><span>${ic} ${l}</span><div class="wb"><i class="${v>=0?'p':'n'}" style="width:${Math.abs(v)/mx*50}%"></i></div><b class="${v>0?'up2':v<0?'dn2':''}">${v>0?'+':''}${v}</b></div>`).join('')}</div>`}
 /* the league I race in (WEC/IndyCar): last season's champions, the team table, moves and the car order for this year */
-function altLeague(){const p=S.p,sid=p.series==='ALT'&&ALT_DRV[p.alt]?p.alt:null,A=sid&&S.altSum&&S.altSum[sid];return A&&A.year===S.year-1?{sid,A,L:sid==='WEC'?'WEC':altDef(sid).name}:null}
+function altLeague(id){const p=S.p,my=p.series==='ALT'&&ALT_DRV[p.alt]?p.alt:null,sid=id||my,A=sid&&S.altSum&&S.altSum[sid];return A&&A.year===S.year-1?{sid,A,L:sid==='WEC'?'WEC':altDef(sid).name,mine:sid===my}:null}
+/* league switch on top of the paddock tab and the news sheets: F1 · WEC · IndyCar, always there */
+const LGS=[['f1','F1','F1'],['WEC','WEC','WEC'],['INDY','INDY','인디카']];
+function myLg(){const p=S.p;return p.series==='ALT'&&ALT_DRV[p.alt]?p.alt:'f1'}
+function lgSegs(cur,sh){return`<div class="segs lgsegs">${LGS.map(([k,lo,n])=>`<button type="button" ${sh?`data-sheet="${k==='f1'?'news':'altnews_'+k}"`:`data-padlg="${k}"`} aria-pressed="${cur===k}">${sLogo(lo,12)}${n}</button>`).join('')}</div>`}
+function lgEmpty(k){return`<section class="card"><p class="muted" style="margin:0">첫 시즌을 마치면 ${k==='WEC'?'WEC':'인디카'} 소식이 여기에 떠요.</p></section>`}
 function altHeads(sid,A,L){const H=[],c=A.champ,t=A.teams[0];
   H.push({t:c.me?`${c.name}, ${A.year} ${L} 챔피언 등극!`:`${c.name}, ${A.year} ${L} 챔피언 (${c.team})`,c:'gold'});
   if(t)H.push({t:sid==='WEC'?`${t.n}, ${A.year} 제조사 챔피언십 우승`:`${t.n}, ${A.year} 팀 성적 1위`,c:'gold'});
@@ -3849,15 +3856,15 @@ function altHeads(sid,A,L){const H=[],c=A.champ,t=A.teams[0];
   const R=altRank(sid);H.push({t:`[테스트] ${sid==='WEC'?'BoP 조정 후 ':''}${R[0].n}, 올 시즌 머신 1위 평가`,c:'blue'});
   if(sid==='INDY'&&Math.abs(S.altEng||0)>=.4)H.push({t:`[테스트] 올 시즌은 ${S.altEng>0?'혼다':'쉐보레'} 엔진이 앞선다는 평가`,c:'blue'});
   return H}
-function altCard(){const X=altLeague();if(!X)return'';const{sid,A,L}=X,H=altHeads(sid,A,L),LIM=5,h=newsMore?H:H.slice(0,LIM);
+function altCard(id){const X=altLeague(id);if(!X)return'';const{sid,A,L}=X,H=altHeads(sid,A,L),LIM=5,h=newsMore?H:H.slice(0,LIM);
   return`<section class="card" style="gap:12px"><div class="eyebrow">${S.year} 시즌을 앞두고</div><h3 class="h3">${sLogo(sid)}${esc(L)} 소식</h3>
     <div class="newslist">${h.map(x=>`<div class="${x.c==='gold'?'tg':tone(x.t,{team:S.p.team.name})}">${withLogos(esc(x.t))}</div>`).join('')}</div>${H.length>LIM?moreBtn(H.length-LIM):''}
     <div class="row"><h3 class="h3">${A.year} 드라이버 순위</h3><span class="muted" style="font-size:12px">상위 5명</span></div>
     <table class="tbl"><tbody>${A.top.map((e,i)=>`<tr class="${e.me?'me':''}"><td class="num" style="width:24px">${i+1}</td><td>${altLogoN(e.team)}${esc(e.name)}</td><td class="r num">${e.pts}</td></tr>`).join('')}</tbody></table>
-    <button class="btn ghost" type="button" data-sheet="altnews">${ALT_TLBL[sid]}·머신 판도</button></section>`}
+    <button class="btn ghost" type="button" data-sheet="altnews_${sid}">${ALT_TLBL[sid]}·머신 판도</button></section>`}
 function paddockTab(){
   const N=S.news&&S.news.heads?S.news:null,F=S.f1sum;
-  const AL=altLeague(),tn=(()=>{const NT=S.notice&&S.notice.year===S.year?S.notice:null,L=NT?NT.lines.filter(l=>l!==statusLine(NT)):[];
+  const tn=(()=>{const NT=S.notice&&S.notice.year===S.year?S.notice:null,L=NT?NT.lines.filter(l=>l!==statusLine(NT)):[];
     return L.length?`<section class="card"><h3 class="h3">우리 팀 소식${NT.team?' · '+withLogos(esc(NT.team)):''}</h3><div class="newslist">${L.map(l=>`<div class="${/^(F1|WEC|인디카|IndyCar)[^:]{0,6} 소식:/.test(l)?'':tone(l,{mine:true})}">${withLogos(esc(l))}</div>`).join('')}</div></section>`:''})(),f1=`${N?`<section class="card" style="gap:12px"><div class="eyebrow">${N.year} 시즌을 앞두고</div><h3 class="h3">패독 소식</h3>${(()=>{const nm=nextMajorYear(),l=nm-S.year;return`<div class="regpin"><span>다음 대규정</span><b>${N.major&&nm>S.year?S.year+'년 시행 중 · 다음 '+nm+'년':l<=0?S.year+'년 시행':nm+'년'}</b><em>${l===1?S.year+' 시즌 다음':l>1?l+'시즌 뒤':'이번 시즌'}</em></div>`})()}
     <div class="segs"><button type="button" data-ntab="all" aria-pressed="${newsTab==='all'}">전체</button><button type="button" data-ntab="team" aria-pressed="${newsTab==='team'}">팀별</button></div>
     ${newsBody(N)}
@@ -3865,12 +3872,10 @@ function paddockTab(){
   ${F?`<section class="card"><div class="row"><h3 class="h3">${F.year} F1 드라이버 순위</h3><span class="muted" style="font-size:12px">상위 5명</span></div>
     <table class="tbl"><tbody>${F.top.map((e,i)=>`<tr class="${e.me?'me':''}"><td class="num" style="width:24px">${i+1}</td><td>${e.team&&teamByShort(e.team)?logo(teamByShort(e.team).id,22):''}${esc(e.name)}</td><td class="r num">${e.pts}</td></tr>`).join('')}</tbody></table></section>`:''}
   ${!N&&!F?`<section class="card"><p class="muted" style="margin:0">첫 시즌을 마치면 패독 소식이 여기에 떠요.</p></section>`:''}`;
-  // racing in WEC/IndyCar: one tab per league, my league open first
-  if(!AL)return`<header class="top"><h1>패독</h1></header>${tn}${f1}`;
-  const lg=padLg==='f1'?'f1':'alt';
-  return`<header class="top"><h1>패독</h1></header>
-  <div class="segs"><button type="button" data-padlg="f1" aria-pressed="${lg==='f1'}">F1</button><button type="button" data-padlg="alt" aria-pressed="${lg==='alt'}">${esc(AL.L)}</button></div>
-  ${lg==='alt'?tn+altCard():f1}`;
+  // one tab per league, my league open first; my team news sits in my league
+  const my=myLg(),lg=padLg||my,mt=lg===my?tn:'';
+  return`<header class="top"><h1>패독</h1></header>${lgSegs(lg)}
+  ${lg==='f1'?mt+f1:mt+(altCard(lg)||lgEmpty(lg))}`;
 }
 function reactTab(){
   const X=S.react;if(X)X.seen=true;
@@ -4390,7 +4395,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.0',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.1-d1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -4899,8 +4904,13 @@ function sheetView(){
       <div class="n1row"><div>${helmet(p.helmet,1,84)}<b>#1</b></div><div>${helmet(p.helmet,p.num,84)}<b>#${esc(p.num)}</b></div></div>
       <button class="btn" type="button" id="num1Yes">#1을 단다</button><button class="btn ghost" type="button" id="num1No">#${esc(p.num)} 그대로</button></section></div>`}
   if(sheet&&sheet.type==='msg')return`<div class="sheet" id="sheetBg"><section class="card"><h3 class="h2">${esc(sheet.title)}</h3><p style="margin:0">${esc(sheet.text)}</p><button class="btn" type="button" id="closeSheet">확인</button></section></div>`;
-  if(sheet==='altnews'&&altLeague()){const{sid,A,L}=altLeague(),R=altRank(sid),my=S.p.team.name;
-    return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">${S.year} 시즌을 앞두고</div><h3 class="h2">${esc(L)} 소식</h3>
+  if(typeof sheet==='string'&&sheet.startsWith('altnews_')){const k=sheet.slice(8),X=altLeague(k);
+    if(!X)return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto">${lgSegs(k,1)}<p class="muted" style="margin:0">첫 시즌을 마치면 ${k==='WEC'?'WEC':'인디카'} 소식이 여기에 떠요.</p><button class="btn" type="button" id="closeSheet">닫기</button></section></div>`;
+    const{sid,A,L}=X,R=altRank(sid),my=X.mine?S.p.team.name:null,H=altHeads(sid,A,L);
+    return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto">${lgSegs(k,1)}<div class="eyebrow">${S.year} 시즌을 앞두고</div><h3 class="h2">${esc(L)} 소식</h3>
+      <div class="newslist">${H.map(x=>`<div class="${x.c==='gold'?'tg':tone(x.t,X.mine?{team:S.p.team.name}:{})}">${withLogos(esc(x.t))}</div>`).join('')}</div>
+      <h3 class="h3">${A.year} 드라이버 순위</h3>
+      <table class="tbl"><tbody>${A.top.map((e,i)=>`<tr class="${e.me?'me':''}"><td class="num" style="width:24px">${i+1}</td><td>${altLogoN(e.team)}${esc(e.name)}</td><td class="r num">${e.pts}</td></tr>`).join('')}</tbody></table>
       <h3 class="h3">${A.year} ${ALT_TLBL[sid]}</h3>
       <table class="tbl"><tbody>${A.teams.map((t,i)=>`<tr class="${t.n===my?'me':''}"><td class="num" style="width:24px">${i+1}</td><td>${altLogoN(t.n)}${esc(t.n)}</td><td class="r num">${t.pts}</td></tr>`).join('')}</tbody></table>
       <p class="muted" style="margin:0;font-size:13px">${sid==='WEC'?'제조사 순위는 팀마다 잘 달린 두 대의 점수로 매겨요.':'인디카는 공식 팀 챔피언십이 없어서, 팀 차들의 점수를 더했어요.'}</p>
@@ -4909,7 +4919,7 @@ function sheetView(){
       <p class="muted" style="margin:0;font-size:13px">${sid==='WEC'?'BoP(성능 조정) 반영 후 비시즌 테스트 기준이에요.':'비시즌 테스트 기준이고, 혼다·쉐보레 엔진 차이가 들어 있어요.'}</p>
       <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`}
   if(sheet==='news'&&S.news&&S.news.heads){const N=S.news,ts=[...S.teams].sort((a,b)=>b.machine-a.machine);
-    return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">${N.year} 시즌을 앞두고</div><h3 class="h2">패독 소식</h3>
+    return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto">${lgSegs('f1',1)}<div class="eyebrow">${N.year} 시즌을 앞두고</div><h3 class="h2">F1 패독 소식</h3>
       <div class="segs"><button type="button" data-ntab="all" aria-pressed="${newsTab==='all'}">전체</button><button type="button" data-ntab="team" aria-pressed="${newsTab==='team'}">팀별</button></div>
       ${newsBody(N)}
       <h3 class="h3">${N.prevYear} 컨스트럭터 순위</h3>
@@ -5066,7 +5076,7 @@ root.addEventListener('click',e=>{
   if(id==='newLifeNo'){sheet=null;render();return}
   if(id==='newLifeYes'){sheet=null;S=null;try{localStorage.removeItem(KEY)}catch(_){}ob=null;render();window.scrollTo(0,0);return}
 });
-tabsEl.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.tab;if(tab==='paddock')padLg='alt';render();window.scrollTo(0,0)});
+tabsEl.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.tab;if(tab==='paddock')padLg=null;render();window.scrollTo(0,0)});
 document.getElementById('importFile').addEventListener('change',e=>{
   const f=e.target.files[0];if(!f)return;const rd=new FileReader();
   rd.onload=()=>{try{const s=JSON.parse(rd.result);if(!s||!s.p||!s.teams)throw 0;S=s;sheet=null;save();render();toast('커리어를 불러왔어요')}catch(_){toast('저장 파일을 읽지 못했어요. 이 게임에서 내보낸 파일인지 확인해 주세요.')}};
