@@ -823,7 +823,8 @@ function altMarket(ev){const p=S.p;S.altNews={WEC:[],INDY:[]};
     const out=pick(pool.sort((a,b)=>altLv(a)-altLv(b)).slice(0,3)),i=R.indexOf(out);R[i]={t:out.t,c:out.c,fy:S.year,n:d.name,nat:d.nationality,by:S.year-d.age,lv:clamp(Math.round((o-80)/2),-1,3)};
     d.toAlt=1;const msg=`${d.name}, ${altDef(sid).name} ${jo(out.t,'과','와')} 계약`;S.paddock.push(msg);S.altNews[sid].push(`${d.name}, F1에서 ${joRo(out.t)} 합류`);if(p.series==='ALT'&&p.alt===sid)ev.push(`${altDef(sid).name} 이적: ${d.name}, F1에서 ${joRo(out.t)} 합류`)}}
 /* every WEC/IndyCar season is run each year like F1 (my own season when I race there), so the paddock tab can show the league's champions, team table and moves */
-function altSeasons(Z,m){const p=S.p;S.altSum=S.altSum||{};
+function altSeasons(Z,m){const p=S.p;S.altSum=S.altSum||{};S.altKing=S.altKing||{INDY:{n:'알렉스 팔로우',k:4}};S.altPrev={};
+  for(const sid of Object.keys(ALT_DRV)){const K0=S.altKing[sid];if(K0&&K0.k>=2&&K0.y!==S.year)S.altPrev[sid]=K0}
   for(const sid of Object.keys(ALT_DRV)){let ents,orders;
     if(Z.ctx.sid===sid&&p.series==='ALT'){ents=Object.values(m);orders=Z.orders}
     else{const C=altCars(altRoster(sid)),avg=C.reduce((a,x)=>a+x.lv,0)/(C.length||1);orders=[];
@@ -840,6 +841,7 @@ function altSeasons(Z,m){const p=S.p;S.altSum=S.altSum||{};
       if(roy&&roy.isPlayer)Z.ctx.ev.push(`인디카 루키 오브 더 이어! 올해 신인 중 가장 높은 순위예요.`)}
     S.altSum[sid]={year:S.year,champ:{name:st[0].name,team:full(st[0]),me:!!st[0].isPlayer},top:st.slice(0,5).map(e=>({name:e.name,team:full(e),pts:e.pts,me:!!e.isPlayer})),teams,
       crown:cw?{name:cw.name,team:full(cw),me:!!cw.isPlayer}:null,roy:roy?{name:roy.name,team:full(roy),me:!!roy.isPlayer}:null};
+    {const K0=S.altKing[sid],c=st[0].isPlayer?'\u0001me':st[0].name;S.altKing[sid]=K0&&K0.n===c?{n:c,k:K0.k+1,y:S.year}:{n:c,k:1,y:S.year}}
     altForm(sid,st)}}
 const ALT_TLBL={WEC:'제조사 순위',INDY:'팀 순위'};
 /* results feed back into the grid's form when I race there */
@@ -980,7 +982,7 @@ function simulate(ents,races,orders,cal){
     const pm=T&&T.pm||1,PT=ptsTab(T);fin.forEach((e,i)=>{e.fp[r]=i+1;if(i<PT.length)e.pts+=Math.round(PT[i]*pm);if(i===0)e.wins++;if(i<3)e.pod++});
     if(T&&T.ip)pr.filter(e=>e.fp[r]===99).forEach((e,j)=>{const i=fin.length+j;if(i<PT.length)e.pts+=Math.round(PT[i]*pm)});
     const bp=T&&T.ip?indyBonus(pr,fin,best,r,T):null;
-    if(orders)orders.push({pm:pm>1?pm:undefined,ip:T&&T.ip?1:undefined,pp:T&&T.pp?1:undefined,bp:bp||undefined,wet:isWet,q:[...pr].sort((a,b)=>b.qv[r]-a.qv[r]).map(e=>e.key),fin:fin.map(e=>e.key),dnf:pr.filter(e=>e.fp[r]===99).map(e=>e.key)});
+    if(orders)orders.push({pm:pm>1?pm:undefined,ip:T&&T.ip?1:undefined,pp:T&&T.pp?1:undefined,bp:bp?bp.bp:undefined,bl:bp?bp.bl:undefined,bm:bp&&bp.bm||undefined,wet:isWet,q:[...pr].sort((a,b)=>b.qv[r]-a.qv[r]).map(e=>e.key),fin:fin.map(e=>e.key),dnf:pr.filter(e=>e.fp[r]===99).map(e=>e.key)});
   }
   return wet;
 }
@@ -989,8 +991,8 @@ function simulate(ents,races,orders,cal){
 function indyBonus(pr,fin,best,r,T){const bp={},add=(e,v)=>{bp[e.key]=(bp[e.key]||0)+v;e.pts+=v};
   if(T.iq)[...pr].sort((a,b)=>b.qv[r]-a.qv[r]).slice(0,12).forEach((e,i)=>add(e,12-i));else if(best)add(best,1);
   const L=new Set();if(fin[0])L.add(fin[0]);if(best&&Math.random()<.75)L.add(best);[.35,.25,.15,.1].forEach((q,i)=>{if(fin[i+1]&&Math.random()<q)L.add(fin[i+1])});
-  const Ls=[...L];Ls.forEach(e=>add(e,1));if(Ls.length){const x=Math.random();add(x<.55&&fin[0]?fin[0]:x<.8&&best&&L.has(best)?best:pick(Ls),2)}
-  return bp}
+  const Ls=[...L];Ls.forEach(e=>add(e,1));let mo=null;if(Ls.length){const x=Math.random();mo=x<.55&&fin[0]?fin[0]:x<.8&&best&&L.has(best)?best:pick(Ls);add(mo,2)}
+  return{bp,bl:Ls.map(e=>e.key),bm:mo&&mo.key}}
 // ties: countback like F1 (more P1s, then P2s, ...), not list order (the player sat last in F1 and lost every 0-point tie)
 const cbk=e=>e.fp.filter(x=>x&&x<99).sort((a,b)=>a-b),cbCmp=(a,b)=>{const x=cbk(a),y=cbk(b);for(let i=0;i<Math.max(x.length,y.length);i++){const u=x[i]??999,v=y[i]??999;if(u!==v)return u-v}return 0};
 const standingsOf=ents=>ents.filter(e=>e.starts>0).sort((a,b)=>b.pts-a.pts||cbCmp(a,b));
@@ -1067,7 +1069,7 @@ function tally(upto){
   Z.ents.forEach(e=>m[e.key]={...e,pts:0,wins:0,pod:0,poles:0,dnf:0,starts:0,fp:[],qi:[]});
   Z.orders.forEach((o,r)=>{if(r>upto)return;
     if(o.q[0]){m[o.q[0]].poles++;if(o.pp)m[o.q[0]].pts++}
-    o.q.forEach((k,i)=>m[k].qi[r]=i);if(o.bp)for(const k in o.bp)if(m[k])m[k].pts+=o.bp[k];
+    o.q.forEach((k,i)=>m[k].qi[r]=i);if(o.bp&&!Array.isArray(o.bp))for(const k in o.bp)if(m[k])m[k].pts+=o.bp[k];
     const PT=ptsTab(o);o.fin.forEach((k,i)=>{const e=m[k];e.starts++;e.fp[r]=i+1;if(i<PT.length)e.pts+=Math.round(PT[i]*(o.pm||1));if(i===0)e.wins++;if(i<3)e.pod++});
     o.dnf.forEach((k,j)=>{const e=m[k];e.starts++;e.dnf++;e.fp[r]=99;const i=o.fin.length+j;if(o.ip&&i<PT.length)e.pts+=Math.round(PT[i]*(o.pm||1))})});
   return m;
@@ -1154,6 +1156,10 @@ function finishSeason(){
   const deltas=STATS.map(k=>({k,v:p.stats[k],d:p.stats[k]-statsBefore[k]})).filter(x=>x.d!==0);
   const rec={lk:p.series==='ALT'?p.alt:p.series,year:S.year,age:p.age,series:p.series==='ALT'?altDef(p.alt).name:seriesDef(p.series).name,sid:p.series,team:teamName,color:teamColor,role:p.role,tid:p.team&&p.team.id||null,
     pos,field:fieldN,train:trName(),points:me.pts,wins:me.wins,podiums:me.pod,poles:me.poles,dnf:me.dnf,starts:me.starts,ovrBefore,ovrAfter,h2h,titled,crown,first:!!C.firstLeague,slump:slump||null};
+  if(p.series==='ALT'&&ALT_DRV[p.alt]&&p.role==='race'){const sid=p.alt,A=S.altSum&&S.altSum[sid];if(me.no)rec.no=me.no;if(me.crew)rec.crew=me.crew;
+    if(sid==='INDY'){let ld=0,mo=0,bo=0;Z.orders.forEach(o=>{if(o.bl&&o.bl.includes('me'))ld++;if(o.bm==='me')mo++;if(o.bp&&o.bp.me)bo+=o.bp.me});if(ld)rec.lead=ld;if(mo)rec.most=mo;if(bo)rec.bonus=bo;
+      const io=Z.orders[ALT_CROWN.INDY.r],qi=io?io.q.indexOf('me'):-1;if(qi>=0&&qi<12)rec.f12=qi+1;if(A&&A.roy&&A.roy.me)rec.roy=1}
+    if(sid==='WEC'&&A&&A.teams[0]&&A.teams[0].me)rec.mk=1;if(titled&&S.altPrev&&S.altPrev[sid]&&S.altPrev[sid].n!=='\u0001me'){rec.king=S.altPrev[sid].n;rec.kingK=S.altPrev[sid].k}}
   rec.rv=rvRes;if(p.series==='F1'&&pos>1&&st[0]){rec.cp=st[0].pts;rec.cn=st[0].name}if(p.tcY===S.year)rec.tc=true;if(S.hunt&&S.hunt.y===S.year)rec.hunt=S.hunt.d;if(homeW)rec.homeW=homeW;if(yrNew.length)rec.yr=yrNew;if(awake)rec.awake=awake;
   if(C.why0&&pos&&me.starts>0){const fin=me.fp.filter(x=>x&&x<99).sort((a,b)=>a-b),med=fin.length?fin[Math.floor(fin.length/2)]:fieldN,P=ptsTab(Z.orders[0]);
     const extra=me.dnf*(P[med-1]||0),myPts=me.pts+extra,rND=1+st.filter(e=>e!==me&&e.pts>myPts).length,W=C.why0;
@@ -2249,6 +2255,14 @@ FAN.backPts=['하위팀으로 포인트 따온 거 실화냐 ㅋㅋ','이 차로
 FAN.homewin=['홈 관중 앞에서 우승이라니, 관중석 난리 났다','홈 GP 우승은 평생 남는다','국가 울려 퍼질 때 소름 돋았다','홈 팬들 앞에서 해냈다!','이번 주말 관중석 분위기 역대급이었음'];
 FAN.youngrec=['최연소 기록 갈아치우는 걸 실시간으로 봤다','이 나이에 이걸 해낸다고?','{name}, 기록 제조기 시작이다','역사책에 이름 올라가는 중'];
 FAN.triple=['트리플 크라운 축하합니다!!','모나코, 르망, 인디 500을 다 이긴 드라이버를 내가 응원했다니','그레이엄 힐 이후 두 번째 트리플 크라운, 이건 역사다','몇십 년 뒤에도 이름이 나올 기록이에요. 축하합니다','{name} 진짜 전설 인정합니다'];
+FAN.crewChamp=['#{no} 크루 전원 챔피언! {crew}도 진짜 고생했다','내구는 셋이 같이 이기는 거라 더 뭉클하다','교대할 때마다 순위 지켜 낸 게 챔피언 비결','{crew|과|와} 같이 든 트로피라 더 멋있다'];
+FAN.crew=['{crew|과|와} 한 차 타는 거 너무 좋다','크루 셋 호흡이 점점 맞아 가는 게 보임','#{no} 크루 응원합니다','내구는 혼자 빨라서 되는 게 아니더라'];
+FAN.makers=['{team} 제조사 타이틀까지 가져왔다','공장 사람들도 오늘은 다 같이 축배 들겠다','제조사 타이틀은 팀 전체가 만든 거라 더 값지다'];
+FAN.hyperpole=['하이퍼폴 {poles}번이면 한 랩 속도는 이미 정상급','폴 잡고 1점씩 챙기는 것도 쌓이면 크다','하이퍼폴 랩 볼 때마다 소름'];
+FAN.lapLead=['랩 리드 보너스를 {lead}경기에서 챙겼네','앞에서 끌고 가는 레이스가 제일 멋있다','보너스 점수만 {bonus}점이면 챔피언 싸움에서 크다'];
+FAN.fast12=['인디 500 패스트 12 진출! 예선부터 소름','인디 500 예선 {f12}위면 차가 진짜 빨랐다','패스트 12 점수도 시즌 끝엔 크게 남는다'];
+FAN.roy=['루키 오브 더 이어 축하해요!','인디카 첫해에 신인왕이면 출발 좋다','신인 중엔 확실히 1등이었음'];
+FAN.dethrone=['{king}의 {kk}연패를 끊었다!','{king|을|를} 끌어내리고 정상이라니','드디어 {king} 독주가 멈췄다'];
 FAN.crownWin=['{crown} 우승은 진짜 레전드 업적이다','F1 못 간 게 아니라 다른 전설을 쓰는 중','{crown} 트로피 들어 올리는 거 보고 울었다','이거면 트리플 크라운 꿈꿔도 된다'];
 
 // situation comments: who, where, how it compares (filled from V in buildReact)
@@ -2295,10 +2309,14 @@ function buildReact(R,x){
   else if(expP&&diff<=-3)v=pick([`예상 ${expP}위 전력이었는데 ${R.pos}위, 아쉬움이 남는 시즌이에요.`,`가진 전력(예상 ${expP}위)보다 조금 덜 나온 ${R.pos}위예요.`,`${R.pos}위. 더 위에 설 수 있었던 시즌이라 아까워요 (예상 ${expP}위).`]);
   else v=pick([`${R.pos}위, 가진 전력만큼 해낸 시즌이에요.`,`예상과 비슷한 ${R.pos}위. 제 몫을 했어요.`,`${R.field}명 중 ${R.pos}위, 계산대로 나온 시즌이에요.`]);
   if(R.pos&&prev&&prev.sid===R.sid&&prev.lk===R.lk&&prev.pos){const d=prev.pos-R.pos;if(d)v+=` 작년 ${prev.pos}위에서 ${Math.abs(d)}계단 ${d>0?'올라섰어요':'내려왔어요'}.`}
+  if(R.titled&&R.lk==='WEC'&&R.crew)v=pick([`#${R.no} 크루 ${jo(R.crew,'과','와')} 함께 WEC 챔피언! 셋이 같이 든 타이틀이에요.`,`WEC 챔피언! 24시간을 나눠 달린 #${R.no} 크루 전원이 챔피언이에요.`])+(R.mk?` ${jo(R.team,'은','는')} 제조사 타이틀까지 가져갔어요.`:'');
+  else if(R.mk&&R.pos)v+=` 팀은 제조사 타이틀을 따냈어요.`;
+  if(R.king)v+=` ${R.kingK}연패 중이던 ${R.king}의 시대를 끝낸 우승이에요.`;
+  if(R.roy)v+=` 루키 오브 더 이어도 받았어요.`;
   if(R.tc)v=`${TC_MSG.replace('!',',')} 축하합니다! 그레이엄 힐 이후 역사상 두 번째예요. `+v;
   E.push(v);
   // 2) inside the team
-  if(R.h2h){const q=R.h2h.q,r=R.h2h.r,qs=q[0]/(q[0]+q[1]||1),rs=r[0]/(r[0]+r[1]||1),tp=R.h2h.tp,ps=tp&&tp[1]>0?tp[0]/tp[1]:null,m=R.h2h.mate;
+  if(R.h2h){const q=R.h2h.q,r=R.h2h.r,qs=q[0]/(q[0]+q[1]||1),rs=r[0]/(r[0]+r[1]||1),tp=R.h2h.tp,ps=tp&&tp[1]>0?tp[0]/tp[1]:null,m=(R.lk==='WEC'?'자매차 ':'')+R.h2h.mate;
     const ahead=rs>=.5||(ps!=null&&ps>=.5),pct=ps!=null?` · 포인트 ${Math.round(ps*100)}%`:'';let t;
     if(qs>=.6&&ahead&&(ps==null||ps>=.5))t=pick([`퀄리파잉 ${q[0]}:${q[1]}, 레이스 ${r[0]}:${r[1]}${pct}. ${jo(m,'을','를')} 완전히 앞섰어요.`,`팀 안 경쟁은 확실히 이겼어요. 퀄리파잉 ${q[0]}:${q[1]}, 레이스 ${r[0]}:${r[1]}${/[013678]$/.test(r[1])?'이에요':'예요'}.`,`이제 팀의 리더는 나예요. ${jo(m,'을','를')} 퀄리파잉 ${q[0]}:${joRo(q[1])} 눌렀어요.`]);
     else if(qs<.5&&ahead)t=pick([`퀄리파잉은 ${m}에게 ${q[0]}:${joRo(q[1])} 밀렸지만, 레이스 ${r[0]}:${r[1]}${pct}${pct?'로':joRo(r[1]).slice(String(r[1]).length)} 팀 안 우위는 지켰어요.`,`일요일에 강했어요. 퀄리파잉은 ${q[0]}:${q[1]}였지만 레이스에서 ${jo(m,'을','를')} ${r[0]}:${joRo(r[1])} 앞섰어요.`]);
@@ -2327,6 +2345,8 @@ function buildReact(R,x){
   if(!f&&x.wetN>=2&&x.wetPod>=2)f=`빗속 레이스 ${x.wetN}번 중 ${x.wetPod}번 포디움, 우천 능력은 이미 무기예요.`;
   if(!f&&R.wins>=3)f=`${R.wins}승을 거두며 우승 경쟁력을 증명했어요.`;
   if(!f&&R.pos)f=pick(['큰 변수 없이 실력대로 나온 시즌이었어요.','눈에 띄는 변수 없이 꾸준히 달렸어요.']);
+  if(R.lk==='INDY'&&R.pos){if(R.lead>=3)f=(f?f+' ':'')+`${R.lead}경기에서 랩 리드${R.most?`, 최다 리드 ${R.most}번으로`:'로'} 보너스 ${R.bonus}점을 쌓았어요.`;else if(R.f12)f=(f?f+' ':'')+`인디 500 예선은 패스트 12(${R.f12}위)에 들어 ${13-R.f12}점을 챙겼어요.`}
+  if(R.lk==='WEC'&&R.poles>=2&&R.pos)f=(f?f+' ':'')+`하이퍼폴 ${R.poles}번, 폴 보너스로 ${R.poles}점을 더했어요.`;
   if(R.hunt&&R.pos)f=(f?f+' ':'')+(R.lk==='WEC'?`BoP 견제로 머신이 ${R.hunt} 묶인 채 달렸어요`:`라이벌들의 견제로 머신 우위가 ${R.hunt} 줄어든 채 달렸어요`)+(R.titled?'. 그래도 타이틀을 지켜 냈어요.':R.pos<=3?'. 그래도 정상 경쟁을 했어요.':'.');
   if(f)E.push(f);
   // 4) what next
@@ -2356,6 +2376,9 @@ function buildReact(R,x){
     let k=0;for(let i=H.length-1;i>=0&&H[i].lk===R.lk&&H[i].titled;i--)k++;
     if(k>=2){V.streak=k;tags.push('repeat')}
     const yg={F4:16,FRECA:17,F3:18,F2:19,F1:23}[R.sid];if(yg&&R.age<=yg&&!R.yr)tags.push('youngChamp')}
+  if(R.titled&&R.lk==='WEC'&&R.crew){V.crew=R.crew;V.no=R.no;tags.push('crewChamp')}
+  if(R.king){V.king=R.king;V.kk=R.kingK;tags.push('dethrone')}
+  if(R.mk)tags.push('makers');if(R.roy)tags.push('roy');
   if(R.tc)tags.unshift('triple','triple');if(R.yr)tags.push('youngrec');
   if(R.crown&&R.crown.res==='우승')tags.push('crownWin');
   if(p.xferDone&&p.xferDone.year===R.year)tags.push(p.xferDone.n?'xferOk':'xferNone');
@@ -2392,6 +2415,10 @@ function buildReact(R,x){
   if(R.h2h){const q=R.h2h.q,tot=q[0]+q[1]||1;V.mate=R.h2h.mate;V.mq=`${q[0]}:${q[1]}`;V.mqRo=joRo(V.mq);if(q[0]/tot<=(R.first?.2:.3))tags.push('matelost');if(q[0]/tot>=.7)tags.push('matewon')}
   {let n=0;for(let i=H.length-1;i>=0&&H[i].team===R.team&&H[i].role==='race';i--)n++;if(n>=4&&race&&(n===4||Math.random()<.35)){V.years=n;tags.push('loyal')}}
   if(R.backPts)tags.push('backPts');
+  if(R.lk==='WEC'&&R.crew&&!R.titled&&race&&Math.random()<.5){V.crew=R.crew;V.no=R.no;tags.push('crew')}
+  if(R.lk==='WEC'&&R.poles>=2)tags.push('hyperpole');
+  if(R.lk==='INDY'&&R.lead>=4){V.lead=R.lead;V.bonus=R.bonus;tags.push('lapLead')}
+  if(R.lk==='INDY'&&R.f12&&!(R.crown&&R.crown.res==='우승')){V.f12=R.f12;tags.push('fast12')}
   if(R.dnf>=3)tags.push('dnf');if(x.injured)tags.push('injury');
   if(R.sid==='F1'&&p.debutYear===R.year)tags.push('rookie');if(ORDER.includes(R.sid)&&R.pos&&R.pos<=5)tags.push('junior');
   if(R.pos&&R.pos/R.field>(R.first?.85:.75)&&!tags.includes('dnf'))tags.push('poor');
@@ -3146,7 +3173,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.6-d2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.6-d3',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
