@@ -10,7 +10,7 @@ import os,sys,json,urllib.request,urllib.parse,collections
 URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec'  # v2 sheet (tools/logsheet.gs)
 OLD_URL='https://script.google.com/macros/s/AKfycbwQLNST9m47Rbh9GRou9a2Yrl0L0cYt8ImopVt-ZC0TKSZcxVAWrTCNkuFCChwJuKIE/exec'
 DB,ST='play_logs.json','play_logs_state.json'
-PATCH='1.5.3'  # latest balance patch: update this whenever a balance change goes public (CLAUDE.md)
+PATCH='1.6.0'  # latest balance patch: update this whenever a balance change goes public (CLAUDE.md)
 key=os.environ.get('LOG_KEY');args=sys.argv[1:];old='--old' in args
 if '--since' in args:i=args.index('--since');PATCH=args[i+1];del args[i:i+2]
 files=[a for a in args if a!='--old']

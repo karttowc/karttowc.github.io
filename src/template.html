@@ -137,14 +137,45 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .cxa .sgn .stp{right:-34px;top:-20px;animation-delay:2.75s}
 .cxa .conf i{position:absolute;top:-20px;width:8px;height:12px;animation:cxcf linear forwards;z-index:3}
 @keyframes cxcf{from{transform:translateY(-20px) rotate(0)}to{transform:translateY(110vh) rotate(540deg)}}
-.cxc{position:absolute;inset:0}
-.cxc .num{position:absolute;top:12%;left:0;right:0;text-align:center;font-family:var(--num);font-weight:700;font-size:180px;line-height:1;color:transparent;-webkit-text-stroke:3px color-mix(in srgb,var(--tc) 80%,#fff);opacity:.5}
-.cxc .hel{position:absolute;top:34%;left:50%;transform:translateX(-50%)}
-.cxc .info{position:absolute;left:0;right:0;bottom:calc(8% + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:0 20px}
-.cxc .lg{height:48px;display:grid;place-items:center;opacity:0;animation:cxup .4s 1s forwards}.cxc .lg img{max-height:48px;max-width:110px;object-fit:contain}.cxc .lg b{font-family:var(--num);font-size:36px}
-.cxc .nm{font-size:26px;font-weight:700;opacity:0;animation:cxup .4s 1.15s forwards}
-.cxc .ln{font-size:14px;color:rgba(255,255,255,.75);opacity:0;animation:cxup .4s 1.3s forwards}
-.cxc .sgn{position:relative;width:170px;height:56px}.cxc .sgn svg{position:absolute;inset:0}
+/* WEC·IndyCar·other-series reveal: series-themed scene */
+.cxw{position:absolute;inset:0;overflow:hidden}
+.cxw .sky{position:absolute;inset:0}
+.t-wec .sky{background:radial-gradient(90% 40% at 50% 26%,color-mix(in srgb,var(--tc) 45%,transparent),transparent 72%),radial-gradient(1px 1px at 12% 8%,#fff8 50%,transparent),radial-gradient(1px 1px at 78% 14%,#fff8 50%,transparent),radial-gradient(1px 1px at 33% 22%,#fff6 50%,transparent),radial-gradient(1px 1px at 88% 30%,#fff6 50%,transparent),radial-gradient(1px 1px at 6% 34%,#fff5 50%,transparent),linear-gradient(#02040A 0%,#071028 48%,color-mix(in srgb,var(--tc) 24%,#04060C) 100%)}
+.t-indy .sky,.t-alt .sky{background:radial-gradient(100% 46% at 50% 26%,color-mix(in srgb,var(--tc) 65%,transparent),transparent 72%),repeating-linear-gradient(112deg,rgba(255,255,255,.04) 0 2px,transparent 2px 24px),linear-gradient(165deg,color-mix(in srgb,var(--tc) 50%,#0A0C14),#06080F 72%)}
+.cxw::after{content:"";position:absolute;left:0;right:0;bottom:0;height:44%;background:linear-gradient(transparent,rgba(4,6,12,.92) 45%);z-index:3}
+.cxw .mq2{position:absolute;inset:-12% 0;display:flex;flex-direction:column;justify-content:space-around;transform:rotate(-8deg) scale(1.2);opacity:0;animation:fade .6s .2s forwards;pointer-events:none}
+.cxw .mq2 div{white-space:nowrap;font-family:var(--num);font-weight:700;font-style:italic;font-size:84px;line-height:.9;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.08)}
+.cxw .mq2 .l{animation:cxmqL 16s linear infinite}.cxw .mq2 .r{animation:cxmqR 19s linear infinite}
+.cxw .tag{position:absolute;z-index:4;top:calc(18px + env(safe-area-inset-top,0px));left:0;right:0;margin:auto;width:max-content;display:flex;align-items:center;padding:6px 14px;border-radius:999px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.18);font-family:var(--num);font-weight:700;font-size:14px;letter-spacing:.16em;white-space:nowrap;opacity:0;animation:cxup .4s .3s forwards}
+.cxw .board{position:absolute;z-index:1;top:calc(9% + 40px);left:0;right:0;margin:auto;width:max-content;display:grid;place-items:center}
+.t-wec .board{min-width:180px;height:124px;padding:0 24px;border-radius:14px;background:linear-gradient(#E3242B,#B70F17);border:3px solid rgba(255,255,255,.92);box-shadow:0 0 36px rgba(255,50,50,.55),0 0 90px rgba(255,40,40,.25);opacity:0;animation:cxlit 1s .45s steps(1) forwards}
+.t-wec .board b{font-family:var(--num);font-weight:700;font-size:112px;line-height:1;color:#fff;text-shadow:0 0 14px rgba(255,255,255,.6)}
+@keyframes cxlit{0%{opacity:.7}12%{opacity:.1}25%{opacity:1}38%{opacity:.25}52%,100%{opacity:1}}
+.t-indy .board b,.t-alt .board b{display:block;font-family:var(--num);font-weight:700;font-style:italic;font-size:190px;line-height:.9;color:var(--tc);-webkit-text-stroke:4px #fff;paint-order:stroke fill;text-shadow:8px 8px 0 rgba(0,0,0,.35);transform:skewX(-8deg)}
+.t-indy .board,.t-alt .board{opacity:0;animation:cxdrop .7s .4s cubic-bezier(.2,.8,.3,1) forwards}
+.cxw .drv{position:absolute;z-index:3;left:0;right:0;bottom:44%;display:flex;justify-content:center}
+.cxw .drv::after{content:"";position:absolute;bottom:-8px;left:50%;width:150px;height:16px;margin-left:-75px;border-radius:50%;background:radial-gradient(rgba(0,0,0,.6),transparent 70%);z-index:-1}
+.cxw .drv .avfull{height:min(250px,33vh)!important;opacity:0;animation:cxrise .6s .75s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes cxrise{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+.cxw .lane{position:absolute;z-index:2;left:0;right:0;bottom:44%;height:90px}
+.cxw .lane::before{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--tc) 70%,#fff) 30%,color-mix(in srgb,var(--tc) 70%,#fff) 70%,transparent);box-shadow:0 0 12px var(--tc)}
+.t-indy .lane::after{content:"";position:absolute;left:0;right:0;bottom:-12px;height:8px;background:repeating-conic-gradient(#fff 0 25%,#111 0 50%) 0 0/8px 8px;opacity:.45}
+.cxw .lane .car{position:absolute;bottom:2px;left:-200px;animation:cxdrive 2.8s 1.1s linear infinite}
+.cxw .lane .car svg{display:block;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
+.t-wec .lane .car::after{content:"";position:absolute;left:100%;bottom:6px;width:190px;height:40px;background:linear-gradient(90deg,rgba(255,246,200,.6),rgba(255,246,200,0));clip-path:polygon(0 70%,100% 0,100% 100%,0 90%)}
+.t-wec .lane .car::before{content:"";position:absolute;right:100%;bottom:10px;width:70px;height:4px;background:linear-gradient(90deg,transparent,rgba(255,40,40,.8))}
+@keyframes cxdrive{0%{left:-200px}38%,100%{left:105%}}
+.t-indy .lane .car{animation-duration:2s}
+.cxw .lane i{position:absolute;left:100%;height:2px;width:90px;border-radius:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.7));animation:cxstk .9s linear infinite;opacity:0}
+.t-wec .lane i:nth-child(odd){background:linear-gradient(90deg,transparent,rgba(255,60,60,.8))}
+@keyframes cxstk{0%{left:100%;opacity:1}100%{left:-30%;opacity:1}}
+.cxw .info{position:absolute;z-index:4;left:0;right:0;bottom:calc(5% + 34px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:0 20px}
+.cxw .lg{height:52px;display:grid;place-items:center;opacity:0;animation:cxup .4s 1.3s forwards}.cxw .lg img{max-height:52px;max-width:120px;object-fit:contain;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.5)}.cxw .lg b{font-family:var(--num);font-size:36px}
+.cxw .nm{font-size:28px;font-weight:700;opacity:0;animation:cxup .4s 1.45s forwards}
+.cxw .ln{font-size:14px;color:rgba(255,255,255,.78);opacity:0;animation:cxup .4s 1.6s forwards}
+.cxw .tt{font-family:var(--num);font-weight:600;font-size:15px;letter-spacing:.06em;padding:3px 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--tc) 60%,#fff);background:color-mix(in srgb,var(--tc) 30%,transparent);opacity:0;animation:cxup .4s 1.75s forwards}
+.cxw .sgn{position:relative;width:170px;height:56px;border-bottom:1px solid rgba(255,255,255,.3)}.cxw .sgn svg{position:absolute;inset:0}
+@media (max-height:720px){.cxw .info{bottom:calc(1% + 30px + env(safe-area-inset-bottom,0px));gap:4px}.cxw .drv,.cxw .lane{bottom:45%}.cxw .drv .avfull{height:27vh!important}.cxw .board{top:calc(5% + 36px)}.t-wec .board{transform:scale(.8)}.cxw .sgn{height:46px}}
 
 .cxpad{position:absolute;inset:0;z-index:9;background:rgba(6,8,15,.88);display:flex;flex-direction:column;justify-content:center;gap:12px;padding:24px}
 .cxpad h3{margin:0;font-size:20px}.cxpad p{margin:0;color:var(--dim);font-size:13px;line-height:1.5}
@@ -970,7 +1001,7 @@ function startSeason(){
     const isAlt=p.series==='ALT',sd=isAlt?altDef(p.alt):seriesDef(p.series);
     races=sd.races;field=Math.min(sd.field,30);seriesName=sd.name;teamName=p.team.name;
     // a gentler field for the very first kart season, so a new player gets a taste of the podium
-    const easy=p.series==='KART'&&!p.history.length?(B.career.first_kart_easy||0):0,carT=isAlt?ALT_CAR:sd.car,mean=AI_MEAN[p.series]-easy;
+    const easy=p.series==='KART'&&!p.history.length?(B.career.first_kart_easy||0):0,carT=isAlt?ALT_CAR:sd.car,mean=AI_MEAN[p.series]-easy-(isAlt&&B.career.alt_ease?B.career.alt_ease[p.alt]||0:0);
     const AR=isAlt?altRoster(p.alt):null,ts=AR&&ALT_TS[p.team.name];
     me=entrant({key:'me',name:p.name,team:ts?ts[0]:p.team.name,color:ts?ts[1]:null,car:carT[p.team.tier],isPlayer:true,...fromStats(p.stats)});ents.push(me);
     if(AR){teamColor=ts?ts[1]:null;{const c=altCarOf(p.alt,p.team.name);if(c!=null)me.car=c}
@@ -1535,6 +1566,8 @@ function makeOffers(pos,field,h2h){
     const hotA=Object.keys(ALT_DRV).filter(id=>id!==p.alt&&Math.max(0,...Object.values((p.altSc||{})[id]||{}))>=25).sort((x,y)=>Math.max(...Object.values(p.altSc[y]))-Math.max(...Object.values(p.altSc[x])));
     const others=[...hotA.map(altDef),...K.alt_series.filter(a=>a.id!==p.alt&&!hotA.includes(a.id)).sort(()=>Math.random()-.5)];
     const alts=p.series==='ALT'?[altDef(p.alt),...others.slice(0,1)]:others.slice(0,2);
+    // after F2, WEC or IndyCar always comes (the main second-chapter stages; F2 drivers often go to IndyCar)
+    if(p.series==='F2'&&!alts.some(a=>ALT_DRV[a.id])){const w=Object.keys(ALT_DRV).sort((x,y)=>Math.max(0,...Object.values((p.altSc||{})[y]||{}))-Math.max(0,...Object.values((p.altSc||{})[x]||{}))||Math.random()-.5)[0];alts[alts.length?alts.length-1:0]=altDef(w)}
     const tier=ovr>=82?'top':ovr>=76?'mid':'bottom';
     const altO=(a,tm,tag)=>({kind:'alt',altId:a.id,tier:tm.tier,altTeam:tm.n,altF1:tm.f1||null,title:tm.n,sub:`${a.name} · ${TIER_LBL[tm.tier]}${altCarOf(a.id,tm.n)!=null?` · 머신 ${r1(altCarOf(a.id,tm.n))}`:''}${altScv(a.id,tm.n)>=40?` · 관심도 ${altScv(a.id,tm.n)}`:''}${tm.f1?` · ${teamDef(tm.f1).name} F1과 연결`:''}${a.note?' · '+a.note:''}`,tag});
     alts.forEach(a=>{const stay=p.series==='ALT'&&a.id===p.alt,cur=stay&&p.team?(ALT_TEAMS[a.id]||[]).map(t=>ALT_DRV[a.id]?{...t,tier:altTierOf(a.id,t.n)||t.tier}:t).find(t=>t.n===p.team.name):null;
@@ -2801,26 +2834,39 @@ function cerData(){const p=S.p,H=p.history,T=p.tot,steps=[];
   const bestS=[...(f1.length?f1:H)].sort((a,b)=>(b.titled-a.titled)||(b.wins-a.wins)||((a.pos||99)-(b.pos||99)))[0];
   const teams=Object.entries(p.f1Teams).sort((a,b)=>b[1]-a[1]);
   return{steps,bestS,teams,first:S.startYear,last:H.length?H.at(-1).year:S.year,seasons:H.length}}
+/* first move to another stage without an F1 debut: F1 stays the dream, this is the second chapter */
+const NEWPATH={WEC:{line:'르망에서 전설이 될 수 있어요',story:'브렌던 하틀리는 레드불 주니어에서 밀려난 뒤 WEC 월드 챔피언과 르망 우승을 거머쥐었어요.',goals:['르망 24시 우승','WEC 월드 챔피언']},
+ INDY:{line:'인디 500의 영웅이 될 수 있어요',story:'자크 빌뇌브는 인디 500과 인디카 챔피언을 차지한 뒤 F1 월드 챔피언까지 올랐어요.',goals:['인디 500 우승','인디카 챔피언']},
+ FE:{line:'전기차 레이스의 정상에 설 수 있어요',story:'닉 더프리스는 포뮬러E 챔피언이 된 뒤 F1 그리드에 섰어요.',goals:['포뮬러E 챔피언','챔피언이면 F1 길이 다시 열려요']},
+ SF:{line:'일본에서 다시 날아오를 수 있어요',story:'피에르 가슬리는 슈퍼포뮬러를 거쳐 F1에 데뷔했어요.',goals:['슈퍼포뮬러 챔피언','챔피언이면 F1 길이 다시 열려요']},
+ GT3:{line:'GT 레이싱에서 이름을 남길 수 있어요',story:'DTM은 독일에서 가장 사랑받는 투어링카 무대예요.',goals:['DTM 챔피언']}};
+const BYE_ALT=['너는 언제나 우리의 챔피언이었어','그 트로피 들던 날 정말 울었다','{name} 덕분에 이 리그를 알게 됐어','진짜 레전드였다, 고마워','F1이 놓친 드라이버'];
+const altFeat=p=>{const H=p.history.filter(h=>h.sid==='ALT'),c=id=>p.challenges.filter(x=>x.id===id&&x.res==='우승').length,t=lk=>H.filter(h=>h.lk===lk&&h.titled).length;
+  const L=[];if(t('WEC'))L.push(`WEC 월드 챔피언${t('WEC')>1?' '+t('WEC')+'회':''}`);if(t('INDY'))L.push(`인디카 챔피언${t('INDY')>1?' '+t('INDY')+'회':''}`);
+  if(c('LEMANS'))L.push(`르망 24시 ${c('LEMANS')>1?c('LEMANS')+'회 ':''}우승`);if(c('INDY500'))L.push(`인디 500 ${c('INDY500')>1?c('INDY500')+'회 ':''}우승`);
+  ['FE','SF','GT3'].forEach(k=>{if(t(k))L.push(`${altDef(k).name} 챔피언`)});return L};
 const BYE_SHORT=['벌써 그만두는 거야? 아쉽다','카트장에서 보던 그 열정 기억할게','짧았지만 응원하는 맛이 있었어','어디서 뭘 하든 응원할게','언젠가 다시 핸들 잡는 날 기다릴게'];
 const BYE_MID=['F1까지는 못 갔지만 보는 내내 즐거웠어','{name}의 도전 끝까지 응원했어','그 시절 질주 잊지 않을게','다른 길에서도 빛나길','수고 많았어. 충분히 멋진 커리어였어'];
 const BYE_F1=['고마웠어요. 덕분에 일요일이 즐거웠어요','헬멧 벗는 모습 보고 울었다','{name} 없는 그리드는 상상이 안 된다','카트 시절부터 끝까지 함께해서 행복했어','마지막 체커기 받는 거 보고 소름','다음 커리어는 감독으로 돌아와 줘'];
 function cerPage(i){const p=S.p,D=cerData(),T=p.tot,s=similarDriver();
-  if(i===0){const lv=Math.max(0,...p.history.map(h=>LVL(h.sid))),BYE=p.debutYear?BYE_F1:lv>=3||p.history.some(h=>h.sid==='ALT')?BYE_MID:BYE_SHORT;const bye=[...BYE].sort(()=>Math.random()-.5).slice(0,2).map(x=>x.replace('{name}',p.name));
+  if(i===0){const lv=Math.max(0,...p.history.map(h=>LVL(h.sid))),BYE=p.debutYear?BYE_F1:altFeat(p).length?BYE_ALT:lv>=3||p.history.some(h=>h.sid==='ALT')?BYE_MID:BYE_SHORT;const bye=[...BYE].sort(()=>Math.random()-.5).slice(0,2).map(x=>x.replace('{name}',p.name));
     return`<div class="cflag"></div><div class="cp c0"><div class="chel">${avatar(pAv(p),p.helmet,170,true,p.num)}${helmet(p.helmet,p.num,72)}</div>
       <div class="ck">LAST LAP</div><h2>${esc(p.name)},<br>헬멧을 벗습니다</h2>
       <p>${p.age}세 · ${D.first}–${D.last} · ${D.seasons}시즌</p>
       <div class="cbye">${bye.map((b,j)=>`<div style="animation-delay:${.9+j*.35}s">💬 ${esc(b)}</div>`).join('')}</div></div>`}
   if(i===1)return`<div class="cp c1"><div class="ck">THE ROAD</div><h2>${p.debutYear?'카트에서 F1까지':'걸어온 길'}</h2>
       <div class="road">${D.steps.map((x,j)=>`<div class="rs${x.k==='F1'?' f1':''}" style="animation-delay:${.15+j*.18}s"><span class="rl">${sLogo(x.k,22)||'🏁'}</span><span class="rb"><b>${esc(x.name)}</b><span>${x.from}${x.to!==x.from?'–'+x.to:''} · ${x.ti?'<em>챔피언</em>':x.best?'최고 '+x.best+'위':'출전 없음'}</span></span></div>`).join('')}</div>
-      ${p.debutYear?`<p>${p.debutYear-S.startYear+B.driver.start_age}세에 F1 데뷔</p>`:(p.history.some(h=>h.sid==='F2'&&h.titled)?`<p>F2 챔피언까지 올랐지만<br>F1 시트는 끝내 오지 않았어요</p>`:Math.max(0,...p.history.map(h=>LVL(h.sid)))>=3||p.history.some(h=>h.sid==='ALT')?`<p>F1의 문은 끝내 열리지 않았어요</p>`:p.history.every(h=>h.sid==='KART')?`<p>다른 진로를 찾아 떠나요<br>카트는 취미로 남았어요</p>`:`<p>짧았지만 꿈을 향해 달린 시간이었어요</p>`)}</div>`;
+      ${p.debutYear?`<p>${p.debutYear-S.startYear+B.driver.start_age}세에 F1 데뷔</p>`:(p.history.some(h=>h.sid==='F2'&&h.titled)?`<p>F2 챔피언까지 올랐지만<br>F1 시트는 끝내 오지 않았어요</p>`:altFeat(p).length?`<p>F1의 문은 열리지 않았지만<br><b style="color:var(--gold)">${esc(altFeat(p)[0])}</b>${joRo(altFeat(p)[0]).slice(altFeat(p)[0].length)}<br>이름을 남겼어요</p>`:Math.max(0,...p.history.map(h=>LVL(h.sid)))>=3||p.history.some(h=>h.sid==='ALT')?`<p>F1의 문은 끝내 열리지 않았어요</p>`:p.history.every(h=>h.sid==='KART')?`<p>다른 진로를 찾아 떠나요<br>카트는 취미로 남았어요</p>`:`<p>짧았지만 꿈을 향해 달린 시간이었어요</p>`)}</div>`;
   if(i===2){const b=D.bestS;return`<div class="cp c2"><div class="ck">BY THE NUMBERS</div><h2>숫자로 보는 커리어</h2>
-      <div class="cnum"><div class="gold"><b data-n="${T.titles}">0</b><span>월드 챔피언</span></div><div><b data-n="${T.wins}">0</b><span>F1 우승</span></div><div><b data-n="${T.podiums}">0</b><span>포디움</span></div><div><b data-n="${T.poles}">0</b><span>폴</span></div><div><b data-n="${T.starts}">0</b><span>F1 출전</span></div><div><b data-n="${p.peak}">0</b><span>최고 OVR</span></div></div>
+      ${(()=>{const A=p.history.filter(h=>h.sid==='ALT'&&h.starts>0);if(T.starts>0||!A.length)return`<div class="cnum"><div class="gold"><b data-n="${T.titles}">0</b><span>월드 챔피언</span></div><div><b data-n="${T.wins}">0</b><span>F1 우승</span></div><div><b data-n="${T.podiums}">0</b><span>포디움</span></div><div><b data-n="${T.poles}">0</b><span>폴</span></div><div><b data-n="${T.starts}">0</b><span>F1 출전</span></div><div><b data-n="${p.peak}">0</b><span>최고 OVR</span></div></div>`;
+        const sm=k=>A.reduce((a,h)=>a+(h[k]||0),0),lk=[...new Set(A.map(h=>h.lk))],nm=lk.length===1?(lk[0]==='WEC'?'WEC':lk[0]==='INDY'?'인디카':altDef(lk[0]).name):'다른 무대',big=p.challenges.filter(c=>c.res==='우승'&&(c.id==='LEMANS'||c.id==='INDY500')).length;
+        return`<div class="cnum"><div class="gold"><b data-n="${A.filter(h=>h.titled).length}">0</b><span>${esc(nm)} 챔피언</span></div><div><b data-n="${sm('wins')}">0</b><span>${esc(nm)} 우승</span></div><div><b data-n="${sm('podiums')}">0</b><span>포디움</span></div><div${big?' class="gold"':''}><b data-n="${big}">0</b><span>르망·인디 500</span></div><div><b data-n="${sm('starts')}">0</b><span>출전</span></div><div><b data-n="${p.peak}">0</b><span>최고 OVR</span></div></div>`})()}
       ${p.jr.length||altTrophies().length||S.rival?`<div class="chips" style="justify-content:center">${p.jr.map(j=>`<span class="chip">${esc(j.name)} 챔피언</span>`).join('')}${altTrophies().map(j=>`<span class="chip silver">${esc(j.n)}</span>`).join('')}${S.rival?`<span class="chip">라이벌 ${esc(S.rival.name)} 맞대결 ${S.rival.h2h[0]}:${S.rival.h2h[1]}</span>`:''}</div>`:''}
       ${b?`<div class="cbest"><span>최고의 시즌</span><b>${b.year} ${esc(b.series)}</b><em>${b.titled?'챔피언 · ':b.pos?b.pos+'위 · ':''}${b.wins}승 · 포디움 ${b.podiums}</em></div>`:''}</div>`}
   if(i===3)return`<div class="cp c3"><div class="ck">THE TEAMS</div><h2>${D.teams.length?'함께한 F1 팀':'함께한 팀'}</h2>
       ${D.teams.length?`<div class="cteams">${D.teams.map(([id,n],j)=>`<div style="animation-delay:${.15+j*.15}s">${bigLogo(id,64)}<b>${esc(teamDef(id).name)}</b><span>${n}시즌</span></div>`).join('')}</div>
       <p>가장 오래 함께한 팀: ${esc(teamDef(D.teams[0][0]).name)} (${D.teams[0][1]}시즌)</p>`:
-      `<div class="road">${[...new Set(p.history.map(h=>h.team))].slice(-6).map((n,j)=>`<div class="rs" style="animation-delay:${.15+j*.15}s"><span class="rl">🏎️</span><span class="rb"><b>${esc(n)}</b></span></div>`).join('')}</div>`}</div>`;
+      `<div class="road">${[...new Set(p.history.map(h=>h.team))].slice(-6).map((n,j)=>`<div class="rs" style="animation-delay:${.15+j*.15}s"><span class="rl">${altLogoN(n)||'🏎️'}</span><span class="rb"><b>${esc(n)}</b></span></div>`).join('')}</div>`}</div>`;
   return`<div class="cp c4">${avatar(pAv(p),p.helmet,76)}<div class="ck">YOUR TWIN</div><h2 style="word-break:keep-all"><span style="white-space:nowrap"><span class="g">${esc(s.r.n)}</span>${wa(s.r.n)}</span><br>유사합니다!</h2>
       <p>${esc(s.r.x)}</p>${s.why.length?`<div class="chips" style="justify-content:center">${s.why.map(w=>`<span class="chip gold">${esc(w)}</span>`).join('')}</div>`:''}
       <button class="btn" type="button" id="cerEnd">커리어 카드 보기</button></div>`}
@@ -3021,7 +3067,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.5.3',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.0',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3219,6 +3265,27 @@ function sigPad(el,done){
   const end=()=>{if(cur&&cur.length>1){const q=cur.at(-1),pp=cur.at(-2);g.beginPath();g.moveTo((pp[0]+q[0])*450,(pp[1]+q[1])*150);g.lineTo(q[0]*900,q[1]*300);g.stroke()}if(cur&&cur.length<2)strokes.pop();cur=null;ok.disabled=!strokes.length};c.addEventListener('pointerup',end);c.addEventListener('pointercancel',end);
   el.querySelector('[data-x=clr]').onclick=e=>{e.stopPropagation();strokes.length=0;g.clearRect(0,0,900,300);ok.disabled=true};
   ok.onclick=e=>{e.stopPropagation();done(strokes.map(s=>s.map(([x,y])=>[+x.toFixed(3),+y.toFixed(3)])))}}
+// other-series reveal: WEC = night endurance (lit number panel, hypercar with headlights), IndyCar = oval speed
+const HYPER_MAP=`
+WW................................
+WWW.........VVVVVV................
+.WR.......VVVVVVVVVV..............
+.RRRRRRRRRRRRRRRRRRRRRRRRRRRRR....
+RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR..
+RRRRRWWWWWWWWWWWWWRRRRRRRRRRRRRRYY
+RRTTTTTTRRRRRRRRRRRRRRRRTTTTTTRRRR
+..TTggTT................TTggTT....
+...TTTT..................TTTT.....`;
+const CXW={WEC:{th:'t-wec',tag:'FIA WEC · HYPERCAR',mq:['24 HOURS','HYPERCAR'],car:'h'},INDY:{th:'t-indy',tag:'INDYCAR SERIES',mq:['INDYCAR','500 MILES'],car:'o'},GT3:{car:'h'}};
+function cxAlt(o,I,mark){const p=S.p,sid=o.altId,d=CXW[sid]||{},en=SER_EN[sid]||altDef(sid).name,mq=d.mq||[en,'NEW CHAPTER'];
+  const car=d.car==='h'?px(HYPER_MAP,{...CAR_PAL,R:I.color,Y:'#FFF4C2',V:'#10131C'},150):px(F1_MAP,{...CAR_PAL,R:I.color},140);
+  return`<div class="cxw ${d.th||'t-alt'}"><div class="sky"></div>
+    <div class="mq2">${[0,1,2,3,4,5].map(i=>{const w=Array(5).fill(mq[i%2]).join(' · ');return`<div class="${i%2?'r':'l'}">${esc(w)} · ${esc(w)} · </div>`}).join('')}</div>
+    <div class="tag">${sLogo(sid,16)}<span>${esc(d.tag||en.toUpperCase())}</span></div>
+    <div class="board"><b>${esc(p.num)}</b></div>
+    <div class="lane">${Array.from({length:6},(_,i)=>`<i style="bottom:${8+i*13}px;animation-delay:${(1+i*.37+Math.random()*.3).toFixed(2)}s;animation-duration:${(.7+Math.random()*.5).toFixed(2)}s"></i>`).join('')}<div class="car">${car}</div></div>
+    <div class="drv">${avatar(pAv(p),p.helmet,250,true,p.num)}</div>
+    <div class="info"><div class="lg">${mark}</div><div class="nm">${esc(p.name)}</div><div class="ln">${esc(I.line)}</div><div class="tt">${esc(I.terms)}</div><div class="sgn">${sigSVG(p.sig,170,56,'#fff')}</div></div></div>`}
 function contractShow(o,done){
   const p=S.p,I=contractInfo(o),el=document.createElement('div');el.className='cx';el.style.setProperty('--tc',I.color);document.body.appendChild(el);
   const TM=[],later=(f,ms)=>TM.push(setTimeout(f,ms));let fin=false;
@@ -3245,11 +3312,10 @@ function contractShow(o,done){
           <div class="sgn">${sigSVG(p.sig,220,74,'#fff')}<div class="stp" style="--stc:#fff">${I.logo?`<img src="${I.logo}" alt="">`:''}SIGNED</div></div>
           <div class="wf"></div><div class="fl">${Array.from({length:11},(_,i)=>`<i style="left:${8+Math.random()*78}%;top:${10+Math.random()*70}%;animation-delay:${(3.05+i*.08+Math.random()*.08).toFixed(2)}s"></i>`).join('')}</div>
           <div class="conf">${Array.from({length:46},(_,i)=>`<i style="left:${Math.random()*100}%;background:${['#F2C14E','#fff',I.color,'#3182F6'][i%4]};animation-duration:${2+Math.random()*1.6}s;animation-delay:${2.8+Math.random()*.8}s"></i>`).join('')}</div></div>`
-        :`<div class="cxc"><div class="num">${esc(p.num)}</div><div class="hel">${helmet(p.helmet,p.num,110)}</div>
-          <div class="info"><div class="lg">${mark}</div><div class="nm">${esc(p.name)}</div><div class="ln">${esc(I.line)}</div><div class="sgn">${sigSVG(p.sig,170,56,'#fff')}</div></div></div>`;
+        :cxAlt(o,I,mark);
       el.querySelector('.cxg').classList.add('open');
-      drawSig(el.querySelector(I.big?'.cxa .sgn svg':'.cxc .sgn svg'),I.big?1900:1500,800);
-      if(I.big)later(()=>{const h=el.querySelector('.cxhint');if(h){h.textContent='탭해서 계속';h.classList.add('end')}},3300);else later(finish,3300)};
+      drawSig(el.querySelector(I.big?'.cxa .sgn svg':'.cxw .sgn svg'),I.big?1900:1950,800);
+      later(()=>{const h=el.querySelector('.cxhint');if(h){h.textContent='탭해서 계속';h.classList.add('end')}},3000)};
     later(()=>el.querySelector('.cxp').classList.add('out'),3300);later(open,3700);
     // tap while signing → jump straight to the shutter opening; tap after that → close
     el.onclick=()=>{if(opened)return finish();TM.forEach(clearTimeout);TM.length=0;el.querySelector('.cxp').classList.add('out');open()}};
@@ -3498,6 +3564,12 @@ function sheetView(){
         ${c.season?'':`<div class="row"><span>보상</span><span>${w?'인기 +10 · 평판 +2':'인기 +4 · 평판 +2'} · 체력 -10</span></div>`}
         ${c.id!=='DAKAR'?`<div class="row"><span>트리플 크라운</span><span>${tc.map(([n,v])=>`<b style="color:${v?'var(--gold)':'var(--dim)'}">${v?'✓':'·'} ${n}</b>`).join(' ')}</span></div>`:''}</div>
       <button class="btn" type="button" id="chDone">${chain?'다음':c.season?(popQ.length?'다음':'시즌 결과 보기'):'확인'}</button></section></div>`}
+  if(sheet&&sheet.type==='newpath'){const N=NEWPATH[sheet.sid]||NEWPATH.GT3;
+    return`<div class="sheet" id="sheetBg"><section class="card chres win"><div class="eyebrow">${sheet.year} 새로운 길</div>
+      <div class="crbig">${sLogo(sheet.sid,40)}<b style="color:var(--fg);font-size:17px">F1의 꿈은 멀어졌지만</b><span style="color:var(--gold)">${N.line}</span></div>
+      <p class="muted" style="margin:0;word-break:keep-all">${N.story}</p>
+      <div class="kv nw"><div class="row"><span>새 목표</span><span>${N.goals.map(g=>`<b style="color:var(--gold)">${g}</b>`).join(' · ')}</span></div></div>
+      <button class="btn" type="button" id="npDone">새 출발</button></section></div>`}
   if(sheet&&sheet.type==='num1'){const p=S.p;
     return`<div class="sheet" id="sheetBg"><section class="card chres win"><div class="eyebrow">${sheet.year} 월드 챔피언</div><h3 class="h2">챔피언 번호 1번을 달까요?</h3>
       <p class="muted" style="margin:0">F1 챔피언은 다음 시즌 1번을 달 수 있어요. 베르스타펜은 1번을 달았고, 해밀턴은 44번을 지켰어요. 타이틀을 내주면 원래 번호로 돌아가요.</p>
@@ -3630,6 +3702,7 @@ root.addEventListener('click',e=>{
   if(id==='trNext'){save();nextStep();return}
   if(id==='acceptCh'){S.chLog=S.challenge.id+':go';const m=runChallenge();S.chTxt=m;sheet={type:'chres',c:S.p.challenges.at(-1)};render();return}
   if(id==='chDone'){sheet=null;if(chain){nextStep();return}if(popQ.length){popNext();return}render();return}
+  if(id==='npDone'){sheet=null;render();return}
   if(id==='num1Yes'||id==='num1No'){const p=S.p;if(id==='num1Yes'){p.num0=p.num;p.num=1;toast('다음 시즌부터 #1을 달아요')}save();popNext();return}
   if(id==='declineCh'){S.chLog=S.challenge.id+':no';S.challenge=null;save();if(chain){nextStep();return}sheet=null;render();return}
   if(d.rest&&S.phase==='ready'){S.train=S.train==='rest'?'focus':'rest';S.trPick=S.year;save();render();return}
@@ -3639,7 +3712,7 @@ root.addEventListener('click',e=>{
   if(id==='skipProg'){const b=document.getElementById('pInc');if(b&&b.innerHTML.trim())return;finishProgress();return}
   if(id==='okBtn'){S.phase='offers';save();tab='home';render();window.scrollTo(0,0);return}
   if(d.offer!=null){sel=+d.offer;render();return}
-  if(id==='chooseBtn'&&sel!=null){const o=S.offers[sel],go=()=>{applyOffer(o);sel=null;render();window.scrollTo(0,0)};if(isNewContract(o))contractShow(o,go);else go();return}
+  if(id==='chooseBtn'&&sel!=null){const o=S.offers[sel],np=o.kind==='alt'&&!S.p.debutYear&&!S.p.npSeen&&!S.p.history.some(h=>h.sid==='ALT'),go=()=>{applyOffer(o);sel=null;if(np){S.p.npSeen=1;save();sheet={type:'newpath',sid:o.altId,year:S.year}}render();window.scrollTo(0,0)};if(isNewContract(o))contractShow(o,go);else go();return}
   if(id==='menuBtn'){sheet='menu';render();return}
   if(id==='tCont'){lightsGo(enterGame);return}
   if(id==='xferYes'){S.p.xfer=S.year;const m=applyEff({rep:-6});save();toast(`이적 요청을 공개했어요 · ${m}`);if(chain){nextStep();return}sheet=null;render();return}
