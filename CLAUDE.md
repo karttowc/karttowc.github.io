@@ -56,6 +56,7 @@ tools/brand.py           og.png·파비콘 생성 (빌드 후 실행)
 tools/shot.py            Playwright 폰 화면 스크린샷 (fixtures 세이브 사용)
 tools/logsheet.gs        플레이 기록 시트의 Apps Script (찬우가 시트에 붙여 넣음, KEY는 비워 둠)
 tools/logs.py            익명 플레이 기록 받아서 요약 (LOG_KEY 환경변수 = Apps Script 비밀키, 저장소에 넣지 말 것. 인자로 받은 기록 파일도 합침)
+                         끝에 '점검': 지난번 뒤 새 의견만 + 보낸 사람의 그때 상황(시즌·팀·순위·나이·OVR·경로·능력치·제안), 새 조작 표시 커리어. 본 위치는 play_logs_state.json(fbSeen·xSeen). --fb N은 최근 N개(본 위치 안 바꿈). 시트 설정은 그대로
 privacy.html             개인정보 처리방침 (정적, 직접 고침. 기록·랭킹에 보내는 항목이 바뀌면 맞출 것)
 guide.html               검색 노출용 게임 가이드 글 페이지 (정적, 직접 고침. 게임 바뀌면 내용 맞출 것)
 index.html               빌드 결과물 (커밋한다. main에서는 이게 공개 사이트)
