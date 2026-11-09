@@ -132,6 +132,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .cxa .hel{opacity:0;animation:cxsl .55s 1.05s cubic-bezier(.2,.8,.3,1) forwards}
 .cxa .nm{font-size:30px;font-weight:700;opacity:0;animation:cxup .4s 1.35s forwards}
 .cxa .ln{font-size:15px;opacity:0;animation:cxup .4s 1.5s forwards;text-align:center}
+.cxa .rp,.cxw .rp{font-size:13px;font-weight:700;color:#F2C14E;opacity:0;animation:cxup .4s 1.8s forwards;text-align:center}
 .cxa .tt{font-family:var(--num);font-size:22px;font-weight:600;opacity:0;animation:cxup .4s 1.65s forwards}
 .cxa .sgn{position:relative;width:220px;height:74px;border-bottom:1px solid rgba(255,255,255,.35)}.cxa .sgn svg{position:absolute;inset:0}
 .cxa .sgn .stp{right:-34px;top:-20px;animation-delay:2.75s}
@@ -819,7 +820,7 @@ function altMarket(ev){const p=S.p;S.altNews={WEC:[],INDY:[]};
   for(const d of (S.f1Out||[])){if(d.age>38||Math.random()<.7)continue;const sid=d.age>=28&&Math.random()<.6?'WEC':'INDY',R=altRoster(sid),rk=altRank(sid),o=ovrOf(d.stats);
     const pool=R.filter(x=>!(p.series==='ALT'&&p.alt===sid&&p.team&&x.t===p.team.name)&&(o>=86||(rk.find(y=>y.n===x.t)||{}).tier!=='top'));if(!pool.length)continue;
     const out=pick(pool.sort((a,b)=>altLv(a)-altLv(b)).slice(0,3)),i=R.indexOf(out);R[i]={t:out.t,n:d.name,nat:d.nationality,by:S.year-d.age,lv:clamp(Math.round((o-80)/2),-1,3)};
-    const msg=`${d.name}, ${altDef(sid).name} ${jo(out.t,'과','와')} 계약`;S.paddock.push(msg);S.altNews[sid].push(`${d.name}, F1에서 ${joRo(out.t)} 합류`);if(p.series==='ALT'&&p.alt===sid)ev.push(`${altDef(sid).name} 이적: ${d.name}, F1에서 ${joRo(out.t)} 합류`)}}
+    d.toAlt=1;const msg=`${d.name}, ${altDef(sid).name} ${jo(out.t,'과','와')} 계약`;S.paddock.push(msg);S.altNews[sid].push(`${d.name}, F1에서 ${joRo(out.t)} 합류`);if(p.series==='ALT'&&p.alt===sid)ev.push(`${altDef(sid).name} 이적: ${d.name}, F1에서 ${joRo(out.t)} 합류`)}}
 /* every WEC/IndyCar season is run each year like F1 (my own season when I race there), so the paddock tab can show the league's champions, team table and moves */
 function altSeasons(Z,m){const p=S.p;S.altSum=S.altSum||{};
   for(const sid of Object.keys(ALT_DRV)){let ents,orders;
@@ -1202,7 +1203,7 @@ function grow(p,played,poor){
 }
 
 function ageF1Grid(){
-  const keep=[];S.paddock=[];S.f1Out=[];
+  const keep=[];S.paddock=[];S.f1Out=[];S.seatFrom={};const gone=(d,w)=>(S.seatFrom[d.team]=S.seatFrom[d.team]||[]).push({n:d.name,w});
   for(const d of S.f1){
     d.age++;let delta=0;
     if(d.age<24)delta=ri(1,3);else if(d.age<=28)delta=ri(0,1);else if(d.age<=32)delta=0;else if(d.age<=35)delta=-ri(1,3);else delta=-ri(2,4);
@@ -1210,9 +1211,9 @@ function ageF1Grid(){
     const AD=B.driver.age_decline_by_stat||{},VT=B.driver.veteran,vg=VT&&d.age>=VT.from&&d.age<=VT.to?VT.gain:null;STATS.forEach(k=>d.stats[k]=clamp(vg&&vg[k]?d.stats[k]+ri(...vg[k]):d.stats[k]+(delta<0?Math.round(delta*(AD[k]??1)):delta)+ri(-1,1),1,99));
     const rc=B.career.retire_chance_by_age[String(Math.min(d.age,41))]||0;
     const tier=teamDef(d.team).tier;
-    if(Math.random()<rc||d.age>=B.career.ai_max_age){S.paddock.push(`${d.name}, ${d.age}세에 은퇴 발표`);continue}
-    if(ovrOf(d.stats)<B.career.f1_seat_ovr[tier]-4){S.paddock.push(`${d.name}, ${teamDef(d.team).name} 시트를 잃어`);S.f1Out.push(d);continue}
-    if(Math.random()<(tier==='top'?.03:.09)){S.paddock.push(`${d.name}, ${jo(teamDef(d.team).name,'과','와')} 계약 만료로 결별`);S.f1Out.push(d);continue}
+    if(Math.random()<rc||d.age>=B.career.ai_max_age){S.paddock.push(`${d.name}, ${d.age}세에 은퇴 발표`);gone(d,'retire');continue}
+    if(ovrOf(d.stats)<B.career.f1_seat_ovr[tier]-4){S.paddock.push(`${d.name}, ${teamDef(d.team).name} 시트를 잃어`);S.f1Out.push(d);gone(d,'out');continue}
+    if(Math.random()<(tier==='top'?.03:.09)){S.paddock.push(`${d.name}, ${jo(teamDef(d.team).name,'과','와')} 계약 만료로 결별`);S.f1Out.push(d);gone(d,'out');continue}
     keep.push(d);
   }
   S.f1=keep;fixedMoves();
@@ -1268,7 +1269,10 @@ function jrMove(){if(!S.jr)return;S.jrNews=[];
 }
 // F1 vacancies go to the best real F2 graduate first, then to generated rookies
 function newcomer(teamId){const c=(S.jr||[]).filter(d=>d.st==='on'&&d.series==='F2'&&ovrOf(d.stats)>=76).sort((a,b)=>ovrOf(b.stats)+(b.last&&b.last.pos<=3?3:0)-ovrOf(a.stats)-(a.last&&a.last.pos<=3?3:0))[0];
-  if(!c)return rookie(teamId);c.st='f1';
+  if(!c){const r=rookie(teamId),tn=teamDef(teamId).name,ro=ovrOf(r.stats),b=r.prodigy?null:(S.f1Out||[]).filter(d=>!d.toAlt&&!d.back&&d.team!==teamId&&/^[dj]\d/.test(d.id)&&ovrOf(d.stats)>=ro+3&&ovrOf(d.stats)<=88&&d.age<=32&&!S.f1.includes(d)).sort((a,b)=>Math.abs(ovrOf(a.stats)-ro-3)-Math.abs(ovrOf(b.stats)-ro-3))[0];
+    if(b){const from=teamDef(b.team).name;b.back=1;b.team=teamId;b.rookie=false;if(S.news&&S.news.heads)S.news.heads.push({t:`${b.name}, ${from}에서 ${joRo(tn)} 이적`,c:''});return b}
+    return r}
+  c.st='f1';
   if(S.news&&S.news.heads)S.news.heads.push({t:`${c.name}, F2를 거쳐 ${teamDef(teamId).name}에서 F1 데뷔`,c:''});
   return{id:c.id,name:c.name,nationality:c.nationality,birth_year:0,age:c.age,team:teamId,style:c.style,potential:c.potential,stats:{...c.stats},rookie:true,nm2:1}}
 function fillVacancies(){for(const t of S.teams)for(let i=seatsTaken(t.id);i<2;i++){const r=newcomer(t.id);S.f1.push(r);if(r.prodigy)S.p.rivalNote=`${r.name}, ${t.name}에서 데뷔하는 천재 신인`};S.vacancies=[]}
@@ -2376,7 +2380,10 @@ function buildReact(R,x){
 function reactTransfer(o){if(!S.react)return;const t=o.teamId?teamDef(o.teamId):null;if(!t)return;
   const prev=S.p.series==='F1'&&S.p.team&&S.p.team.id?teamDef(S.p.team.id):null,up=!prev||['bottom','mid','top'].indexOf(t.tier)>=['bottom','mid','top'].indexOf(prev.tier);
   const txt=up?pick([`드디어 ${t.name} 간다!!`,`${t.name} 유니폼 바로 산다`,`이번 이적 대박이다`]):pick([`왜 굳이 ${t.name}로…?`,`${t.name}이면 좀 아쉬운데`,`그래도 시트 있는 게 어디냐`]);
-  S.react.fans.unshift({nick:pick(NICKS),plat:pick(PLAT),txt,likes:likes(),ago:'방금'});S.react.seen=false}
+  S.react.fans.unshift({nick:pick(NICKS),plat:pick(PLAT),txt,likes:likes(),ago:'방금'});
+  const W=seatWho(o);if(W){const n=W.n,t2=W.w==='poach'?pick([`${jo(n,'을','를')} 밀어냈다고? 이건 진짜다`,`${n} 팬인데 좀 슬프네… 그래도 인정`,`${n} 자리라니 부담 크겠다`]):W.w==='retire'?pick([`${n} 자리를 이어받는구나, 감회가 새롭다`,`${n} 은퇴하고 그 자리에 들어가네`]):pick([`${n} 나간 자리에 들어가는구나`,`${n}보단 잘하겠지?`]);
+    S.react.fans.splice(1,0,{nick:pick(NICKS),plat:pick(PLAT),txt:t2,likes:likes(),ago:'방금'})}
+  S.react.seen=false}
 
 /* ---------- view helpers ---------- */
 const HPAT=[['none','단색'],['visor','바이저 라인'],['swoosh','스윕'],['two','투톤'],['center','센터 스트라이프'],['grad','그라데이션'],['dots','도트 페이드'],['crown','크라운 밴드']];
@@ -3103,7 +3110,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.4-d2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.4-d3',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3288,11 +3295,19 @@ function isNewContract(o){const p=S.p;
   if(o.kind==='alt')return!(p.series==='ALT'&&p.alt===o.altId&&p.team&&p.team.name===o.altTeam);
   return false}
 const teamLogo=id=>(K.teams.find(x=>x.id===id)||{}).logo||null;
-function contractInfo(o){const p=S.p,y=S.year,N=a=>a.map(esc).join('<em>●</em>');
+function seatWho(o){
+  if(o.kind==='f1'){const tn=teamDef(o.teamId).name;
+    if(o.poach){const d=S.f1.find(x=>x.id===o.poach);return d?{n:d.name,w:'poach',t:`${jo(d.name,'을','를')} 밀어내고 ${tn} 입성`}:null}
+    const v=((S.seatFrom||{})[o.teamId]||[])[0];if(!v)return null;
+    return{n:v.n,w:v.w,t:v.w==='retire'?`은퇴한 ${v.n}의 자리를 잇는다`:`${v.n}의 빈자리를 채운다`}}
+  if(o.kind==='alt'&&ALT_DRV[o.altId]&&o.altTeam){const own=altRoster(o.altId).filter(d=>d.t===o.altTeam).sort((a,b)=>altLv(b)-altLv(a)),d=own.length>1?own.at(-1):null;
+    return d?{n:d.n,w:'poach',t:`${jo(d.n,'을','를')} 밀어내고 합류`}:null}
+  return null}
+function contractInfo(o){const p=S.p,y=S.year,W=seatWho(o),N=a=>a.map(esc).join('<em>●</em>');
   if(o.kind==='f1'){const t=teamDef(o.teamId);return{big:true,color:t.color,logo:teamLogo(t.id),name:t.name,en:TEAM_EN[t.id]||t.name,line:`${y} 시즌부터 ${t.name} 드라이버`,terms:`${o.years}년 · ${won(o.sal)}${o.option?' · +1년 옵션':''}`,
-    news:N([`${p.name}, ${jo(t.name,"과","와")} ${o.years}년 계약 체결`,`연봉 ${won(o.sal)} · ${y} 시즌부터 레이스 시트`,`${t.name} 팬들 "드디어 왔다"`])}}
+    who:W&&W.t,news:N([...(W?[`${p.name}, ${W.t}`]:[]),`${p.name}, ${jo(t.name,"과","와")} ${o.years}년 계약 체결`,`연봉 ${won(o.sal)} · ${y} 시즌부터 레이스 시트`,`${t.name} 팬들 "드디어 왔다"`])}}
   if(o.kind==='reserve'){const t=teamDef(o.teamId);return{color:t.color,logo:teamLogo(t.id),name:t.name,line:`${y} 시즌 ${t.name} 리저브 드라이버`,terms:'FP1 · 시뮬레이터 작업'}}
-  if(o.kind==='alt'){const a=altDef(o.altId),T=ALT_TS[o.altTeam],tl=T&&(o.altId==='WEC'&&altW(T[0])&&K.alt_logos[altW(T[0])]||K.alt_logos&&K.alt_logos[T[0]]||(teamByShort(T[0])?teamLogo(teamByShort(T[0]).id):null));return{alt:true,color:o.altF1?teamDef(o.altF1).color:T?T[1]:'#3182F6',logo:tl||SLOGO[o.altId]||null,badge:tl||SLOGO[o.altId]?null:a.name,name:o.altTeam||a.name,line:`${y} 시즌 ${a.name} · ${o.altTeam||''}`,terms:`${TIER_LBL[o.tier]||''} 시트`}}
+  if(o.kind==='alt'){const a=altDef(o.altId),T=ALT_TS[o.altTeam],tl=T&&(o.altId==='WEC'&&altW(T[0])&&K.alt_logos[altW(T[0])]||K.alt_logos&&K.alt_logos[T[0]]||(teamByShort(T[0])?teamLogo(teamByShort(T[0]).id):null));return{alt:true,who:W&&W.t,color:o.altF1?teamDef(o.altF1).color:T?T[1]:'#3182F6',logo:tl||SLOGO[o.altId]||null,badge:tl||SLOGO[o.altId]?null:a.name,name:o.altTeam||a.name,line:`${y} 시즌 ${a.name} · ${o.altTeam||''}`,terms:`${TIER_LBL[o.tier]||''} 시트`}}
   const ac=o.academy?K.academies.find(a=>a.id===o.academy):null,sd=seriesDef(o.series);
   return{color:ac?teamDef(ac.teams[0]).color:'#3182F6',logo:SLOGO[o.series]||null,badge:SLOGO[o.series]?null:o.series,name:o.team.name,line:`${y} ${sd.name} · ${o.team.name}`,terms:ac?`${ac.name} 입단`:(o.tag||'')}}
 // smooth stroke path: one Chaikin pass, then quadratic curves through midpoints (no corners)
@@ -3342,7 +3357,7 @@ function cxAlt(o,I,mark){const p=S.p,sid=o.altId,d=CXW[sid]||{},en=SER_EN[sid]||
     <div class="board"><b>${esc(p.num)}</b></div>
     <div class="lane">${Array.from({length:6},(_,i)=>`<i style="bottom:${8+i*13}px;animation-delay:${(1+i*.37+Math.random()*.3).toFixed(2)}s;animation-duration:${(.7+Math.random()*.5).toFixed(2)}s"></i>`).join('')}<div class="car">${car}</div></div>
     <div class="drv">${avatar(pAv(p),p.helmet,250,true,p.num)}</div>
-    <div class="info"><div class="lg">${mark}</div><div class="nm">${esc(p.name)}</div><div class="ln">${esc(I.line)}</div><div class="tt">${esc(I.terms)}</div><div class="sgn">${sigSVG(p.sig,170,56,'#fff')}</div></div></div>`}
+    <div class="info"><div class="lg">${mark}</div><div class="nm">${esc(p.name)}</div><div class="ln">${esc(I.line)}</div><div class="tt">${esc(I.terms)}</div>${I.who?`<div class="rp">${esc(I.who)}</div>`:''}<div class="sgn">${sigSVG(p.sig,170,56,'#fff')}</div></div></div>`}
 function contractShow(o,done){
   const p=S.p,I=contractInfo(o),el=document.createElement('div');el.className='cx';el.style.setProperty('--tc',I.color);document.body.appendChild(el);
   const TM=[],later=(f,ms)=>TM.push(setTimeout(f,ms));let fin=false;
@@ -3365,7 +3380,7 @@ function contractShow(o,done){
           <div class="mq">${['o l','f r','o l','f r','o l'].map((c,i)=>{const w=i%2?I.en:'BREAKING',s=Array(6).fill(w).join(' · ');return`<div class="${c}">${esc(s)} · ${esc(s)} · </div>`}).join('')}</div>
           <div class="brk"><b>BREAKING</b><div class="tk"><span>${I.news}</span></div></div>
           <div class="off">OFFICIAL</div><div class="duo"><div class="lg">${mark}</div><div class="hel">${avatar(pAv(p),p.helmet,150,true,p.num)}</div></div>
-          <div class="nm">${esc(p.name)}</div><div class="ln">${esc(I.line)}</div><div class="tt">${esc(I.terms)}</div>
+          <div class="nm">${esc(p.name)}</div><div class="ln">${esc(I.line)}</div><div class="tt">${esc(I.terms)}</div>${I.who?`<div class="rp">${esc(I.who)}</div>`:''}
           <div class="sgn">${sigSVG(p.sig,220,74,'#fff')}<div class="stp" style="--stc:#fff">${I.logo?`<img src="${I.logo}" alt="">`:''}SIGNED</div></div>
           <div class="wf"></div><div class="fl">${Array.from({length:11},(_,i)=>`<i style="left:${8+Math.random()*78}%;top:${10+Math.random()*70}%;animation-delay:${(3.05+i*.08+Math.random()*.08).toFixed(2)}s"></i>`).join('')}</div>
           <div class="conf">${Array.from({length:46},(_,i)=>`<i style="left:${Math.random()*100}%;background:${['#F2C14E','#fff',I.color,'#3182F6'][i%4]};animation-duration:${2+Math.random()*1.6}s;animation-delay:${2.8+Math.random()*.8}s"></i>`).join('')}</div></div>`
