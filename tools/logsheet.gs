@@ -47,6 +47,22 @@ function doPost(e) {
       if (!f) { f = ss.insertSheet('의견', 0); f.appendRow(['시간', '내용', '무대', '시즌 수', '버전', '기기']); f.setFrozenRows(1); f.setColumnWidth(2, 400); }
       f.getRange(f.getLastRow() + 1, 1, fb.length, 6).setValues(fb);
     }
+    // anti-cheat: a line when a career gets flagged, and feedback sent from a flagged career, in a "부정 플레이" tab
+    // (stats all 99 = real cheat; ordinary stats = maybe wrongly caught → put its cid in X_OK in the game)
+    const ST = ['quali', 'race', 'tyre', 'wet', 'consistency', 'mental'];
+    const xs = a.filter(d => d.kind === 'flag' || (d.kind === 'fb' && d.x && d.text)).map(d => d.kind === 'flag' ? [
+      Utilities.formatDate(new Date(now), 'Asia/Seoul', 'yyyy-MM-dd HH:mm'), '감지', String(d.why || ''), d.age || '', String(d.lk || ''), d.ovr || '',
+      ST.map(k => (d.stats || {})[k] ?? '-').join('·'), (d.pot0 ?? '?') + '→' + (d.pot ?? '?'), d.titles || 0, (d.wins || 0) + '/' + (d.starts || 0),
+      String(d.v || ''), String(d.cid || '')] : [
+      Utilities.formatDate(new Date(now), 'Asia/Seoul', 'yyyy-MM-dd HH:mm'), '의견', String(d.text).slice(0, 300), '', String(d.lk || d.phase || ''), '',
+      '', '', '', '', String(d.v || ''), String(d.cid || '')]);
+    if (xs.length) {
+      const ss = SpreadsheetApp.getActive();
+      let x = ss.getSheetByName('부정 플레이');
+      if (!x) { x = ss.insertSheet('부정 플레이', 0); x.appendRow(['시간', '종류', '이유·내용', '나이', '무대', 'OVR', '능력치(퀄·레·타·빗·일·멘)', '잠재력(처음→지금)', '월챔', '우승/출전', '버전', 'cid']);
+        x.setFrozenRows(1); x.setColumnWidth(3, 260); x.setColumnWidth(7, 200); x.getRange('L:L').setNumberFormat('@'); }
+      x.getRange(x.getLastRow() + 1, 1, xs.length, 12).setValues(xs);
+    }
   } finally { lock.releaseLock(); }
   return out({ ok: a.length });
 }

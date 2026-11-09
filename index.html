@@ -2031,6 +2031,9 @@ const TIER_LBL={top:'상위팀',mid:'중위팀',bottom:'하위팀'};
 const STATS=B.driver.stats, LBL=B.driver.stat_labels;
 /* v1.6.0-d1: 처음 켜질 때의 Math.random. 콘솔에서 바꿔치면 그 커리어를 랭킹에서 뺌(p.x=2) */
 const RND0=Math.random,rngBad=()=>Math.random!==RND0;
+// careers 찬우 checked by hand and put back (cid from the sheet's '부정 플레이' tab): never flagged, sent to the ranking again
+const X_OK=[];
+function xOk(cid){return X_OK.includes(String(cid))}
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const ri=(a,b)=>Math.floor(rnd(a,b+1));
 const pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -2090,9 +2093,9 @@ function rookie(team){
 let padLg=null,newsTab='all',newsMore=false,hlMore=false,fanMore=false,chain=false,resMore=false,evPick=null;
 let S=null, tab='home', ob=null, sel=null, DL=null, sheet=null, cardURL=null;
 const KEY='k2wc-save-v1';
-function rngChk(){if(S&&S.p&&!S.p.retired&&S.p.x!==2&&rngBad())S.p.x=2}
-if(typeof window!=='undefined'&&window.setInterval)window.setInterval(()=>{if(S&&S.p&&!S.p.retired&&S.p.x!==2&&rngBad()){rngChk();save()}},2000);
-function save(){try{rngChk();if(S.p&&!S.p.x&&tampered(S.p))S.p.x=1;localStorage.setItem(KEY,JSON.stringify(S));const p=S.p;localStorage.setItem('k2wc-last',JSON.stringify({name:p.name,num:p.num0||p.num,nat:p.nat,avatar:p.avatar,helmet:p.helmet}))}catch(e){}}
+function rngChk(){if(S&&S.p&&!S.p.retired&&S.p.x!==2&&!xOk(S.cid)&&rngBad())S.p.x=2}
+if(typeof window!=='undefined'&&window.setInterval)window.setInterval(()=>{if(S&&S.p&&!S.p.retired&&S.p.x!==2&&!xOk(S.cid)&&rngBad()){rngChk();save()}},2000);
+function save(){try{rngChk();if(S.p&&xOk(S.cid))delete S.p.x;else if(S.p&&!S.p.x&&tampered(S.p))S.p.x=1;if(S.p&&S.p.x&&!S.p.xLog)xLog();localStorage.setItem(KEY,JSON.stringify(S));const p=S.p;localStorage.setItem('k2wc-last',JSON.stringify({name:p.name,num:p.num0||p.num,nat:p.nat,avatar:p.avatar,helmet:p.helmet}))}catch(e){}}
 function load(){try{const t=localStorage.getItem(KEY);if(t){const s=JSON.parse(t);if(s&&s.p)return s}}catch(e){}return null}
 
 
@@ -4510,8 +4513,13 @@ const ovrCap=a=>a<=17?70+8*(a-14):99;  // margin 12~14 over real max, edits to 9
 // pot0 never changes after newGame: careers made from v1.6.7-d6 keep a check value of it (old saves have none, so they're skipped)
 function potCk(cid,v){let h=7;for(const c of String(cid)+':'+v+':k2wc')h=(h*31+c.charCodeAt(0))>>>0;return h.toString(36)}
 const potBad=p=>p.ck!=null&&(p.pot0==null||potCk(S&&S.cid,p.pot0)!==p.ck);
-function tampered(p=S.p){return potBad(p)||(p.pot0!=null&&p.potential>p.pot0+B.driver.awaken.max)||ovrOf(p.stats)>ovrCap(p.age)||p.history.some(h=>h.ovrAfter>ovrCap(h.age))||p.history.some(h=>h.sid==='F1'&&h.role==='race'&&h.starts>=20&&h.wins===h.starts)}
-const flagged=(p=S.p)=>!!(p.x||tampered(p));
+// which check caught it ('' = clean); the label goes to the sheet's '부정 플레이' tab
+function tampWhy(p=S.p){return potBad(p)?'확인 값':(p.pot0!=null&&p.potential>p.pot0+B.driver.awaken.max)?'잠재력':(ovrOf(p.stats)>ovrCap(p.age)||p.history.some(h=>h.ovrAfter>ovrCap(h.age)))?'나이 OVR':p.history.some(h=>h.sid==='F1'&&h.role==='race'&&h.starts>=20&&h.wins===h.starts)?'F1 전승':''}
+function tampered(p=S.p){return!!tampWhy(p)}
+function flagged(p=S.p){return!xOk(S&&S.cid)&&!!(p.x||tampered(p))}
+// one log line the moment a career gets flagged (also old flags without one)
+function xLog(){const p=S&&S.p;if(!p||!p.x||p.xLog||xOk(S.cid))return;p.xLog=1;const T=p.tot;
+  logEv('flag',{x:p.x,why:p.x===2?'콘솔 랜덤':tampWhy(p)||'예전 표시',age:p.age,lk:p.series==='ALT'?p.alt:p.series,ovr:ovrOf(p.stats),stats:{...p.stats},pot:p.potential,pot0:p.pot0??null,titles:T.titles,wins:T.wins,starts:T.starts,seasons:p.history.length})}
 const TAMP_MSG=`<b style="font-size:17px">비정상적인 플레이가 감지되었습니다.</b><br><span class="muted">이 커리어는 랭킹에 올라가지 않습니다.</span>`,TAMP_FB=`<p style="margin:8px 0 0"><button class="dlink" type="button" id="fbOpen" style="font-size:14px;color:var(--muted);text-decoration:underline">의견 보내기</button></p>`;
 function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.random().toString(36).slice(2,8);const a=hofLoad();if(a.some(x=>x.cid===S.cid))return;const p=S.p,T=p.tot;
   a.push({cid:S.cid,at:Date.now(),name:p.name,num:p.num,nat:p.nat,helmet:p.helmet,start:S.startYear,end:S.year,age:p.age,titles:T.titles,wins:T.wins,podiums:T.podiums,starts:T.starts,top:bestStage(p),tro:altTrophies(p).length,earn:p.earn||0,
@@ -4538,7 +4546,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.7-d6',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.7-d7',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -4569,7 +4577,7 @@ function fbSend(){const text=fbText.trim().slice(0,300);if(!text){toast('내용�
   if(!rkNet()){toast('인터넷이 연결돼 있지 않아요');return}
   if(Date.now()-fbLast<30000){toast('잠시 후 다시 보내 주세요');return}
   const p=S&&S.p,d={uid:logUid(),cid:S&&S.cid||'',kind:'fb',v:LOG_VER,t:Date.now(),text,
-    lk:p?p.series+(p.role&&p.role!=='race'?':'+p.role:''):null,phase:S?S.phase:'title',seasons:p&&p.history?p.history.length:0,year:S?S.year:null};
+    lk:p?p.series+(p.role&&p.role!=='race'?':'+p.role:''):null,phase:S?S.phase:'title',seasons:p&&p.history?p.history.length:0,year:S?S.year:null,...(p&&flagged(p)?{x:p.x||1}:{})};
   fbLast=Date.now();
   logPost([d]).then(()=>{fbText='';sheet=null;render();toast('보냈어요. 고마워요!')}).catch(()=>{fbLast=0;toast('보내지 못했어요. 잠시 후 다시 시도해 주세요.')})}
 function logDownload(){const q=logQ();if(!q.length)return;const name=`kart-to-wc-log-${logUid().slice(0,6)}-${Date.now()}.json`,data=JSON.stringify(q);
@@ -4607,6 +4615,7 @@ if(rkNet()&&typeof document!=='undefined'){
   setTimeout(()=>verChk(true),300);
   let verHid=0;document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')verHid=Date.now();else if(verHid&&Date.now()-verHid>1800000){verHid=0;verChk(false)}})}
 function rkPush(){if(!rkNet())return;
+  {const a=hofLoad();if(a.some(h=>h.x&&xOk(h.cid))){a.forEach(h=>{if(h.x&&xOk(h.cid))delete h.x});hofSave(a)}}
   hofLoad().filter(h=>!h.sent&&!h.x&&!badName(h.name)).forEach(h=>{
     fetch(SB_URL,{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
       body:JSON.stringify({cid:h.cid,name:h.name,num:h.num,nat:h.nat,helmet:h.helmet,start_year:h.start,end_year:h.end,age:h.age,titles:h.titles,wins:h.wins,podiums:h.podiums,starts:h.starts,
@@ -5273,6 +5282,7 @@ S=load();if(S){const p=S.p;if(S.train!=='rest')S.train='focus';
   if(!S.prog){const g=[...PROGS].sort((a,b)=>b.st.filter(k=>p.focus.includes(k)).length-a.st.filter(k=>p.focus.includes(k)).length)[0];setProg(g.id);S.progYear=S.year-PROG_LOCK;S.progFree=null}
   avatarCanvas(pAv(p),p.helmet,true);if(S.jr===undefined){if(S.year<=K.start_year+1&&!p.retired)initJrPool();else S.jr=[]}S.f1.forEach(d=>{if(d.name==='이삭 하자르')d.name='아이작 하자르'});if(S.rival&&!S.rival.nm2){const nn=genName(S.rival.nat);S.f1.forEach(d=>{if(d.id==='rival')d.name=nn});S.rival.name=nn;S.rival.nm2=1}
   S.f1.forEach(d=>{if(d.rookie&&!d.nm2){d.name=genName(d.nationality);d.nm2=1}});[...S.f1,...(S.jr||[]),...(S.rival?[S.rival]:[])].forEach(d=>{if(/니에미/.test(d.name))d.name=genName(d.nationality||d.nat)});if(!p.scout&&!p.retired)scoutInit(p);{const rd=S.f1.find(d=>d.id==='rival');if(rd)rd.id='ex'+Date.now()}S.rival=null;p.fans??=10;p.morale??=60;p.repBonus??=0;if(p.val==null){p.val=0;p.valPeak=0}p.challenges??=[];p.monaco??=false;S.events??=[];S.challenge??=null;S.news??=null;S.train??=null;S.react??=null;S.vacancies??=[];if(S.phase==='progress'&&!S.season)S.phase='result';if(S.news&&!S.news.heads)S.news=null;S.notice??=null;p.contract??=null;p.helmet=normHelmet(p.helmet)}render();
+if(hofLoad().some(h=>h.x&&xOk(h.cid)))rkPush();
 (async()=>{try{if(window.claude&&window.claude.use){DL=await window.claude.use('downloads');if(DL)render()}}catch(_){}})();
 document.fonts&&document.fonts.ready.then(()=>{if(S&&S.p.retired)render()});
 try{document.fonts&&document.fonts.load("44px 'Mrs Saint Delafield'")}catch(e){}
