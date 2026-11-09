@@ -272,6 +272,7 @@
   }
  },
  "career": {
+  "alt_ease": {"WEC": 4.5, "INDY": 5},
   "teammate_absence_per_season": 0.1,
   "sub_races": [
    1,
