@@ -1029,7 +1029,8 @@ const B = {
   "old_seat_per_year": 5,
   "rookie_adapt": 3,
   "first_kart_easy": 5,
-  "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 1.5, "dev_max": 4.5, "window": 4}
+  "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 1.5, "dev_max": 4.5, "window": 4},
+  "alt_hunt": {"dev": 1.5, "dev_max": 3, "window": 3}
  },
  "super_licence": {
   "min_age": 18,
@@ -2461,7 +2462,7 @@ function finishSeason(){
   const deltas=STATS.map(k=>({k,v:p.stats[k],d:p.stats[k]-statsBefore[k]})).filter(x=>x.d!==0);
   const rec={lk:p.series==='ALT'?p.alt:p.series,year:S.year,age:p.age,series:p.series==='ALT'?altDef(p.alt).name:seriesDef(p.series).name,sid:p.series,team:teamName,color:teamColor,role:p.role,tid:p.team&&p.team.id||null,
     pos,field:fieldN,train:trName(),points:me.pts,wins:me.wins,podiums:me.pod,poles:me.poles,dnf:me.dnf,starts:me.starts,ovrBefore,ovrAfter,h2h,titled,crown,first:!!C.firstLeague,slump:slump||null};
-  rec.rv=rvRes;if(p.series==='F1'&&pos>1&&st[0]){rec.cp=st[0].pts;rec.cn=st[0].name}if(p.tcY===S.year)rec.tc=true;if(homeW)rec.homeW=homeW;if(yrNew.length)rec.yr=yrNew;if(awake)rec.awake=awake;
+  rec.rv=rvRes;if(p.series==='F1'&&pos>1&&st[0]){rec.cp=st[0].pts;rec.cn=st[0].name}if(p.tcY===S.year)rec.tc=true;if(S.hunt&&S.hunt.y===S.year)rec.hunt=S.hunt.d;if(homeW)rec.homeW=homeW;if(yrNew.length)rec.yr=yrNew;if(awake)rec.awake=awake;
   if(C.why0&&pos&&me.starts>0){const fin=me.fp.filter(x=>x&&x<99).sort((a,b)=>a-b),med=fin.length?fin[Math.floor(fin.length/2)]:fieldN,P=ptsTab(Z.orders[0]);
     const extra=me.dnf*(P[med-1]||0),myPts=me.pts+extra,rND=1+st.filter(e=>e!==me&&e.pts>myPts).length,W=C.why0;
     const r3a=W.r3a??W.r3;rec.why={r0:W.r0,drv:W.r0-W.r1,car:W.r1-W.r2,stam:W.r2-W.r3,adapt:W.r3-r3a,luck:r3a-rND,dnf:rND-pos,pos}}
@@ -2601,7 +2602,12 @@ function champHunt(fresh){const H=B.career.champ_hunt,p=S.p;if(!H)return;
   // rivals pour development into catching the champion: the car drops more with every F1 title in the last few seasons
   if(H.dev){const n=p.history.slice(-(H.window||1)).filter(h=>h.sid==='F1'&&h.titled).length;
     const t=S.teams.find(x=>x.id===p.team.id),d=Math.min(H.dev*n,H.dev_max||99);
-    if(t&&d>0){t.machine=r1(t.machine-d);if(S.news&&S.news.heads)S.news.heads.unshift({t:`라이벌 팀들, ${p.name} 타도에 개발 총력… ${t.name} 머신 우위 줄어`,c:''})}}}
+    if(t&&d>0){t.machine=r1(t.machine-d);S.hunt={y:S.year,sid:'F1',d:r1(d)};if(S.news&&S.news.heads)S.news.heads.unshift({t:`라이벌 팀들, ${p.name} 타도에 개발 총력… ${t.name} 머신 우위 줄어`,c:''})}}}
+// WEC / IndyCar: a lighter version of the F1 hunt. The champion's car is held back (WEC: BoP) for every title in that league in the last few seasons
+function altHunt(){const H=B.career.alt_hunt,p=S.p;if(!H||p.series!=='ALT'||!ALT_DRV[p.alt]||!p.team)return;
+  const n=p.history.slice(-(H.window||1)).filter(h=>h.lk===p.alt&&h.titled).length,d=r1(Math.min(H.dev*n,H.dev_max||99));if(!(d>0))return;
+  S.altHunt={sid:p.alt,n:p.team.name,d};S.hunt={y:S.year,sid:p.alt,d};
+  if(S.altNews&&S.altNews[p.alt])S.altNews[p.alt].unshift(p.alt==='WEC'?`BoP 조정: 챔피언 ${p.name}의 ${p.team.name}, 성능 제한`:`라이벌 팀들, 챔피언 ${p.name} 타도에 총력`)}
 function fillSeat(teamId){const n=S.f1.filter(d=>d.team===teamId).length;for(let i=n;i<2;i++)S.f1.push(newcomer(teamId))}
 
 /* ---------- paddock news ---------- */
@@ -2769,7 +2775,7 @@ const ALT_MB=[75.5,81];
 function altMach(sid){if(!ALT_DRV[sid])return null;S.altM=S.altM||{};
   if(!S.altM[sid]){const M={};(ALT_TEAMS[sid]||[]).forEach(t=>M[t.n]=r1(ALT_CAR[t.tier]+rnd(-.5,.5)));S.altM[sid]=M}
   return S.altM[sid]}
-const altCarOf=(sid,n)=>{const M=altMach(sid);return M&&M[n]!=null?M[n]+(sid==='INDY'&&S.altEng?(ALT_ENG[n]==='H'?1:-1)*S.altEng:0):null};
+const altCarOf=(sid,n)=>{const M=altMach(sid),h=S.altHunt;return M&&M[n]!=null?M[n]+(sid==='INDY'&&S.altEng?(ALT_ENG[n]==='H'?1:-1)*S.altEng:0)-(h&&h.sid===sid&&h.n===n?h.d:0):null};
 function altRank(sid){const L=(ALT_TEAMS[sid]||[]).map(t=>({n:t.n,c:altCarOf(sid,t.n)??ALT_CAR[t.tier]})).sort((a,b)=>b.c-a.c),k=L.length/3;return L.map((x,i)=>({...x,tier:i<Math.round(k)?'top':i<Math.round(2*k)?'mid':'bottom',rank:i+1}))}
 const altTierOf=(sid,n)=>{const r=altRank(sid).find(x=>x.n===n);return r?r.tier:null};
 function updateAltMachines(ev){const p=S.p;
@@ -2956,7 +2962,9 @@ function applyOffer(o){
   }else if(o.kind==='reserve'){p.contract=null;p.series='F1';p.role='reserve';p.team={id:o.teamId};if(leavingF1Seat)fillSeat(oldTeam)}
   else if(o.kind==='alt'){p.contract=null;p.seriesSeasons=p.series==='ALT'&&p.alt===o.altId?p.seriesSeasons+1:1;p.series='ALT';p.alt=o.altId;p.team={name:o.altTeam||altDef(o.altId).name,tier:o.tier,f1:o.altF1||null};p.role='race';if(leavingF1Seat)fillSeat(oldTeam)}
   fillVacancies();
+  S.hunt=null;S.altHunt=null;
   if(p.series==='F1'&&p.role==='race'&&p.history.some(h=>h.sid==='F1'&&h.titled))champHunt(!!(S.last&&S.last.rec&&S.last.rec.titled&&S.last.rec.sid==='F1'));
+  altHunt();
   {const tgt=p.age>=36?70:p.age>=33?78:85;p.morale=Math.round(p.morale+(tgt-p.morale)*.45)}
   if(S.train==='rest'){p.morale=Math.min(100,p.morale+15);S.train='focus'}
   // the plan carries over; moving up a stage or maxing one of its stats opens it again
@@ -3596,6 +3604,7 @@ function buildReact(R,x){
   if(!f&&x.wetN>=2&&x.wetPod>=2)f=`빗속 레이스 ${x.wetN}번 중 ${x.wetPod}번 포디움, 우천 능력은 이미 무기예요.`;
   if(!f&&R.wins>=3)f=`${R.wins}승을 거두며 우승 경쟁력을 증명했어요.`;
   if(!f&&R.pos)f=pick(['큰 변수 없이 실력대로 나온 시즌이었어요.','눈에 띄는 변수 없이 꾸준히 달렸어요.']);
+  if(R.hunt&&R.pos)f=(f?f+' ':'')+(R.lk==='WEC'?`BoP 견제로 머신이 ${R.hunt} 묶인 채 달렸어요`:`라이벌들의 견제로 머신 우위가 ${R.hunt} 줄어든 채 달렸어요`)+(R.titled?'. 그래도 타이틀을 지켜 냈어요.':R.pos<=3?'. 그래도 정상 경쟁을 했어요.':'.');
   if(f)E.push(f);
   // 4) what next
   const st=p.stats,rs0=recStats()[0]||{k:STATS.reduce((a,b)=>st[a]<=st[b]?a:b)},weak=rs0.k,dO=R.ovrAfter-R.ovrBefore,trTxt=S.train!=='rest'&&p.focus.includes(weak)?'지금 훈련 방향이 맞아요.':`${LBL[weak]}${josa3(LBL[weak])} 든 훈련 프로그램을 골라 보세요${trOpen()?'':` (${S.progYear+PROG_LOCK}년에 변경 가능)`}.`;
@@ -3610,6 +3619,7 @@ function buildReact(R,x){
   else if(R.titled)adv=pick([`다음 무대에선 상대가 훨씬 세져요. ${LBL[weak]}(${st[weak]})부터 준비하세요.`,`챔피언 타이틀을 들고 올라가요. ${LBL[weak]}(${st[weak]})이 다음 무대의 열쇠예요.`]);
   else if(R.age>=33&&st.tyre>=st.quali)adv=pick(['퀄리파잉 속도는 줄어도 타이어 관리와 멘탈은 여전히 무기예요. 경험으로 버티는 시즌이 될 거예요.',`베테랑의 운영이 빛날 때예요. ${LBL[weak]}(${st[weak]})만 지켜 내면 돼요.`]);
   else adv=pick([`다음 시즌 과제는 ${LBL[weak]}${ieyo(LBL[weak])} (지금 ${st[weak]}). ${trTxt}`,`${LBL[weak]}(${st[weak]})만 끌어올리면 한 단계 더 올라설 수 있어요. ${trTxt}`,`다음 시즌엔 ${LBL[weak]}${josa(LBL[weak])} 키워 보세요 (지금 ${st[weak]}). ${rs0.why}.`]);
+  if(R.titled&&(R.sid==='F1'||ALT_DRV[R.lk]))adv+=R.lk==='WEC'?' 다음 시즌엔 BoP 조정으로 차가 묶일 거예요.':' 다음 시즌엔 라이벌 팀들의 견제가 시작돼요.';
   E.push(pre+adv);
   // fans: the season's story first (who, where, compared with what); choices only as a side note
   const tags=[],side=[],V={name,team:R.team||'',series:R.series,pos:R.pos,age:R.age,wins:R.wins,poles:R.poles||0,crown:R.crown?R.crown.n:'',champ:x.champ||null,gap:x.gap};
@@ -4409,7 +4419,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.3-d1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.3-d2',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';

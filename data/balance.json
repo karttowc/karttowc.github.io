@@ -332,7 +332,8 @@
   "old_seat_per_year": 5,
   "rookie_adapt": 3,
   "first_kart_easy": 5,
-  "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 1.5, "dev_max": 4.5, "window": 4}
+  "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 1.5, "dev_max": 4.5, "window": 4},
+  "alt_hunt": {"dev": 1.5, "dev_max": 3, "window": 3}
  },
  "super_licence": {
   "min_age": 18,
