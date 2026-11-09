@@ -4106,7 +4106,7 @@ const NEWPATH={WEC:{line:'르망에서 전설이 될 수 있어요',story:'브�
  FE:{line:'전기차 레이스의 정상에 설 수 있어요',story:'닉 더프리스는 포뮬러E 챔피언이 된 뒤 F1 그리드에 섰어요.',goals:['포뮬러E 챔피언','챔피언이면 F1 길이 다시 열려요']},
  SF:{line:'일본에서 다시 날아오를 수 있어요',story:'피에르 가슬리는 슈퍼포뮬러를 거쳐 F1에 데뷔했어요.',goals:['슈퍼포뮬러 챔피언','챔피언이면 F1 길이 다시 열려요']},
  GT3:{line:'GT 레이싱에서 이름을 남길 수 있어요',story:'DTM은 독일에서 가장 사랑받는 투어링카 무대예요.',goals:['DTM 챔피언']}};
-const BYE_ALT=['F1이 아니어도 너는 우리의 챔피언이었어','그 트로피 들던 날 정말 울었다','{name} 덕분에 이 리그를 알게 됐어','진짜 레전드였다, 고마워','F1이 놓친 드라이버'];
+const BYE_ALT=['너는 언제나 우리의 챔피언이었어','그 트로피 들던 날 정말 울었다','{name} 덕분에 이 리그를 알게 됐어','진짜 레전드였다, 고마워','F1이 놓친 드라이버'];
 const altFeat=p=>{const H=p.history.filter(h=>h.sid==='ALT'),c=id=>p.challenges.filter(x=>x.id===id&&x.res==='우승').length,t=lk=>H.filter(h=>h.lk===lk&&h.titled).length;
   const L=[];if(t('WEC'))L.push(`WEC 월드 챔피언${t('WEC')>1?' '+t('WEC')+'회':''}`);if(t('INDY'))L.push(`인디카 챔피언${t('INDY')>1?' '+t('INDY')+'회':''}`);
   if(c('LEMANS'))L.push(`르망 24시 ${c('LEMANS')>1?c('LEMANS')+'회 ':''}우승`);if(c('INDY500'))L.push(`인디 500 ${c('INDY500')>1?c('INDY500')+'회 ':''}우승`);
@@ -4332,7 +4332,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.5.2-d1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.5.2-d2',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
