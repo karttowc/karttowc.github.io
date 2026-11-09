@@ -132,10 +132,10 @@ if X:
     print(f"\nflagged careers (ranking excluded) {len(X)} · new {len(nx)} (x=1 numbers, x=2 console random)")
     for d in nx:print(f"  [{kst(d['t'])}] v{d.get('v')} x={d['x']} · 월챔 {d['titles']} · 우승 {d['wins']}/{d['starts']} · peak {d['peak']} · pot {d['pot']}")
     st['xSeen']=max(d['t'] for d in X)
-# missed by the in-game check (ranking may have it): retire pot > start pot + 4, or OVR over the age cap
+# missed by the in-game check (ranking may have it): retire pot > 101 (97 max + awaken 4) or > start pot + 4, or OVR over the age cap
 NP={d['cid']:d.get('pot') for d in K['new']}
 cap=lambda a:70+8*(a-14) if a<=17 else 99
-MS=[d for d in R if not d.get('x') and ((isinstance(NP.get(d['cid']),(int,float)) and d.get('pot',0)>NP[d['cid']]+4) or any(isinstance(s.get('ovr1'),(int,float)) and s['ovr1']>cap(s['age']) for s in BY.get(d['cid'],[]) if s.get('kind')=='season'))]
+MS=[d for d in R if not d.get('x') and (d.get('pot',0)>101 or (isinstance(NP.get(d['cid']),(int,float)) and d.get('pot',0)>NP[d['cid']]+4) or any(isinstance(s.get('ovr1'),(int,float)) and s['ovr1']>cap(s['age']) for s in BY.get(d['cid'],[]) if s.get('kind')=='season'))]
 if MS:
     print(f"\nsuspicious careers not flagged in game {len(MS)} (check the ranking, delete by cid in Supabase)")
     for d in MS:print(f"  [{kst(d['t'])}] cid {d['cid']} v{d.get('v')} · 월챔 {d['titles']} · 우승 {d['wins']}/{d['starts']} · pot {NP.get(d['cid'])}→{d['pot']}")
