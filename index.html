@@ -3838,7 +3838,7 @@ function reactTab(){
   ${X?`<section class="card"><div class="eyebrow">${X.year} ${sLogo(X.sid)}${esc(X.series)} · 패독 분석가 J</div><h3 class="h3">전문가 분석</h3>
     <div class="newslist">${X.expert.map((l,i)=>`<div${i===X.expert.length-1?' style="border-left:3px solid var(--accent)"':''}>${withLogos(esc(l))}</div>`).join('')}</div>${whyCard()}</section>
   <section class="card"><h3 class="h3">팬 반응</h3><div class="list">${(fanMore?X.fans:X.fans.slice(0,3)).map(f=>`<div class="item" style="cursor:default;align-items:flex-start"><span class="dot g" style="border-radius:50%;width:40px;height:40px">${esc(f.nick[0])}</span>
-    <span class="body"><b>${esc(f.nick)}</b><span style="color:var(--fg);font-size:15px;margin:2px 0">${withLogos(esc(f.txt))}</span><span>${f.plat} · ${f.ago} · ♥ ${f.likes}</span>${f.re?`<span class="freply">↳ <b>${esc(f.re.nick)}</b> ${esc(f.re.txt)}</span>`:''}</span></div>`).join('')}</div>
+    <span class="body"><b>${esc(f.nick)}</b><span style="color:var(--fg);font-size:15px;margin:2px 0">${esc(f.txt)}</span><span>${f.plat} · ${f.ago} · ♥ ${f.likes}</span>${f.re?`<span class="freply">↳ <b>${esc(f.re.nick)}</b> ${esc(f.re.txt)}</span>`:''}</span></div>`).join('')}</div>
     ${X.fans.length>3?`<button class="nmore" type="button" data-fanmore="1" style="margin-top:0">${fanMore?'접기':`댓글 ${X.fans.length-3}개 더 보기`} <span>›</span></button>`:''}
     <p class="muted" style="margin:0;font-size:12px">게임 속 가상 반응이에요. 인기가 높을수록 반응이 많아져요.</p></section>`:`<section class="card"><p class="muted" style="margin:0">첫 시즌을 마치면 전문가와 팬들의 반응이 여기에 떠요.</p></section>`}
   ${S.phase==='result'?`<button class="btn" type="button" id="okBtn">이적 시장으로</button>`:''}`;
@@ -4335,7 +4335,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.0-d1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.0-d2',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
