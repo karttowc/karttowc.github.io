@@ -137,14 +137,45 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .cxa .sgn .stp{right:-34px;top:-20px;animation-delay:2.75s}
 .cxa .conf i{position:absolute;top:-20px;width:8px;height:12px;animation:cxcf linear forwards;z-index:3}
 @keyframes cxcf{from{transform:translateY(-20px) rotate(0)}to{transform:translateY(110vh) rotate(540deg)}}
-.cxc{position:absolute;inset:0}
-.cxc .num{position:absolute;top:12%;left:0;right:0;text-align:center;font-family:var(--num);font-weight:700;font-size:180px;line-height:1;color:transparent;-webkit-text-stroke:3px color-mix(in srgb,var(--tc) 80%,#fff);opacity:.5}
-.cxc .hel{position:absolute;top:34%;left:50%;transform:translateX(-50%)}
-.cxc .info{position:absolute;left:0;right:0;bottom:calc(8% + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:0 20px}
-.cxc .lg{height:48px;display:grid;place-items:center;opacity:0;animation:cxup .4s 1s forwards}.cxc .lg img{max-height:48px;max-width:110px;object-fit:contain}.cxc .lg b{font-family:var(--num);font-size:36px}
-.cxc .nm{font-size:26px;font-weight:700;opacity:0;animation:cxup .4s 1.15s forwards}
-.cxc .ln{font-size:14px;color:rgba(255,255,255,.75);opacity:0;animation:cxup .4s 1.3s forwards}
-.cxc .sgn{position:relative;width:170px;height:56px}.cxc .sgn svg{position:absolute;inset:0}
+/* WEC·IndyCar·other-series reveal: series-themed scene */
+.cxw{position:absolute;inset:0;overflow:hidden}
+.cxw .sky{position:absolute;inset:0}
+.t-wec .sky{background:radial-gradient(90% 40% at 50% 26%,color-mix(in srgb,var(--tc) 45%,transparent),transparent 72%),radial-gradient(1px 1px at 12% 8%,#fff8 50%,transparent),radial-gradient(1px 1px at 78% 14%,#fff8 50%,transparent),radial-gradient(1px 1px at 33% 22%,#fff6 50%,transparent),radial-gradient(1px 1px at 88% 30%,#fff6 50%,transparent),radial-gradient(1px 1px at 6% 34%,#fff5 50%,transparent),linear-gradient(#02040A 0%,#071028 48%,color-mix(in srgb,var(--tc) 24%,#04060C) 100%)}
+.t-indy .sky,.t-alt .sky{background:radial-gradient(100% 46% at 50% 26%,color-mix(in srgb,var(--tc) 65%,transparent),transparent 72%),repeating-linear-gradient(112deg,rgba(255,255,255,.04) 0 2px,transparent 2px 24px),linear-gradient(165deg,color-mix(in srgb,var(--tc) 50%,#0A0C14),#06080F 72%)}
+.cxw::after{content:"";position:absolute;left:0;right:0;bottom:0;height:44%;background:linear-gradient(transparent,rgba(4,6,12,.92) 45%);z-index:3}
+.cxw .mq2{position:absolute;inset:-12% 0;display:flex;flex-direction:column;justify-content:space-around;transform:rotate(-8deg) scale(1.2);opacity:0;animation:fade .6s .2s forwards;pointer-events:none}
+.cxw .mq2 div{white-space:nowrap;font-family:var(--num);font-weight:700;font-style:italic;font-size:84px;line-height:.9;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.08)}
+.cxw .mq2 .l{animation:cxmqL 16s linear infinite}.cxw .mq2 .r{animation:cxmqR 19s linear infinite}
+.cxw .tag{position:absolute;z-index:4;top:calc(18px + env(safe-area-inset-top,0px));left:0;right:0;margin:auto;width:max-content;display:flex;align-items:center;padding:6px 14px;border-radius:999px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.18);font-family:var(--num);font-weight:700;font-size:14px;letter-spacing:.16em;white-space:nowrap;opacity:0;animation:cxup .4s .3s forwards}
+.cxw .board{position:absolute;z-index:1;top:calc(9% + 40px);left:0;right:0;margin:auto;width:max-content;display:grid;place-items:center}
+.t-wec .board{min-width:180px;height:124px;padding:0 24px;border-radius:14px;background:linear-gradient(#E3242B,#B70F17);border:3px solid rgba(255,255,255,.92);box-shadow:0 0 36px rgba(255,50,50,.55),0 0 90px rgba(255,40,40,.25);opacity:0;animation:cxlit 1s .45s steps(1) forwards}
+.t-wec .board b{font-family:var(--num);font-weight:700;font-size:112px;line-height:1;color:#fff;text-shadow:0 0 14px rgba(255,255,255,.6)}
+@keyframes cxlit{0%{opacity:.7}12%{opacity:.1}25%{opacity:1}38%{opacity:.25}52%,100%{opacity:1}}
+.t-indy .board b,.t-alt .board b{display:block;font-family:var(--num);font-weight:700;font-style:italic;font-size:190px;line-height:.9;color:var(--tc);-webkit-text-stroke:4px #fff;paint-order:stroke fill;text-shadow:8px 8px 0 rgba(0,0,0,.35);transform:skewX(-8deg)}
+.t-indy .board,.t-alt .board{opacity:0;animation:cxdrop .7s .4s cubic-bezier(.2,.8,.3,1) forwards}
+.cxw .drv{position:absolute;z-index:3;left:0;right:0;bottom:44%;display:flex;justify-content:center}
+.cxw .drv::after{content:"";position:absolute;bottom:-8px;left:50%;width:150px;height:16px;margin-left:-75px;border-radius:50%;background:radial-gradient(rgba(0,0,0,.6),transparent 70%);z-index:-1}
+.cxw .drv .avfull{height:min(250px,33vh)!important;opacity:0;animation:cxrise .6s .75s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes cxrise{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+.cxw .lane{position:absolute;z-index:2;left:0;right:0;bottom:44%;height:90px}
+.cxw .lane::before{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--tc) 70%,#fff) 30%,color-mix(in srgb,var(--tc) 70%,#fff) 70%,transparent);box-shadow:0 0 12px var(--tc)}
+.t-indy .lane::after{content:"";position:absolute;left:0;right:0;bottom:-12px;height:8px;background:repeating-conic-gradient(#fff 0 25%,#111 0 50%) 0 0/8px 8px;opacity:.45}
+.cxw .lane .car{position:absolute;bottom:2px;left:-200px;animation:cxdrive 2.8s 1.1s linear infinite}
+.cxw .lane .car svg{display:block;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
+.t-wec .lane .car::after{content:"";position:absolute;left:100%;bottom:6px;width:190px;height:40px;background:linear-gradient(90deg,rgba(255,246,200,.6),rgba(255,246,200,0));clip-path:polygon(0 70%,100% 0,100% 100%,0 90%)}
+.t-wec .lane .car::before{content:"";position:absolute;right:100%;bottom:10px;width:70px;height:4px;background:linear-gradient(90deg,transparent,rgba(255,40,40,.8))}
+@keyframes cxdrive{0%{left:-200px}38%,100%{left:105%}}
+.t-indy .lane .car{animation-duration:2s}
+.cxw .lane i{position:absolute;left:100%;height:2px;width:90px;border-radius:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.7));animation:cxstk .9s linear infinite;opacity:0}
+.t-wec .lane i:nth-child(odd){background:linear-gradient(90deg,transparent,rgba(255,60,60,.8))}
+@keyframes cxstk{0%{left:100%;opacity:1}100%{left:-30%;opacity:1}}
+.cxw .info{position:absolute;z-index:4;left:0;right:0;bottom:calc(5% + 34px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:0 20px}
+.cxw .lg{height:52px;display:grid;place-items:center;opacity:0;animation:cxup .4s 1.3s forwards}.cxw .lg img{max-height:52px;max-width:120px;object-fit:contain;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.5)}.cxw .lg b{font-family:var(--num);font-size:36px}
+.cxw .nm{font-size:28px;font-weight:700;opacity:0;animation:cxup .4s 1.45s forwards}
+.cxw .ln{font-size:14px;color:rgba(255,255,255,.78);opacity:0;animation:cxup .4s 1.6s forwards}
+.cxw .tt{font-family:var(--num);font-weight:600;font-size:15px;letter-spacing:.06em;padding:3px 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--tc) 60%,#fff);background:color-mix(in srgb,var(--tc) 30%,transparent);opacity:0;animation:cxup .4s 1.75s forwards}
+.cxw .sgn{position:relative;width:170px;height:56px;border-bottom:1px solid rgba(255,255,255,.3)}.cxw .sgn svg{position:absolute;inset:0}
+@media (max-height:720px){.cxw .info{bottom:calc(1% + 30px + env(safe-area-inset-bottom,0px));gap:4px}.cxw .drv,.cxw .lane{bottom:45%}.cxw .drv .avfull{height:27vh!important}.cxw .board{top:calc(5% + 36px)}.t-wec .board{transform:scale(.8)}.cxw .sgn{height:46px}}
 
 .cxpad{position:absolute;inset:0;z-index:9;background:rgba(6,8,15,.88);display:flex;flex-direction:column;justify-content:center;gap:12px;padding:24px}
 .cxpad h3{margin:0;font-size:20px}.cxpad p{margin:0;color:var(--dim);font-size:13px;line-height:1.5}
@@ -3021,7 +3052,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.0-d2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.0-d3',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3219,6 +3250,27 @@ function sigPad(el,done){
   const end=()=>{if(cur&&cur.length>1){const q=cur.at(-1),pp=cur.at(-2);g.beginPath();g.moveTo((pp[0]+q[0])*450,(pp[1]+q[1])*150);g.lineTo(q[0]*900,q[1]*300);g.stroke()}if(cur&&cur.length<2)strokes.pop();cur=null;ok.disabled=!strokes.length};c.addEventListener('pointerup',end);c.addEventListener('pointercancel',end);
   el.querySelector('[data-x=clr]').onclick=e=>{e.stopPropagation();strokes.length=0;g.clearRect(0,0,900,300);ok.disabled=true};
   ok.onclick=e=>{e.stopPropagation();done(strokes.map(s=>s.map(([x,y])=>[+x.toFixed(3),+y.toFixed(3)])))}}
+// other-series reveal: WEC = night endurance (lit number panel, hypercar with headlights), IndyCar = oval speed
+const HYPER_MAP=`
+WW................................
+WWW.........VVVVVV................
+.WR.......VVVVVVVVVV..............
+.RRRRRRRRRRRRRRRRRRRRRRRRRRRRR....
+RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR..
+RRRRRWWWWWWWWWWWWWRRRRRRRRRRRRRRYY
+RRTTTTTTRRRRRRRRRRRRRRRRTTTTTTRRRR
+..TTggTT................TTggTT....
+...TTTT..................TTTT.....`;
+const CXW={WEC:{th:'t-wec',tag:'FIA WEC · HYPERCAR',mq:['24 HOURS','HYPERCAR'],car:'h'},INDY:{th:'t-indy',tag:'INDYCAR SERIES',mq:['INDYCAR','500 MILES'],car:'o'},GT3:{car:'h'}};
+function cxAlt(o,I,mark){const p=S.p,sid=o.altId,d=CXW[sid]||{},en=SER_EN[sid]||altDef(sid).name,mq=d.mq||[en,'NEW CHAPTER'];
+  const car=d.car==='h'?px(HYPER_MAP,{...CAR_PAL,R:I.color,Y:'#FFF4C2',V:'#10131C'},150):px(F1_MAP,{...CAR_PAL,R:I.color},140);
+  return`<div class="cxw ${d.th||'t-alt'}"><div class="sky"></div>
+    <div class="mq2">${[0,1,2,3,4,5].map(i=>{const w=Array(5).fill(mq[i%2]).join(' · ');return`<div class="${i%2?'r':'l'}">${esc(w)} · ${esc(w)} · </div>`}).join('')}</div>
+    <div class="tag">${sLogo(sid,16)}<span>${esc(d.tag||en.toUpperCase())}</span></div>
+    <div class="board"><b>${esc(p.num)}</b></div>
+    <div class="lane">${Array.from({length:6},(_,i)=>`<i style="bottom:${8+i*13}px;animation-delay:${(1+i*.37+Math.random()*.3).toFixed(2)}s;animation-duration:${(.7+Math.random()*.5).toFixed(2)}s"></i>`).join('')}<div class="car">${car}</div></div>
+    <div class="drv">${avatar(pAv(p),p.helmet,250,true,p.num)}</div>
+    <div class="info"><div class="lg">${mark}</div><div class="nm">${esc(p.name)}</div><div class="ln">${esc(I.line)}</div><div class="tt">${esc(I.terms)}</div><div class="sgn">${sigSVG(p.sig,170,56,'#fff')}</div></div></div>`}
 function contractShow(o,done){
   const p=S.p,I=contractInfo(o),el=document.createElement('div');el.className='cx';el.style.setProperty('--tc',I.color);document.body.appendChild(el);
   const TM=[],later=(f,ms)=>TM.push(setTimeout(f,ms));let fin=false;
@@ -3245,11 +3297,10 @@ function contractShow(o,done){
           <div class="sgn">${sigSVG(p.sig,220,74,'#fff')}<div class="stp" style="--stc:#fff">${I.logo?`<img src="${I.logo}" alt="">`:''}SIGNED</div></div>
           <div class="wf"></div><div class="fl">${Array.from({length:11},(_,i)=>`<i style="left:${8+Math.random()*78}%;top:${10+Math.random()*70}%;animation-delay:${(3.05+i*.08+Math.random()*.08).toFixed(2)}s"></i>`).join('')}</div>
           <div class="conf">${Array.from({length:46},(_,i)=>`<i style="left:${Math.random()*100}%;background:${['#F2C14E','#fff',I.color,'#3182F6'][i%4]};animation-duration:${2+Math.random()*1.6}s;animation-delay:${2.8+Math.random()*.8}s"></i>`).join('')}</div></div>`
-        :`<div class="cxc"><div class="num">${esc(p.num)}</div><div class="hel">${helmet(p.helmet,p.num,110)}</div>
-          <div class="info"><div class="lg">${mark}</div><div class="nm">${esc(p.name)}</div><div class="ln">${esc(I.line)}</div><div class="sgn">${sigSVG(p.sig,170,56,'#fff')}</div></div></div>`;
+        :cxAlt(o,I,mark);
       el.querySelector('.cxg').classList.add('open');
-      drawSig(el.querySelector(I.big?'.cxa .sgn svg':'.cxc .sgn svg'),I.big?1900:1500,800);
-      if(I.big)later(()=>{const h=el.querySelector('.cxhint');if(h){h.textContent='탭해서 계속';h.classList.add('end')}},3300);else later(finish,3300)};
+      drawSig(el.querySelector(I.big?'.cxa .sgn svg':'.cxw .sgn svg'),I.big?1900:1950,800);
+      later(()=>{const h=el.querySelector('.cxhint');if(h){h.textContent='탭해서 계속';h.classList.add('end')}},3000)};
     later(()=>el.querySelector('.cxp').classList.add('out'),3300);later(open,3700);
     // tap while signing → jump straight to the shutter opening; tap after that → close
     el.onclick=()=>{if(opened)return finish();TM.forEach(clearTimeout);TM.length=0;el.querySelector('.cxp').classList.add('out');open()}};
