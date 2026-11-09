@@ -3210,7 +3210,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.7-d2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.7-d3',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3267,18 +3267,17 @@ const BADW=['시발','씨발','ㅅㅂ','ㅆㅂ','병신','ㅂㅅ','좆','개새'
 function badName(n){const s=String(n||'').toLowerCase().replace(/[\s._-]/g,'');return BADW.some(w=>s.includes(w))}
 function rkNet(){return typeof fetch==='function'&&typeof location!=='undefined'&&/^https?:$/.test(location.protocol)}
 // new version check: the site can stay cached (or an old tab stays open), so ask version.json (written by build.py) without cache.
-// at start a newer version reloads right away (nothing played yet); coming back to an old tab shows a bar to tap.
+// no notice: at start a newer version reloads right away (nothing played yet); an old tab reloads quietly only after 30+ min away and on the home screen.
 function verGet(){return fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(j=>j&&j.v).catch(()=>null)}
 function verGo(v){try{sessionStorage.setItem('k2wc-reload',v)}catch(e){}try{save()}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(v)+location.hash)}
-function verBar(v){if(document.getElementById('verBar'))return;const d=document.createElement('div');d.id='verBar';
-  d.style.cssText='position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:9999;background:#1E6BFF;color:#fff;font-weight:700;font-size:14px;padding:11px 18px;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.35);white-space:nowrap;cursor:pointer';
-  d.textContent='새 버전이 나왔어요 · 눌러서 새로고침';d.onclick=()=>verGo(v);document.body.appendChild(d)}
+function verIdle(){if(sheet||hofOpen||document.querySelector('.celeb,.cer,.cx,.dec,.lights,.tampbox,#ex,#peek'))return false;
+  if(title)return true;return!!(S&&S.p&&!S.p.retired&&S.phase!=='progress'&&tab==='home')}
 function verChk(start){if(!rkNet())return;verGet().then(v=>{if(!v||v===LOG_VER)return;let tried=null;try{tried=sessionStorage.getItem('k2wc-reload')}catch(e){}
-  if(start&&tried!==v)verGo(v);else verBar(v)})}
+  if(tried===v)return;if(start||verIdle())verGo(v)})}
 if(rkNet()&&typeof document!=='undefined'){
   if(/[?&]v=/.test(location.search))try{history.replaceState(null,'',location.pathname+location.hash)}catch(e){}
   setTimeout(()=>verChk(true),300);
-  let verT=Date.now();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&Date.now()-verT>60000){verT=Date.now();verChk(false)}})}
+  let verHid=0;document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')verHid=Date.now();else if(verHid&&Date.now()-verHid>1800000){verHid=0;verChk(false)}})}
 function rkPush(){if(!rkNet())return;
   hofLoad().filter(h=>!h.sent&&!h.x&&!badName(h.name)).forEach(h=>{
     fetch(SB_URL,{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
