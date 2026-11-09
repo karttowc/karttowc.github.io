@@ -667,6 +667,8 @@ const AI_MEAN={KART:47,F4:53,FRECA:59,F3:65,F2:71,ALT:77};
 const ALT_CAR={top:80,mid:78,bottom:76};
 const TIER_LBL={top:'상위팀',mid:'중위팀',bottom:'하위팀'};
 const STATS=B.driver.stats, LBL=B.driver.stat_labels;
+/* v1.6.0-d1: 처음 켜질 때의 Math.random. 콘솔에서 바꿔치면 그 커리어를 랭킹에서 뺌(p.x=2) */
+const RND0=Math.random,rngBad=()=>Math.random!==RND0;
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const ri=(a,b)=>Math.floor(rnd(a,b+1));
 const pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -723,7 +725,9 @@ function rookie(team){
 let padLg='alt',newsTab='all',newsMore=false,hlMore=false,fanMore=false,chain=false,resMore=false,evPick=null;
 let S=null, tab='home', ob=null, sel=null, DL=null, sheet=null, cardURL=null;
 const KEY='k2wc-save-v1';
-function save(){try{if(S.p&&!S.p.x&&tampered(S.p))S.p.x=1;localStorage.setItem(KEY,JSON.stringify(S));const p=S.p;localStorage.setItem('k2wc-last',JSON.stringify({name:p.name,num:p.num0||p.num,nat:p.nat,avatar:p.avatar,helmet:p.helmet}))}catch(e){}}
+function rngChk(){if(S&&S.p&&!S.p.retired&&S.p.x!==2&&rngBad())S.p.x=2}
+if(typeof window!=='undefined'&&window.setInterval)window.setInterval(()=>{if(S&&S.p&&!S.p.retired&&S.p.x!==2&&rngBad()){rngChk();save()}},2000);
+function save(){try{rngChk();if(S.p&&!S.p.x&&tampered(S.p))S.p.x=1;localStorage.setItem(KEY,JSON.stringify(S));const p=S.p;localStorage.setItem('k2wc-last',JSON.stringify({name:p.name,num:p.num0||p.num,nat:p.nat,avatar:p.avatar,helmet:p.helmet}))}catch(e){}}
 function load(){try{const t=localStorage.getItem(KEY);if(t){const s=JSON.parse(t);if(s&&s.p)return s}}catch(e){}return null}
 
 
@@ -3014,7 +3018,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.0-d2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.0-d3',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3038,7 +3042,7 @@ function logSeason(rec){const p=S.p,c=currentLine(),Z=S.season||{},L=S.logPre||{
     h2h:rec.h2h?[rec.h2h.q,rec.h2h.r]:null,slp:slPoints(),sc:Math.max(0,...Object.values(p.scout||{0:0})),acad:p.academy||null,why:rec.why||null,pick:S.logPick||null})}
 function logRetire(){const p=S.p,t=p.tot;
   logEv('retire',{year:S.year,age:p.age,seasons:p.history.length,debut:p.debutYear||null,f1s:p.history.filter(h=>h.sid==='F1'&&h.role==='race').length,titles:t.titles,wins:t.wins,podiums:t.podiums,starts:t.starts,
-    peak:p.peak,pot:p.potential,style:p.style,fans:p.fans,earn:p.earn||0,path:p.history.map(h=>h.lk+(h.role==='reserve'?'r':'')).join('>'),ch:(p.challenges||[]).map(c=>c.id+':'+c.res),...(flagged(p)?{x:1}:{})})}
+    peak:p.peak,pot:p.potential,style:p.style,fans:p.fans,earn:p.earn||0,path:p.history.map(h=>h.lk+(h.role==='reserve'?'r':'')).join('>'),ch:(p.challenges||[]).map(c=>c.id+':'+c.res),...(flagged(p)?{x:p.x||1}:{})})}
 // blocked networks (e.g. a work PC): hand the unsent queue over as a file instead
 let fbText='',fbLast=0;
 function fbSend(){const text=fbText.trim().slice(0,300);if(!text){toast('내용을 적어 주세요');return}
