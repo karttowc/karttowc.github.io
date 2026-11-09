@@ -499,6 +499,7 @@ html,body{margin:0}
 .hof .row2.p2{background:linear-gradient(100deg,rgba(208,138,82,.14),rgba(208,138,82,.02) 60%);box-shadow:inset 0 0 0 1px rgba(208,138,82,.3)}
 .hof .row2.p2+.row2{margin-top:6px}
 .hof .rkch::-webkit-scrollbar{display:none}
+.hof .rkn{display:flex;align-items:baseline;gap:8px}.hof .rkn b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hof .rkn i{margin-left:auto;flex:none;font-style:normal;font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums}
 .hof .rkmeta{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hof .rkch{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent);padding-right:16px;gap:4px;margin-top:3px}.hof .rkch .chip{font-size:11px;padding:2px 7px;white-space:nowrap;flex:none}
 .hof .rkwc{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
@@ -4385,7 +4386,7 @@ function tampered(p=S.p){return(p.pot0!=null&&p.potential>p.pot0+B.driver.awaken
 const flagged=(p=S.p)=>!!(p.x||tampered(p));
 const TAMP_MSG=`<b style="font-size:17px">비정상적인 플레이가 감지되었습니다.</b><br><span class="muted">이 커리어는 랭킹에 올라가지 않습니다.</span>`,TAMP_FB=`<p style="margin:8px 0 0"><button class="dlink" type="button" id="fbOpen" style="font-size:14px;color:var(--muted);text-decoration:underline">의견 보내기</button></p>`;
 function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.random().toString(36).slice(2,8);const a=hofLoad();if(a.some(x=>x.cid===S.cid))return;const p=S.p,T=p.tot;
-  a.push({cid:S.cid,name:p.name,num:p.num,nat:p.nat,helmet:p.helmet,start:S.startYear,end:S.year,age:p.age,titles:T.titles,wins:T.wins,podiums:T.podiums,starts:T.starts,top:bestStage(p),tro:altTrophies(p).length,earn:p.earn||0,
+  a.push({cid:S.cid,at:Date.now(),name:p.name,num:p.num,nat:p.nat,helmet:p.helmet,start:S.startYear,end:S.year,age:p.age,titles:T.titles,wins:T.wins,podiums:T.podiums,starts:T.starts,top:bestStage(p),tro:altTrophies(p).length,earn:p.earn||0,
     peak:p.peak,jr:p.jr.length,...(flagged(p)?{x:1}:{}),trs:[...(tripleCrown()?['트리플 크라운']:[]),...altTrophies(p).map(t=>t.n),...p.jr.map(j=>`${j.name} 챔피언`)]});
   hofSave(rkSort(a));rkPush()}
 /* ---------- anonymous play log (Google Apps Script -> Sheet) ---------- */
@@ -4408,7 +4409,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.2',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -4475,7 +4476,7 @@ function rkLoad(t){if(rkBusy[t]||!rkNet())return;rkBusy[t]=true;rkErr[t]=false;c
   const q=g?'&or='+encodeURIComponent(`(trophies.cs.${JSON.stringify([g.c])},trophies.cs.${JSON.stringify([g.r])})`)+'&order=tro.desc,created_at.asc&limit=500':'&order=titles.desc,wins.desc,tro.desc,podiums.desc,jr.desc,peak.desc.nullslast,created_at.asc&limit=100';
   fetch(SB_URL+'?select=*&created_at=gte.'+from+q,{headers:{apikey:SB_KEY}})
     .then(r=>r.ok?r.json():Promise.reject(r.status))
-    .then(d=>{rkD[t]={from,L:d.filter(r=>!badName(r.name)).map(r=>({cid:r.cid,name:r.name,num:r.num,nat:r.nat,helmet:r.helmet,start:r.start_year,end:r.end_year,age:r.age,titles:r.titles,wins:r.wins,podiums:r.podiums,starts:r.starts,peak:r.peak,top:r.top,tro:r.tro,jr:r.jr,trs:r.trophies||[]}))};if(g)rkD[t].L=rkLgSort(rkD[t].L,t.replace(/^(week|all)/,''))})
+    .then(d=>{rkD[t]={from,L:d.filter(r=>!badName(r.name)).map(r=>({cid:r.cid,name:r.name,num:r.num,nat:r.nat,helmet:r.helmet,start:r.start_year,end:r.end_year,age:r.age,titles:r.titles,wins:r.wins,podiums:r.podiums,starts:r.starts,peak:r.peak,top:r.top,tro:r.tro,jr:r.jr,trs:r.trophies||[],at:Date.parse(r.created_at)||0}))};if(g)rkD[t].L=rkLgSort(rkD[t].L,t.replace(/^(week|all)/,''))})
     .catch(()=>{rkErr[t]=true}).finally(()=>{rkBusy[t]=false;if(hofOpen)render()})}
 function rkOpen(){hofOpen=true;rkTab='week';rkLg='f1';rkPush();if(rkNeed('week'))rkLoad('week')}
 setTimeout(rkPush,2000);
@@ -4524,6 +4525,10 @@ function titleView(){
   </div></section>${hofOpen?hofSheet(H):''}`}
 // same trophy names grouped: [[name,count]] in first-seen order
 const RK_SHORT={'WEC 하이퍼카 챔피언':'WEC 챔피언','르망 24시 우승':'르망 우승','일본 슈퍼포뮬러 챔피언':'슈퍼포뮬러 챔피언','DTM (GT3) 챔피언':'DTM 챔피언','포뮬러 리저널 유럽 챔피언':'FRECA 챔피언'},rkShort=t=>RK_SHORT[t]||t.replace(/^FIA /,'');
+// when a record went up: 방금 / N분 전 / N시간 전 / 어제 / N일 전, older = MM-DD (KST)
+function rkAgo(t){const m=(Date.now()-t)/6e4;if(m<1)return'방금';if(m<60)return`${Math.floor(m)}분 전`;if(m<1440)return`${Math.floor(m/60)}시간 전`;
+  const K=9*3600e3,D=86400e3,d=Math.floor((Date.now()+K)/D)-Math.floor((t+K)/D);if(d<=1)return'어제';if(d<7)return`${d}일 전`;
+  const x=new Date(t+K),y=new Date(Date.now()+K),md=`${String(x.getUTCMonth()+1).padStart(2,'0')}-${String(x.getUTCDate()).padStart(2,'0')}`;return x.getUTCFullYear()===y.getUTCFullYear()?md:`${x.getUTCFullYear()}-${md}`}
 function rkTrs(a){const m=new Map();a.forEach(t=>m.set(t,(m.get(t)||0)+1));return[...m]}
 // series line for careers without F1: the other stages they won trophies in
 function rkAltSer(h){const t=h.trs||[],o=[['WEC','WEC'],['르망','WEC'],['인디','인디카'],['포뮬러E','포뮬러E'],['슈퍼포뮬러','슈퍼포뮬러'],['DTM','DTM']].filter(([k])=>t.some(x=>x.includes(k)&&!x.includes('트리플'))).map(x=>x[1]);return[...new Set(o)].slice(0,2).join(' · ')}
@@ -4533,7 +4538,7 @@ function hofSheet(H){
     side=g?((c,r)=>c||r?`<span class="rkwc">${c?`<span class="t alt" aria-label="${g.cn} ${c}회"><img src="${TROPHY[g.tro]}" alt=""><b>${c}</b></span>`:''}${r?`<span class="w">${g.rn} ${r}승</span>`:''}</span>`:'')(rkCnt(h,g.c),rkCnt(h,g.r))
       :h.titles||h.wins?`<span class="rkwc">${h.titles?`<span class="t" aria-label="월드 챔피언 ${h.titles}회"><img src="${TROPHY.F1}" alt=""><b>${h.titles}</b></span>`:''}${h.wins?`<span class="w">우승 ${h.wins}</span>`:''}</span>`:'';
     return`<div class="row2${i<3?' p'+i:''}${all&&mine.has(h.cid)?' me':''}"><span class="rk${i<3?' m'+i:''}">${i+1}</span>${helmet(h.helmet,h.num,40)}
-      <span style="flex:1;min-width:0"><b>${esc(h.name)}</b><br>
+      <span style="flex:1;min-width:0"><span class="rkn"><b>${esc(h.name)}</b>${h.at?`<i>${rkAgo(h.at)}</i>`:''}</span>
       <span class="muted rkmeta">${esc(ser)}${h.top==='포뮬러 1'||h.podiums?` · 포디움 ${h.podiums}`:''}${h.peak?` · OVR ${h.peak}`:''} · ${h.age}세</span>
       ${tr.length?`<div class="chips rkch">${tr.map(([t,n])=>`<span class="chip ${t==='트리플 크라운'?'gold':'silver'}">${esc(rkShort(t))}${n>1?` ×${n}`:''}</span>`).join('')}</div>`:''}</span>${side}</div>`};
   const body=all&&!rkNet()?`<p class="muted" style="margin:0">전체 랭킹은 인터넷에 연결된 게임 사이트에서 볼 수 있어요.</p>`:
