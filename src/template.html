@@ -687,6 +687,9 @@ const natName=c=>K.nationalities[c]||c;
 const FIRST=['루카','마테오','노아','올리버','레오','에단','휴고','라파엘','토마스','다니엘','유키','하루토','민준','서준','가브리엘','펠리페','이반','안드레아','니코','잭','루이','아담','엘리아스','소렌','빅토르','마르코'];
 const LAST=['로시','마르탱','뮐러','실바','콘티','베르그','타나카','김','박','하트','레예스','노박','페리','뒤부아','스미스','올리베이라','하타노','코바치','반 데르 베르크','린드','모레노','브라운','파라','이토','에릭손','카스트로'];
 const NATS=['GBR','ITA','FRA','GER','ESP','NED','BRA','JPN','AUS','USA','ARG','FIN','MEX','CHN','KOR','CAN'];
+/* v1.6.0-d7: 새로 생기는 드라이버 국적은 실제 그리드처럼 유럽 쪽이 많게, 한국·중국은 약 2%씩 */
+const NAT_W={GBR:14,ITA:9,FRA:10,GER:8,ESP:6,NED:7,BRA:6,JPN:5,AUS:5,USA:6,ARG:3,FIN:4,MEX:4,CHN:2,KOR:2,CAN:4};
+const natPick=()=>{let r=Math.random()*NATS.reduce((a,n)=>a+NAT_W[n],0);for(const n of NATS){r-=NAT_W[n];if(r<0)return n}return NATS[0]};
 // names follow nationality so a Korean first name never gets a Japanese surname
 const NAME_POOL={
  KOR:{f:['민준','서준','도윤','하준','지호','준우','현우','건우','우진','시우','태윤','예준'],l:['김','이','박','최','정','강','윤','한','조','임','오','신'],kor:true},
@@ -716,9 +719,9 @@ function styleStats(base,styleId){
   STATS.forEach(k=>st[k]=clamp(st[k],1,99));return st;
 }
 function rookie(team){
-  if(Math.random()<.1){const ovr=ri(80,86),style=pick(B.styles).id;const nn=pick(NATS);return{id:'r'+Date.now()+ri(0,9999),name:genName(nn),nationality:nn,birth_year:0,age:ri(18,20),team,style,potential:ri(93,97),stats:styleStats(ovr,style),rookie:true,prodigy:true}}
+  if(Math.random()<.1){const ovr=ri(80,86),style=pick(B.styles).id;const nn=natPick();return{id:'r'+Date.now()+ri(0,9999),name:genName(nn),nationality:nn,birth_year:0,age:ri(18,20),team,style,potential:ri(93,97),stats:styleStats(ovr,style),rookie:true,prodigy:true}}
   const ovr=ri(74,84),style=pick(B.styles).id;
-  const nn=pick(NATS);return {id:'r'+Date.now()+ri(0,9999),name:genName(nn),nationality:nn,birth_year:0,age:ri(19,22),team,style,potential:clamp(ovr+ri(4,14),ovr,96),stats:styleStats(ovr,style),rookie:true};
+  const nn=natPick();return {id:'r'+Date.now()+ri(0,9999),name:genName(nn),nationality:nn,birth_year:0,age:ri(19,22),team,style,potential:clamp(ovr+ri(4,14),ovr,96),stats:styleStats(ovr,style),rookie:true};
 }
 
 /* ---------- state ---------- */
@@ -842,7 +845,7 @@ function scoutCard(){const p=S.p;if(!p.scout)return'';
     <p class="muted" style="margin:0;font-size:12px">${p.series==='F1'?'80 이상: 이적 기준 완화 · 90 이상: 먼저 영입 제안':'60 이상: 육성 계약 제안 · 80 이상: 리저브·시트 기준 완화 · 90 이상: 쟁탈전'}</p></section>`}
 /* ---------- rival ---------- */
 function newRival(p){const style=pick(B.styles).id,o=ovrOf(p.stats)+ri(-1,2);
-  const nn=pick(NATS);return{name:genName(nn),nat:nn,nm2:1,num:ri(2,99),style,stats:styleStats(o,style),potential:clamp(Math.round(80+gauss()*5),o+15,95),
+  const nn=natPick();return{name:genName(nn),nat:nn,nm2:1,num:ri(2,99),style,stats:styleStats(o,style),potential:clamp(Math.round(80+gauss()*5),o+15,95),
     age:p.age,series:p.series,ss:1,f2:0,st:'on',f1:false,team:null,last:null,h2h:[0,0],note:null}}
 const LVL=s=>s==='F1'?6:s==='ALT'?4.5:ORDER.indexOf(s)+1;
 function rivalSeriesName(rv){return rv.f1?'포뮬러 1':seriesDef(rv.series).name}
@@ -978,7 +981,7 @@ function startSeason(){
         ents.push(entrant({key:'a'+i,name:d.n,team:T[0],color:T[1],car:altCarOf(p.alt,d.t)??carT[tierOf(d.t)],q:o+gauss()*2,d:o+gauss()*2,w:o+gauss()*3,cons:o,mental:o}))});
       if(own.length>1)mate=ents.find(e=>e.name===own[0].n)||null;field=ents.length}
     for(let i=ents.length;i<field;i++){const o=mean+gauss()*5,tier=Math.random()<.3?'top':Math.random()<.57?'mid':'bottom';
-      ents.push(entrant({key:'a'+i,name:genName(pick(NATS)),team:'',car:carT[tier],q:o+gauss()*2,d:o+gauss()*2,w:o+gauss()*3,cons:o,mental:o}))}
+      ents.push(entrant({key:'a'+i,name:genName(natPick()),team:'',car:carT[tier],q:o+gauss()*2,d:o+gauss()*2,w:o+gauss()*3,cons:o,mental:o}))}
     if((p.series==='F2'||p.series==='F3')&&S.jr){let k=2;S.jr.filter(d=>d.st==='on'&&d.series===p.series).forEach(d=>{if(k<ents.length){ents[k]=entrant({key:d.id,name:d.name,team:d.team,car:carT[d.tier]||carT.mid,...fromStats(d.stats)});k++}})}
     const rv=S.rival;if(rv&&rv.st==='on'&&!rv.f1&&rv.series===p.series&&ents[1])ents[1]=entrant({key:'rival',name:rv.name,team:'',car:carT[pick(['top','mid','mid','bottom'])],...fromStats(rv.stats)});
   }
@@ -1397,7 +1400,7 @@ function altRoster(sid){
   const D=ALT_DRV[sid];if(!D)return null;S.altR=S.altR||{};
   if(!S.altR[sid])S.altR[sid]=Object.entries(D).flatMap(([t,L])=>L.map(([n,nat,by,lv])=>({t,n,nat,by,lv})));
   const R=S.altR[sid],lim=d=>40+[...d.n].reduce((a,c)=>a+c.charCodeAt(0),0)%4;
-  R.forEach((d,i)=>{if(S.year>K.start_year&&S.year-d.by>lim(d)){const nat=pick(NATS);R[i]={t:d.t,n:genName(nat),nat,by:S.year-ri(19,24),lv:(ALT_TEAMS[sid].find(x=>x.n===d.t)||{}).tier==='top'?ri(1,2):ri(-1,2)};
+  R.forEach((d,i)=>{if(S.year>K.start_year&&S.year-d.by>lim(d)){const nat=natPick();R[i]={t:d.t,n:genName(nat),nat,by:S.year-ri(19,24),lv:(ALT_TEAMS[sid].find(x=>x.n===d.t)||{}).tier==='top'?ri(1,2):ri(-1,2)};
     if(S.altNews&&S.altNews[sid])S.altNews[sid].push(`${d.n} 은퇴 · ${d.t}에 새 얼굴 ${R[i].n}`)}});
   return R}
 /* WEC/IndyCar cars per team, kept in the save and moved every winter.
@@ -3018,7 +3021,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.0-d6',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.0-d7',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
