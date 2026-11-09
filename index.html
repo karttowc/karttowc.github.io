@@ -3324,7 +3324,16 @@ function avatarCanvas(i,h,win,num){if(num!=null){h=normHelmet(h);const k=(win?'w
   const L=win?AVWIN:AVATAR;i=Math.max(0,Math.min(L.length-1,i|0));h=normHelmet(h);const k=(win?'w':'')+i+h.base+h.sec;if(AVC[k])return AVC[k];
   const im=spriteImg(win?AWIMG:AVIMG,L,i);if(!im||!im.complete||!im.naturalWidth){if(im)spriteWait=true;return null}
   const B=hexHsl(h.base),Sx=hexHsl(h.sec);
-  return AVC[k]=recolor(im,(hu,s,l)=>s>.35&&hu>.22&&hu<.45?[B,.5]:s>.35&&hu>.78&&hu<.92?[Sx,.5]:null,(hu,s,l)=>s>.1&&hu>.15&&hu<.5?[B,.5]:s>.1&&hu>.68&&hu<.98?[Sx,.5]:null,{t:B,y0:148,y1:182})}
+  const rc=recolor(im,(hu,s,l)=>s>.35&&hu>.22&&hu<.45?[B,.5]:s>.35&&hu>.78&&hu<.92?[Sx,.5]:null,(hu,s,l)=>s>.1&&hu>.15&&hu<.5?[B,.5]:s>.1&&hu>.68&&hu<.98?[Sx,.5]:null,{t:B,y0:148,y1:182});
+  return AVC[k]=win?thumbCut(rc):rc}
+/* 트로피 포즈 엄지 지우기(v1.6.1-d4): 장갑 안쪽 엄지를 투명하게 → 뒤의 트로피가 보여 엄지가 트로피 뒤로 간 것처럼. 420px 기준, 장갑 안쪽 끝(y 30)에서 THUMB.l/r만큼 */
+const THUMB={y:30,l:{dx:-10,y0:17,y1:41},r:{dx:8,y0:7,y1:38}};
+function thumbCut(rc){const c=rc.canvas,w=c.width,ht=c.height,g=c.getContext('2d'),sc=ht/420,d=g.getImageData(0,0,w,ht),a=d.data,A=(x,y)=>a[(y*w+x)*4+3],mid=w>>1;
+  const yy=Math.round(THUMB.y*sc);let li=-1,ri=-1;for(let x=0;x<mid;x++)if(A(x,yy)>40)li=x;for(let x=w-1;x>=mid;x--)if(A(x,yy)>40)ri=x;if(li<0||ri<0)return rc;
+  const cl=new Uint8Array(w*ht),zap=(x0,x1,y0,y1)=>{for(let y=Math.round(y0*sc);y<Math.round(y1*sc);y++)for(let x=Math.max(0,x0);x<=Math.min(w-1,x1);x++)if(A(x,y)){a[(y*w+x)*4+3]=0;cl[y*w+x]=1}};
+  zap(li+Math.round(THUMB.l.dx*sc),mid,THUMB.l.y0,THUMB.l.y1);zap(mid,ri+Math.round(THUMB.r.dx*sc),THUMB.r.y0,THUMB.r.y1);
+  for(let y=1;y<ht-1;y++)for(let x=1;x<w-1;x++){const j=y*w+x;if(cl[j]||!a[j*4+3]||a[j*4+3]<40)continue;if(cl[j-1]||cl[j+1]||cl[j-w]||cl[j+w]){a[j*4]=16;a[j*4+1]=16;a[j*4+2]=18}}
+  g.putImageData(d,0,0);return{...rc,url:c.toDataURL()}}
 function avatarSrc(i,h,win,num){const c=avatarCanvas(i,h,win,num),L=win?AVWIN:AVATAR;return c?c.url:L[Math.max(0,Math.min(L.length-1,i|0))]}
 /* src + (if the recoloured sprite isn't ready yet) markers so avFix can repaint it once loaded */
 function avAttr(i,h,win,num){const c=avatarCanvas(i,h,win,num);if(c&&!c.tmp)return`src="${c.url}"`;h=normHelmet(h);
@@ -4395,7 +4404,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.1-d3',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.1-d4',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
