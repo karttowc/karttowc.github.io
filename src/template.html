@@ -667,6 +667,8 @@ const AI_MEAN={KART:47,F4:53,FRECA:59,F3:65,F2:71,ALT:77};
 const ALT_CAR={top:80,mid:78,bottom:76};
 const TIER_LBL={top:'상위팀',mid:'중위팀',bottom:'하위팀'};
 const STATS=B.driver.stats, LBL=B.driver.stat_labels;
+/* v1.6.0-d1: 처음 켜질 때의 Math.random. 콘솔에서 바꿔치면 그 커리어를 랭킹에서 뺌(p.x=2) */
+const RND0=Math.random,rngBad=()=>Math.random!==RND0;
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const ri=(a,b)=>Math.floor(rnd(a,b+1));
 const pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -685,6 +687,9 @@ const natName=c=>K.nationalities[c]||c;
 const FIRST=['루카','마테오','노아','올리버','레오','에단','휴고','라파엘','토마스','다니엘','유키','하루토','민준','서준','가브리엘','펠리페','이반','안드레아','니코','잭','루이','아담','엘리아스','소렌','빅토르','마르코'];
 const LAST=['로시','마르탱','뮐러','실바','콘티','베르그','타나카','김','박','하트','레예스','노박','페리','뒤부아','스미스','올리베이라','하타노','코바치','반 데르 베르크','린드','모레노','브라운','파라','이토','에릭손','카스트로'];
 const NATS=['GBR','ITA','FRA','GER','ESP','NED','BRA','JPN','AUS','USA','ARG','FIN','MEX','CHN','KOR','CAN'];
+/* v1.6.0-d7: 새로 생기는 드라이버 국적은 실제 그리드처럼 유럽 쪽이 많게, 한국·중국은 약 2%씩 */
+const NAT_W={GBR:14,ITA:9,FRA:10,GER:8,ESP:6,NED:7,BRA:6,JPN:5,AUS:5,USA:6,ARG:3,FIN:4,MEX:4,CHN:2,KOR:2,CAN:4};
+const natPick=()=>{let r=Math.random()*NATS.reduce((a,n)=>a+NAT_W[n],0);for(const n of NATS){r-=NAT_W[n];if(r<0)return n}return NATS[0]};
 // names follow nationality so a Korean first name never gets a Japanese surname
 const NAME_POOL={
  KOR:{f:['민준','서준','도윤','하준','지호','준우','현우','건우','우진','시우','태윤','예준'],l:['김','이','박','최','정','강','윤','한','조','임','오','신'],kor:true},
@@ -714,16 +719,18 @@ function styleStats(base,styleId){
   STATS.forEach(k=>st[k]=clamp(st[k],1,99));return st;
 }
 function rookie(team){
-  if(Math.random()<.1){const ovr=ri(80,86),style=pick(B.styles).id;const nn=pick(NATS);return{id:'r'+Date.now()+ri(0,9999),name:genName(nn),nationality:nn,birth_year:0,age:ri(18,20),team,style,potential:ri(93,97),stats:styleStats(ovr,style),rookie:true,prodigy:true}}
+  if(Math.random()<.1){const ovr=ri(80,86),style=pick(B.styles).id;const nn=natPick();return{id:'r'+Date.now()+ri(0,9999),name:genName(nn),nationality:nn,birth_year:0,age:ri(18,20),team,style,potential:ri(93,97),stats:styleStats(ovr,style),rookie:true,prodigy:true}}
   const ovr=ri(74,84),style=pick(B.styles).id;
-  const nn=pick(NATS);return {id:'r'+Date.now()+ri(0,9999),name:genName(nn),nationality:nn,birth_year:0,age:ri(19,22),team,style,potential:clamp(ovr+ri(4,14),ovr,96),stats:styleStats(ovr,style),rookie:true};
+  const nn=natPick();return {id:'r'+Date.now()+ri(0,9999),name:genName(nn),nationality:nn,birth_year:0,age:ri(19,22),team,style,potential:clamp(ovr+ri(4,14),ovr,96),stats:styleStats(ovr,style),rookie:true};
 }
 
 /* ---------- state ---------- */
 let padLg='alt',newsTab='all',newsMore=false,hlMore=false,fanMore=false,chain=false,resMore=false,evPick=null;
 let S=null, tab='home', ob=null, sel=null, DL=null, sheet=null, cardURL=null;
 const KEY='k2wc-save-v1';
-function save(){try{if(S.p&&!S.p.x&&tampered(S.p))S.p.x=1;localStorage.setItem(KEY,JSON.stringify(S));const p=S.p;localStorage.setItem('k2wc-last',JSON.stringify({name:p.name,num:p.num0||p.num,nat:p.nat,avatar:p.avatar,helmet:p.helmet}))}catch(e){}}
+function rngChk(){if(S&&S.p&&!S.p.retired&&S.p.x!==2&&rngBad())S.p.x=2}
+if(typeof window!=='undefined'&&window.setInterval)window.setInterval(()=>{if(S&&S.p&&!S.p.retired&&S.p.x!==2&&rngBad()){rngChk();save()}},2000);
+function save(){try{rngChk();if(S.p&&!S.p.x&&tampered(S.p))S.p.x=1;localStorage.setItem(KEY,JSON.stringify(S));const p=S.p;localStorage.setItem('k2wc-last',JSON.stringify({name:p.name,num:p.num0||p.num,nat:p.nat,avatar:p.avatar,helmet:p.helmet}))}catch(e){}}
 function load(){try{const t=localStorage.getItem(KEY);if(t){const s=JSON.parse(t);if(s&&s.p)return s}}catch(e){}return null}
 
 
@@ -838,7 +845,7 @@ function scoutCard(){const p=S.p;if(!p.scout)return'';
     <p class="muted" style="margin:0;font-size:12px">${p.series==='F1'?'80 이상: 이적 기준 완화 · 90 이상: 먼저 영입 제안':'60 이상: 육성 계약 제안 · 80 이상: 리저브·시트 기준 완화 · 90 이상: 쟁탈전'}</p></section>`}
 /* ---------- rival ---------- */
 function newRival(p){const style=pick(B.styles).id,o=ovrOf(p.stats)+ri(-1,2);
-  const nn=pick(NATS);return{name:genName(nn),nat:nn,nm2:1,num:ri(2,99),style,stats:styleStats(o,style),potential:clamp(Math.round(80+gauss()*5),o+15,95),
+  const nn=natPick();return{name:genName(nn),nat:nn,nm2:1,num:ri(2,99),style,stats:styleStats(o,style),potential:clamp(Math.round(80+gauss()*5),o+15,95),
     age:p.age,series:p.series,ss:1,f2:0,st:'on',f1:false,team:null,last:null,h2h:[0,0],note:null}}
 const LVL=s=>s==='F1'?6:s==='ALT'?4.5:ORDER.indexOf(s)+1;
 function rivalSeriesName(rv){return rv.f1?'포뮬러 1':seriesDef(rv.series).name}
@@ -974,7 +981,7 @@ function startSeason(){
         ents.push(entrant({key:'a'+i,name:d.n,team:T[0],color:T[1],car:altCarOf(p.alt,d.t)??carT[tierOf(d.t)],q:o+gauss()*2,d:o+gauss()*2,w:o+gauss()*3,cons:o,mental:o}))});
       if(own.length>1)mate=ents.find(e=>e.name===own[0].n)||null;field=ents.length}
     for(let i=ents.length;i<field;i++){const o=mean+gauss()*5,tier=Math.random()<.3?'top':Math.random()<.57?'mid':'bottom';
-      ents.push(entrant({key:'a'+i,name:genName(pick(NATS)),team:'',car:carT[tier],q:o+gauss()*2,d:o+gauss()*2,w:o+gauss()*3,cons:o,mental:o}))}
+      ents.push(entrant({key:'a'+i,name:genName(natPick()),team:'',car:carT[tier],q:o+gauss()*2,d:o+gauss()*2,w:o+gauss()*3,cons:o,mental:o}))}
     if((p.series==='F2'||p.series==='F3')&&S.jr){let k=2;S.jr.filter(d=>d.st==='on'&&d.series===p.series).forEach(d=>{if(k<ents.length){ents[k]=entrant({key:d.id,name:d.name,team:d.team,car:carT[d.tier]||carT.mid,...fromStats(d.stats)});k++}})}
     const rv=S.rival;if(rv&&rv.st==='on'&&!rv.f1&&rv.series===p.series&&ents[1])ents[1]=entrant({key:'rival',name:rv.name,team:'',car:carT[pick(['top','mid','mid','bottom'])],...fromStats(rv.stats)});
   }
@@ -1393,7 +1400,7 @@ function altRoster(sid){
   const D=ALT_DRV[sid];if(!D)return null;S.altR=S.altR||{};
   if(!S.altR[sid])S.altR[sid]=Object.entries(D).flatMap(([t,L])=>L.map(([n,nat,by,lv])=>({t,n,nat,by,lv})));
   const R=S.altR[sid],lim=d=>40+[...d.n].reduce((a,c)=>a+c.charCodeAt(0),0)%4;
-  R.forEach((d,i)=>{if(S.year>K.start_year&&S.year-d.by>lim(d)){const nat=pick(NATS);R[i]={t:d.t,n:genName(nat),nat,by:S.year-ri(19,24),lv:(ALT_TEAMS[sid].find(x=>x.n===d.t)||{}).tier==='top'?ri(1,2):ri(-1,2)};
+  R.forEach((d,i)=>{if(S.year>K.start_year&&S.year-d.by>lim(d)){const nat=natPick();R[i]={t:d.t,n:genName(nat),nat,by:S.year-ri(19,24),lv:(ALT_TEAMS[sid].find(x=>x.n===d.t)||{}).tier==='top'?ri(1,2):ri(-1,2)};
     if(S.altNews&&S.altNews[sid])S.altNews[sid].push(`${d.n} 은퇴 · ${d.t}에 새 얼굴 ${R[i].n}`)}});
   return R}
 /* WEC/IndyCar cars per team, kept in the save and moved every winter.
@@ -1525,7 +1532,7 @@ function makeOffers(pos,field,h2h){
   // other series
   const needAlt=(champF2&&!o.some(x=>x.kind==='f1'))||p.age>=21&&(p.series==='F2'||p.series==='ALT'||(p.series==='F1'&&(p.role==='reserve'||!contracted())))&&!bound;
   if(needAlt){
-    const hotA=Object.keys(ALT_DRV).filter(id=>id!==p.alt&&Math.max(0,...Object.values((p.altSc||{})[id]||{}))>=50).sort((x,y)=>Math.max(...Object.values(p.altSc[y]))-Math.max(...Object.values(p.altSc[x])));
+    const hotA=Object.keys(ALT_DRV).filter(id=>id!==p.alt&&Math.max(0,...Object.values((p.altSc||{})[id]||{}))>=25).sort((x,y)=>Math.max(...Object.values(p.altSc[y]))-Math.max(...Object.values(p.altSc[x])));
     const others=[...hotA.map(altDef),...K.alt_series.filter(a=>a.id!==p.alt&&!hotA.includes(a.id)).sort(()=>Math.random()-.5)];
     const alts=p.series==='ALT'?[altDef(p.alt),...others.slice(0,1)]:others.slice(0,2);
     const tier=ovr>=82?'top':ovr>=76?'mid':'bottom';
@@ -1747,7 +1754,7 @@ function showGacha(){
   const pct=Math.round(gachaP(g)*100),f1=Z.ctx.f1;
   box.innerHTML=`<div class="sheet"><section class="card"><div class="eyebrow">${f1?'여름 휴식기':'시즌 중반 휴식기'} · 한 번의 도전</div><h3 class="h2">${esc(g.title)}</h3>
     <div class="kv"><div class="row"><span>성공 확률</span><span class="num" style="font-size:22px;color:var(--gold)">${pct}%</span></div>
-    <div class="row"><span>성공하면</span><span class="up">${esc(effText(g.win))} · 다음 레이스 페이스 업${g.win.stats?' · 남은 레이스 반영':''}</span></div>
+    <div class="row"><span>성공하면</span><span class="up">${esc(effText(g.win))} · 다음 레이스 페이스 업</span></div>
     <div class="row"><span>실패하면</span><span class="down">${g.slump?`다음 레이스 부진 · 체력 -${g.fm||10}`:`부상 ${g.inj[0]===g.inj[1]?g.inj[0]:g.inj[0]+'~'+g.inj[1]}경기 결장 · 체력 -${g.fm||11}`}</span></div></div>${g.slump?'':awakeHint()}
     <button class="btn" type="button" data-gacha="go">도전한다</button><button class="btn ghost" type="button" data-gacha="rest">안전하게 쉰다</button></section></div>`;
 }
@@ -2457,7 +2464,7 @@ function offersCard(){
     ${(S.last&&S.last.ev||[]).filter(e=>typeof e==='string'&&ALERT_EV.test(e)&&!/조기 해지|재계약을 하지 않기로/.test(e)).map(e=>`<div class="leave${/옵션을 행사|탈출 조항/.test(e)?' info':''}">${/옵션을 행사|탈출 조항/.test(e)?'📄':'⚠'} ${withLogos(esc(e))}</div>`).join('')}
     ${topNews()}
     <div class="list">${o.map((x,i)=>`<div class="offerrow"><button class="item" type="button" data-offer="${i}" aria-pressed="${sel===i}">
-      ${offerTeam(x)?bigLogo(offerTeam(x)):`<span class="dot">${x.kind==='retire'?'END':x.kind==='alt'?'ALT':SLOGO[x.series]?`<img src="${SLOGO[x.series]}" alt="${x.series}" style="width:80%;height:auto">`:x.series||''}</span>`}
+      ${offerTeam(x)?bigLogo(offerTeam(x)):x.kind==='alt'&&contractInfo(x).logo?`<span style="width:52px;height:52px;border-radius:14px;display:grid;place-items:center;flex:none;overflow:hidden;background:#2B2E36"><img src="${contractInfo(x).logo}" alt="" style="width:86%;height:86%;object-fit:contain"></span>`:`<span class="dot">${x.kind==='retire'?'END':x.kind==='alt'?'ALT':SLOGO[x.series]?`<img src="${SLOGO[x.series]}" alt="${x.series}" style="width:80%;height:auto">`:x.series||''}</span>`}
       <span class="body"><b>${esc(x.title)}</b>${offerTerms(x)}${x.tag?`<span style="color:var(--accent)">${esc(x.tag)}${x.tag==='월반'?`<span class="ibtn" role="button" tabindex="0" data-sheet="skip_${x.series}" aria-label="월반 설명">${ISVG}</span>`:x.academy?`<span class="ibtn" role="button" tabindex="0" data-sheet="acad_${x.academy}" aria-label="육성 계약 설명">${ISVG}</span>`:/^리저브/.test(x.tag)?`<span class="ibtn" role="button" tabindex="0" data-sheet="rsv_" aria-label="리저브 설명">${ISVG}</span>`:''}</span>`:''}</span><span class="tick"></span></button>
       ${offerTeam(x)?`<button class="infobtn" type="button" data-brief="${i}">팀 정보</button>`:''}</div>`).join('')}</div>
     <button class="btn" type="button" id="chooseBtn" ${sel==null?'disabled':''}>이 진로로 갈게요</button></section>`;
@@ -2517,7 +2524,7 @@ function reactTab(){
   ${X?`<section class="card"><div class="eyebrow">${X.year} ${sLogo(X.sid)}${esc(X.series)} · 패독 분석가 J</div><h3 class="h3">전문가 분석</h3>
     <div class="newslist">${X.expert.map((l,i)=>`<div${i===X.expert.length-1?' style="border-left:3px solid var(--accent)"':''}>${withLogos(esc(l))}</div>`).join('')}</div>${whyCard()}</section>
   <section class="card"><h3 class="h3">팬 반응</h3><div class="list">${(fanMore?X.fans:X.fans.slice(0,3)).map(f=>`<div class="item" style="cursor:default;align-items:flex-start"><span class="dot g" style="border-radius:50%;width:40px;height:40px">${esc(f.nick[0])}</span>
-    <span class="body"><b>${esc(f.nick)}</b><span style="color:var(--fg);font-size:15px;margin:2px 0">${withLogos(esc(f.txt))}</span><span>${f.plat} · ${f.ago} · ♥ ${f.likes}</span>${f.re?`<span class="freply">↳ <b>${esc(f.re.nick)}</b> ${esc(f.re.txt)}</span>`:''}</span></div>`).join('')}</div>
+    <span class="body"><b>${esc(f.nick)}</b><span style="color:var(--fg);font-size:15px;margin:2px 0">${esc(f.txt)}</span><span>${f.plat} · ${f.ago} · ♥ ${f.likes}</span>${f.re?`<span class="freply">↳ <b>${esc(f.re.nick)}</b> ${esc(f.re.txt)}</span>`:''}</span></div>`).join('')}</div>
     ${X.fans.length>3?`<button class="nmore" type="button" data-fanmore="1" style="margin-top:0">${fanMore?'접기':`댓글 ${X.fans.length-3}개 더 보기`} <span>›</span></button>`:''}
     <p class="muted" style="margin:0;font-size:12px">게임 속 가상 반응이에요. 인기가 높을수록 반응이 많아져요.</p></section>`:`<section class="card"><p class="muted" style="margin:0">첫 시즌을 마치면 전문가와 팬들의 반응이 여기에 떠요.</p></section>`}
   ${S.phase==='result'?`<button class="btn" type="button" id="okBtn">이적 시장으로</button>`:''}`;
@@ -3014,7 +3021,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.5.2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.5.3',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3038,7 +3045,7 @@ function logSeason(rec){const p=S.p,c=currentLine(),Z=S.season||{},L=S.logPre||{
     h2h:rec.h2h?[rec.h2h.q,rec.h2h.r]:null,slp:slPoints(),sc:Math.max(0,...Object.values(p.scout||{0:0})),acad:p.academy||null,why:rec.why||null,pick:S.logPick||null})}
 function logRetire(){const p=S.p,t=p.tot;
   logEv('retire',{year:S.year,age:p.age,seasons:p.history.length,debut:p.debutYear||null,f1s:p.history.filter(h=>h.sid==='F1'&&h.role==='race').length,titles:t.titles,wins:t.wins,podiums:t.podiums,starts:t.starts,
-    peak:p.peak,pot:p.potential,style:p.style,fans:p.fans,earn:p.earn||0,path:p.history.map(h=>h.lk+(h.role==='reserve'?'r':'')).join('>'),ch:(p.challenges||[]).map(c=>c.id+':'+c.res),...(flagged(p)?{x:1}:{})})}
+    peak:p.peak,pot:p.potential,style:p.style,fans:p.fans,earn:p.earn||0,path:p.history.map(h=>h.lk+(h.role==='reserve'?'r':'')).join('>'),ch:(p.challenges||[]).map(c=>c.id+':'+c.res),...(flagged(p)?{x:p.x||1}:{})})}
 // blocked networks (e.g. a work PC): hand the unsent queue over as a file instead
 let fbText='',fbLast=0;
 function fbSend(){const text=fbText.trim().slice(0,300);if(!text){toast('내용을 적어 주세요');return}
