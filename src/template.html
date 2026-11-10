@@ -368,6 +368,7 @@ label.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--
 .notice li::before{content:"";position:absolute;left:0;top:.5em;width:9px;height:9px;background:repeating-conic-gradient(#ECEDF1 0 25%,#121317 0 50%) 0 0/4.5px 4.5px;border-radius:1px}
 .offerrow{display:flex;align-items:center;gap:8px}
 .offerrow + .offerrow{border-top:1px solid var(--line)}
+.ogh{font-size:12px;color:var(--muted);padding:14px 0 2px}.ogh b{color:var(--fg);font-weight:700}.list>.ogh:first-child{padding-top:4px}.list>.ogh:not(:first-child){border-top:1px solid var(--line)}
 .offerrow .item{flex:1;min-width:0;border-top:0!important}
 .infobtn{background:var(--surface-2);border:0;border-radius:10px;padding:6px 10px;font-size:12px;color:var(--muted);flex:none}
 .up{color:var(--good)}.down{color:var(--bad)}
@@ -2765,16 +2766,27 @@ function topNews(){const N=S.news;if(!N||!N.heads)return'';const out=[],nm=nextM
   N.heads.filter(h=>!/챔피언|대규정|다음 대규정|\[루머\].*영입 검토/.test(h.t)).slice(0,3).forEach(h=>out.push({t:h.t,c:tone(h.t)}));
   return`<div class="topnews"><div class="tnh"><b>이번 이적 시장 주요 소식</b><button type="button" data-sheet="${myLg()==='f1'?'news':'altnews_'+myLg()}">판도 전체 ›</button></div>
     ${out.slice(0,3).map(x=>`<div class="tn ${x.c}">${withLogos(esc(x.t))}</div>`).join('')}</div>`}
+// offer groups: where each offer takes me, best first (the list keeps S.offers' indexes)
+const STEP_LBL={KART:'카트',F4:'F4',FRECA:'FRECA급',F3:'F3',F2:'F2'};
+function offerGroup(x){const p=S.p;
+  if(x.kind==='stay'||x.kind==='resign'||x.kind==='option'||x.kind==='alt'&&x.tag==='잔류')return{k:0,h:'지금 팀'};
+  if(x.kind==='f1')return{k:1,h:'F1 레이스 시트',o:mRank(x.teamId)};
+  if(x.kind==='reserve')return{k:2,h:'F1 리저브'};
+  if(x.kind==='junior'){const i=ORDER.indexOf(x.series),d=i-ORDER.indexOf(p.series),mv=!ORDER.includes(p.series)?'':d>=2?'월반':d===1?'승격':d===0?'잔류':'';
+    return{k:3+(9-i),h:STEP_LBL[x.series]||x.series,m:mv}}
+  if(x.kind==='alt')return{k:20,h:'다른 무대',o:TIER_I.indexOf(x.tier)>=0?2-TIER_I.indexOf(x.tier):1};
+  return{k:99,h:''}}
 function offersCard(){
-  const o=S.offers;
+  const o=S.offers,G=o.map((x,i)=>({i,g:offerGroup(x)})).sort((a,b)=>a.g.k-b.g.k||(a.g.o??0)-(b.g.o??0)||a.i-b.i),
+    hs=new Set(G.filter(z=>z.g.h).map(z=>z.g.k)),showH=hs.size>=2;let lastK=null;
   return`<section class="card"><div class="eyebrow">다음 진로 · ${S.year} 시즌</div><h2 class="h2">도착한 제안 ${o.length}개</h2>
     ${S.leaveNote?`<div class="leave">⚠ ${withLogos(esc(S.leaveNote))}</div>`:''}
     ${(S.last&&S.last.ev||[]).filter(e=>typeof e==='string'&&ALERT_EV.test(e)&&!/조기 해지|재계약을 하지 않기로/.test(e)).map(e=>`<div class="leave${/옵션을 행사|탈출 조항/.test(e)?' info':''}">${/옵션을 행사|탈출 조항/.test(e)?'📄':'⚠'} ${withLogos(esc(e))}</div>`).join('')}
     ${topNews()}
-    <div class="list">${o.map((x,i)=>`<div class="offerrow"><button class="item" type="button" data-offer="${i}" aria-pressed="${sel===i}">
+    <div class="list">${G.map(({i,g})=>{const x=o[i],hd=showH&&g.h&&g.k!==lastK?`<div class="ogh"><b>${esc(g.h)}</b>${g.m?' · '+g.m:''}</div>`:'';lastK=g.k;return hd+`<div class="offerrow"><button class="item" type="button" data-offer="${i}" aria-pressed="${sel===i}">
       ${offerTeam(x)?bigLogo(offerTeam(x)):x.kind==='alt'&&contractInfo(x).logo?`<span style="width:52px;height:52px;border-radius:14px;display:grid;place-items:center;flex:none;overflow:hidden;background:#2B2E36"><img src="${contractInfo(x).logo}" alt="" style="${x.altId==='WEC'||x.altId==='SF'||x.altId==='FE'?'width:100%;height:100%;object-fit:cover':'width:86%;height:86%;object-fit:contain'}"></span>`:`<span class="dot">${x.kind==='retire'?'END':x.kind==='alt'?'ALT':x.lg&&SLOGO[x.lg]?`<img src="${SLOGO[x.lg]}" alt="${x.lg}" style="width:94%;height:auto">`:SLOGO[x.series]?`<img src="${SLOGO[x.series]}" alt="${x.series}" style="width:80%;height:auto">`:x.series||''}</span>`}
       <span class="body"><b>${esc(x.title)}</b>${offerTerms(x)}${x.tag?`<span style="color:var(--accent)">${esc(x.tag)}${x.lg&&x.tag!=='월반'&&!x.academy?`<span class="ibtn" role="button" tabindex="0" data-sheet="lg_${x.lg}" aria-label="리그 설명">${ISVG}</span>`:x.tag==='월반'?`<span class="ibtn" role="button" tabindex="0" data-sheet="skip_${x.series}" aria-label="월반 설명">${ISVG}</span>`:x.academy?`<span class="ibtn" role="button" tabindex="0" data-sheet="acad_${x.academy}" aria-label="육성 계약 설명">${ISVG}</span>`:/^리저브/.test(x.tag)?`<span class="ibtn" role="button" tabindex="0" data-sheet="rsv_" aria-label="리저브 설명">${ISVG}</span>`:''}</span>`:''}</span><span class="tick"></span></button>
-      ${offerTeam(x)?`<button class="infobtn" type="button" data-brief="${i}">팀 정보</button>`:''}</div>`).join('')}</div>
+      ${offerTeam(x)?`<button class="infobtn" type="button" data-brief="${i}">팀 정보</button>`:''}</div>`}).join('')}</div>
     <button class="btn" type="button" id="chooseBtn" ${sel==null?'disabled':''}>이 진로로 갈게요</button></section>`;
 }
 function statusLine(NT){return NT.lines.find(l=>l.startsWith('슈퍼 라이선스')||l.startsWith('계약 ')||l.startsWith('리저브'))||''}
@@ -3364,7 +3376,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.13-d8',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.13-d9',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
