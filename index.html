@@ -811,6 +811,17 @@ const B = {
     "max": -2.5
    }
   ],
+  "growth_curve": {
+   "note": "32세까지 자연 성장 = 천장(잠재력+target_over)까지 남은 거리 x rate, cap까지. 멀면 빠르게, 가까우면 천천히. 33세부터는 growth_by_age 하락",
+   "target_over": 7,
+   "jitter": [0.8, 1.2],
+   "by_age": [
+    {"from": 14, "to": 18, "rate": 0.24, "cap": 6},
+    {"from": 19, "to": 23, "rate": 0.17, "cap": 4},
+    {"from": 24, "to": 28, "rate": 0.12, "cap": 2.5},
+    {"from": 29, "to": 32, "rate": 0.12, "cap": 1.5}
+   ]
+  },
   "focus_multiplier": 1.8, "rest_multiplier": 0.85,
   "max_focus_stats": 2,
   "no_race_multiplier": 0.5,
@@ -2639,7 +2650,8 @@ function awaken(a){a=Math.min(a,awakeRoom());if(a>0)S.p.potential+=a;return Math
 const awakeHint=()=>awakeRoom()>0?'<p class="awk">성공하면 한계를 넘어설 수 있어요</p>':'';
 function grow(p,played,poor){
   const band=B.driver.growth_by_age.find(b=>p.age>=b.from&&p.age<=b.to)||B.driver.growth_by_age.at(-1);
-  const rsv=p.series==='F1'&&p.role==='reserve',base=rnd(band.min,band.max),mult=played?1:rsv?.85:B.driver.no_race_multiplier,ovr=ovrOf(p.stats);
+  const GC=B.driver.growth_curve,gc=GC&&GC.by_age.find(b=>p.age>=b.from&&p.age<=b.to);
+  const rsv=p.series==='F1'&&p.role==='reserve',base=gc?Math.min(gc.cap,gc.rate*Math.max(0,p.potential+GC.target_over-ovrOf(p.stats)))*rnd(...GC.jitter):rnd(band.min,band.max),mult=played?1:rsv?.85:B.driver.no_race_multiplier,ovr=ovrOf(p.stats);
   const rest=S.train==='rest';
   const AD=B.driver.age_decline_by_stat||{};
   const GS=B.driver.growth_spread||[.6,1.4];
@@ -2648,7 +2660,7 @@ function grow(p,played,poor){
   STATS.forEach(k=>{if(vg&&vg[k]){p.stats[k]=clamp(p.stats[k]+ri(...vg[k]),1,99);return}// experience stats keep growing for veterans
     const sp=base>0&&!rest&&p.focus.includes(k)?FS:GS;let g=base*rnd(sp[0],sp[1]);if(g<0)g*=AD[k]??1;
     if(g>0){g*=mult;if(rest)g*=B.driver.rest_multiplier;else if(p.focus.includes(k))g*=B.driver.focus_multiplier;
-      const OP=B.driver.over_potential;if(ovr>=p.potential+OP.max)g=0;else if(ovr>=p.potential)g*=OP.multiplier;else if(ovr>=p.potential-B.driver.near_potential.distance)g*=B.driver.near_potential.multiplier}
+      if(!gc){const OP=B.driver.over_potential;if(ovr>=p.potential+OP.max)g=0;else if(ovr>=p.potential)g*=OP.multiplier;else if(ovr>=p.potential-B.driver.near_potential.distance)g*=B.driver.near_potential.multiplier}}// growth_curve already slows near the ceiling
     p.stats[k]=clamp(p.stats[k]+sround(g),1,99)});
   // slump: bad seasons can cost a little even when young
   const SL=B.driver.slump;if(!SL||p.age>=33)return null;
@@ -4698,7 +4710,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.11',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.12-d1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';

@@ -83,6 +83,17 @@
     "max": -2.5
    }
   ],
+  "growth_curve": {
+   "note": "32세까지 자연 성장 = 천장(잠재력+target_over)까지 남은 거리 x rate, cap까지. 멀면 빠르게, 가까우면 천천히. 33세부터는 growth_by_age 하락",
+   "target_over": 7,
+   "jitter": [0.8, 1.2],
+   "by_age": [
+    {"from": 14, "to": 18, "rate": 0.24, "cap": 6},
+    {"from": 19, "to": 23, "rate": 0.17, "cap": 4},
+    {"from": 24, "to": 28, "rate": 0.12, "cap": 2.5},
+    {"from": 29, "to": 32, "rate": 0.12, "cap": 1.5}
+   ]
+  },
   "focus_multiplier": 1.8, "rest_multiplier": 0.85,
   "max_focus_stats": 2,
   "no_race_multiplier": 0.5,
