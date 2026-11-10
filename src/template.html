@@ -753,6 +753,28 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const ovrOf=s=>Math.round(STATS.reduce((a,k)=>a+s[k],0)/STATS.length);
 function skill(s,kind){const w=B.race.skill[kind];let t=0,ws=0;for(const k in w){t+=s[k]*w[k];ws+=w[k]}return t/ws}
 const seriesDef=id=>K.series.find(s=>s.id===id);
+// league choice inside a ladder step: F4 and FRECA each have three real leagues (same step, different flavour)
+// f1: F1 teams that scout this league most (their interest grows ×1.3; never the player's nationality)
+// ai: field strength vs the step's mean, sc: how much F1 interest a result earns, w: rain, f3: next F3 starts without adapting, sf: top 3 -> Super Formula offer
+const LGD={F4:{s:'F4',n:'이탈리아 F4',d:'F4 중 가장 치열한 무대',f1:['ferrari','haas']},
+  F4UK:{s:'F4',n:'영국 F4',d:'레이스 30번 · 비가 자주 와요 · 우천 +1',f1:['mclaren','williams','astonmartin'],races:30,w:2.2,ai:-1,sc:.9,grow:{wet:1},
+    t:[['하이테크','top'],['로딘 모터스포츠','top'],['JHR 디벨롭먼트','mid'],['아르젠티 모터스포츠','mid'],['포텍 모터스포츠','bottom']],
+    cal:{t:['도닝턴 파크','브랜즈 해치','스네터턴','스러스턴','오울턴 파크','크로프트','놀뷰','실버스톤','도닝턴 파크 GP','브랜즈 해치 GP'],n:3}},
+  F4ES:{s:'F4',n:'스페인 F4',d:'상대가 조금 약해요 · F1 팀 관심도는 덜 올라요',races:21,ai:-2,sc:.8,
+    t:[['MP 모터스포츠','top'],['캄포스','top'],['로딘 모터스포츠','mid'],['GRS 팀','mid'],['몬라우 모터스포츠','bottom']],
+    cal:{t:['에스토릴','스파','아라곤','나바라','발렌시아','헤레스','카탈루냐'],n:3}},
+  FRECA:{s:'FRECA',n:'포뮬러 리저널 유럽',d:'F1 아카데미가 가장 많이 지켜보는 무대'},
+  EFO:{s:'FRECA',n:'유로포뮬러 오픈',d:'F3와 같은 급의 차 · F3 첫 시즌 적응 없음',races:24,field:16,ai:-1.5,sc:.85,f3:1,
+    t:[['모토파크','top'],['반 아메르스포르트','top'],['RP 모터스포츠','mid'],['BVM 레이싱','mid'],['드라이벡스','bottom']],
+    cal:{t:['포르티망','스파','훙가로링','이몰라','레드불링','몬차','무젤로','카탈루냐'],n:3}},
+  SFL:{s:'FRECA',n:'슈퍼포뮬러 라이츠',d:'일본 무대 · 3위 안이면 슈퍼포뮬러 제안',f1:['astonmartin','haas'],races:18,field:14,ai:-1,sc:.8,sf:1,
+    t:[["TOM'S",'top'],['B-Max 레이싱','top'],['토다 레이싱','mid'],['Rn-스포츠','mid'],['PONOS 레이싱','bottom']],
+    cal:{t:['스즈카','오토폴리스','스포츠랜드 SUGO','후지','오카야마','모테기'],n:3}}};
+const LG_OF={F4:['F4','F4UK','F4ES'],FRECA:['FRECA','EFO','SFL']};
+// the player's league in this step (null outside F4/FRECA); old saves without p.lg are in the default league
+const lgOf=p=>LG_OF[p.series]?LGD[p.lg&&LGD[p.lg]&&LGD[p.lg].s===p.series?p.lg:LG_OF[p.series][0]]:null;
+const lgKey=p=>{const L=lgOf(p);return L?Object.keys(LGD).find(k=>LGD[k]===L):p.series==='ALT'?p.alt:p.series};
+const serName=p=>p.series==='ALT'?altDef(p.alt).name:(lgOf(p)||seriesDef(p.series)).n||seriesDef(p.series).name;
 const altDef=id=>K.alt_series.find(s=>s.id===id);
 const teamDef=id=>S.teams.find(t=>t.id===id);
 const tierOfMachine=m=>m>=86?'top':m>=79?'mid':'bottom';
@@ -816,13 +838,13 @@ function scoutInit(p){const sc={},base=clamp((ovrOf(p.stats)-50)*2,0,60);S.teams
   p.scout=sc;p.scoutD={};p.scoutM={}}
 function scoutUpdate(pos,field,titled,ev){const p=S.p;if(!p.scout)scoutInit(p);
   const perf=pos?Math.min(1,1-(pos-1)/Math.max(1,field-1)+(S.last&&S.last.rec&&S.last.rec.first?.06:0)):.15,W=SC_W[p.series]||.6,ageAdv=clamp((TYP_AGE[p.series]||20)-p.age,-3,3),tal=(p.potential-78)/7;
-  const inF1=p.series==='F1'&&p.role==='race',myM=inF1?teamDef(p.team.id).machine:0,myAc=p.academy?K.academies.find(a=>a.id===p.academy):null;
+  const inF1=p.series==='F1'&&p.role==='race',myM=inF1?teamDef(p.team.id).machine:0,myAc=p.academy?K.academies.find(a=>a.id===p.academy):null,LGs=(lgOf(p)||{}).sc||1,LGf=(lgOf(p)||{}).f1||[];
   p.scoutD={};
   S.teams.forEach(tm=>{if(inF1&&tm.id===p.team.id)return;
     let d;const jrChamp=titled&&(p.series==='F2'?20:p.series==='F3'?8:p.series==='ALT'&&(p.alt==='SF'||p.alt==='FE')&&p.age<=29&&!p.debutYear?22:0);
     if(inF1){const rank=S.teams.filter(x=>x.machine>myM).length,exp=rank*2+1.5,over=pos?(exp-pos)/field:-.3;
       d=over*45+(perf-.5)*10+ageAdv*1.5+tal*1.5+(titled?10:0)+gauss()*3-2}
-    else d=(perf-.5)*36*W+ageAdv*3+tal*3+(titled?8:0)+jrChamp+gauss()*3;
+    else{d=(perf-.5)*36*W+ageAdv*3+tal*3+(titled?8:0)+jrChamp+gauss()*3;if(d>0)d*=LGs*(LGf.includes(tm.id)?1.3:1)}
     if(tm.tier==='top'&&perf<.75)d-=3;if(tm.tier==='bottom')d+=1;
     if(p.series==='ALT'&&p.team&&p.team.f1===tm.id)d+=4+Math.max(0,perf-.5)*16;
     if(tm.id==='redbull'||tm.id==='racingbulls')d*=1.5;
@@ -887,7 +909,7 @@ function altForm(sid,st){const R=altRoster(sid),n=st.length;
    IndyCar takes F2 front-runners (Lundgaard, Armstrong, Hauger), ex-F1 drivers (Grosjean, Ericsson, Schumacher) and Super Formula winners (Palou); the big three only sign proven winners, rookies start at the small teams.
    WEC factory teams take ex-F1 and Formula E drivers (de Vries, Kubica, Cassidy, da Costa), value clean consistent driving, keep their line-ups for years (Toyota, Ferrari) and lean on their brand's academy. */
 function altScoutUpdate(pos,field,titled,ev){const p=S.p;p.altSc=p.altSc||{};p.altScD={};
-  const perf=pos?Math.min(1,1-(pos-1)/Math.max(1,field-1)):.15,st=p.stats,sl=p.series==='ALT'?p.alt:p.series,ac=p.academy?K.academies.find(a=>a.id===p.academy):null;
+  const perf=pos?Math.min(1,1-(pos-1)/Math.max(1,field-1)):.15,st=p.stats,sl=lgKey(p),ac=p.academy?K.academies.find(a=>a.id===p.academy):null;
   const hasSF=p.history.some(h=>h.sid==='ALT'&&h.lk==='SF'),f1Race=p.series==='F1'&&p.role==='race';let best=null;
   for(const sid of Object.keys(ALT_DRV)){const M=p.altSc[sid]=p.altSc[sid]||{},R=altRank(sid),I=sid==='INDY',J=sid==='SF',E=sid==='FE',G=sid==='GT3';p.altScD[sid]={};
     for(const r of R){const tm=(ALT_TEAMS[sid]||[]).find(t=>t.n===r.n)||{};if(p.series==='ALT'&&p.alt===sid&&p.team&&p.team.name===r.n)continue;
@@ -895,7 +917,7 @@ function altScoutUpdate(pos,field,titled,ev){const p=S.p;p.altSc=p.altSc||{};p.a
       if(p.series==='ALT'&&p.alt===sid)d=(perf-.5)*40+(titled?12:0)+(r.tier==='top'?(perf-.8)*30:0);
       else if(G){if(p.series==='ALT')d=(perf-.5)*12+(titled?8:0)+(sl==='WEC'?3:0);else if(f1Race)d=(perf-.5)*4+2;else if(p.series==='F1')d=3;else if(sl==='F2')d=(perf-.5)*8+(titled?4:0);else if(sl==='F3')d=(perf-.5)*6;else d=0}
       else if(E){if(p.series==='ALT')d=(perf-.5)*12+(titled?8:0);else if(f1Race)d=(perf-.5)*8+4+(p.age>=27?2:0);else if(p.series==='F1')d=6;else if(sl==='F2')d=(perf-.5)*16+(titled?10:0)+(pos&&pos<=3?3:0);else if(sl==='F3')d=(perf-.5)*6;else d=0}
-      else if(J){if(p.series==='ALT')d=(perf-.5)*12+(titled?6:0);else if(f1Race)d=(perf-.5)*6;else if(p.series==='F1')d=5;else if(sl==='F2')d=(perf-.5)*16+(titled?8:0)+(pos&&pos<=5?3:0);else if(sl==='F3')d=(perf-.5)*12+(titled?6:0);else d=0}
+      else if(J){if(p.series==='ALT')d=(perf-.5)*12+(titled?6:0);else if(sl==='SFL')d=(perf-.5)*24+(titled?10:0)+(pos&&pos<=3?4:0);else if(f1Race)d=(perf-.5)*6;else if(p.series==='F1')d=5;else if(sl==='F2')d=(perf-.5)*16+(titled?8:0)+(pos&&pos<=5?3:0);else if(sl==='F3')d=(perf-.5)*12+(titled?6:0);else d=0}
       else if(p.series==='ALT')d=(perf-.5)*16+(titled?10:0)+((I?sl==='SF':sl==='FE')&&(titled||perf>.7)?6:0);
       else if(f1Race)d=(perf-.5)*16+6+(p.age>=27?3:0);
       else if(p.series==='F1')d=4;
@@ -1054,7 +1076,7 @@ function leaveRumors(evR,races){const p=S.p;if(p.series!=='F1'||p.role!=='race'|
     const b=T(sids[1]);if(b&&Math.random()<.6)L.push(`전향 소문: ${jo(b,'이','가')} 매니저에게 연락했대요.`)}
   const used=new Set();L.forEach(t=>{let r=at();for(let k=0;k<5&&used.has(r);k++)r=at();used.add(r);evR.push({t,r})})}
 function startSeason(){
-  const p=S.p,ev=[],evR=[],ovrBefore=ovrOf(p.stats),statsBefore={...p.stats};
+  const p=S.p,ev=[],evR=[],ovrBefore=ovrOf(p.stats),statsBefore={...p.stats},LG=lgOf(p);
   S.events=[];S.challenge=null;
   let ents=[],me=null,races,field,seriesName,teamName,teamColor=null,mate=null;
   if(p.series==='F1'){
@@ -1075,9 +1097,9 @@ function startSeason(){
     ents.push(me);
   }else{
     const isAlt=p.series==='ALT',sd=isAlt?altDef(p.alt):seriesDef(p.series);
-    races=sd.races;field=Math.min(sd.field,30);seriesName=sd.name;teamName=p.team.name;
+    races=LG&&LG.races||sd.races;field=Math.min(LG&&LG.field||sd.field,30);seriesName=serName(p);teamName=p.team.name;
     // a gentler field for the very first kart season, so a new player gets a taste of the podium
-    const easy=p.series==='KART'&&!p.history.length?(B.career.first_kart_easy||0):0,carT=isAlt?ALT_CAR:sd.car,mean=AI_MEAN[p.series]-easy-(isAlt&&B.career.alt_ease?B.career.alt_ease[p.alt]||0:0);
+    const easy=p.series==='KART'&&!p.history.length?(B.career.first_kart_easy||0):0,carT=isAlt?ALT_CAR:sd.car,mean=AI_MEAN[p.series]-easy+(LG&&LG.ai||0)-(isAlt&&B.career.alt_ease?B.career.alt_ease[p.alt]||0:0);
     const AR=isAlt?altRoster(p.alt):null,ts=AR&&ALT_TS[p.team.name];
     me=entrant({key:'me',name:p.name,team:ts?ts[0]:p.team.name,color:ts?ts[1]:null,car:carT[p.team.tier],isPlayer:true,...fromStats(p.stats)});ents.push(me);
     if(AR){teamColor=ts?ts[1]:null;{const c=altCarOf(p.alt,p.team.name);if(c!=null)me.car=c}
@@ -1094,7 +1116,8 @@ function startSeason(){
     if((p.series==='F2'||p.series==='F3')&&S.jr){let k=2;S.jr.filter(d=>d.st==='on'&&d.series===p.series).forEach(d=>{if(k<ents.length){ents[k]=entrant({key:d.id,name:d.name,team:d.team,car:carT[d.tier]||carT.mid,...fromStats(d.stats)});k++}})}
     const rv=S.rival;if(rv&&rv.st==='on'&&!rv.f1&&rv.series===p.series&&ents[1])ents[1]=entrant({key:'rival',name:rv.name,team:'',car:carT[pick(['top','mid','mid','bottom'])],...fromStats(rv.stats)});
   }
-  const lk0=p.series==='ALT'?p.alt:p.series,firstLeague=p.role==='race'&&!p.history.some(h=>(h.lk||h.sid)===lk0&&h.role==='race'&&h.starts>0);
+  const lk0=lgKey(p),firstLeague=p.role==='race'&&!p.history.some(h=>(h.lk||h.sid)===lk0&&h.role==='race'&&h.starts>0)
+    &&!(p.series==='F3'&&p.history.some(h=>LGD[h.lk]&&LGD[h.lk].f3&&h.starts>0));// Euroformula runs F3-class cars
   // no adapting in the very first kart season
   let avgAd=0;if(firstLeague&&p.history.length){const R0=Math.max(2,Math.round(races*.35)),A=B.career.rookie_adapt||3;me.adapt=r=>r<R0?A*(1-r/R0):0;for(let r=0;r<races;r++)avgAd+=me.adapt(r);avgAd/=races}
   {const mb=(p.morale-60)/15-(p.xfer===S.year||p.altGo===S.year?.6:0);me.q+=mb;me.d+=mb;me.w+=mb;
@@ -1103,7 +1126,7 @@ function startSeason(){
    const avgD=oth.reduce((a,e)=>a+e.d,0)/n,avgC=oth.reduce((a,e)=>a+e.car,0)/n,pvO=oth.map(e=>dw*e.d+cw*e.car);
    const rk=v=>1+pvO.filter(x=>x>v).length,dNo=me.d-mb;
    var why0={r0:rk(dw*avgD+cw*avgC),r1:rk(dw*dNo+cw*avgC),r2:rk(dw*dNo+cw*me.car),r3:rk(dw*me.d+cw*me.car),r3a:rk(dw*(me.d-avgAd)+cw*me.car)}}
-  const orders=[];simulate(ents,races,orders,p.series==='F1'?F1W:p.series==='ALT'?altCal(p.alt):null);
+  const orders=[];simulate(ents,races,orders,p.series==='F1'?F1W:p.series==='ALT'?altCal(p.alt):LG&&LG.w?[{w:LG.w}]:null);
   // low stamina: tired mistakes turn some finishes into retirements
   if(p.morale<40){const pr=(40-p.morale)*.004;orders.forEach(o=>{const i=o.fin.indexOf('me');if(i>=0&&Math.random()<pr){o.fin.splice(i,1);o.dnf.push('me')}})}
   const cand=[];orders.forEach((o,r)=>{if(r>0&&o.fin.includes('me'))cand.push(r)});
@@ -1117,7 +1140,7 @@ function startSeason(){
   leaveRumors(evR,races);
   S.season={races,orders,meAbsent:[...me.absent],evR,mateKey:mate?mate.key:null,incidents,gacha,
     ents:ents.map(e=>({key:e.key,name:e.name,team:e.team,teamId:e.teamId||null,color:e.color||null,isPlayer:!!e.isPlayer,...(e.no?{no:e.no}:{}),...(e.cn?{cn:e.cn}:{}),...(e.cm?{cm:e.cm,crew:e.crew}:{})})),
-    ctx:{why0,firstLeague,sid:p.series==='ALT'?p.alt:p.series,seriesName,teamName,teamColor,ovrBefore,statsBefore,ev,f1:p.series==='F1',role:p.role,year:S.year}};
+    ctx:{why0,firstLeague,sid:lgKey(p),seriesName,teamName,teamColor,ovrBefore,statsBefore,ev,f1:p.series==='F1',role:p.role,year:S.year}};
   S.phase='progress';sel=null;save();
 }
 function tally(upto){
@@ -1161,7 +1184,7 @@ function finishSeason(){
   if(pos===1&&p.role==='race'){titled=true;
     if(p.series==='F1'){p.tot.titles++;ev.unshift(`${S.year} 포뮬러 1 월드 챔피언!`)}
     else if(p.series==='ALT'){p.alts.push({year:S.year,name:altDef(p.alt).name});ev.unshift(`${altDef(p.alt).name} 챔피언!${me.crew?` #${me.no} 크루 ${jo(me.crew,'과','와')} 함께 들어 올린 타이틀이에요.`:''}`)}
-    else{p.jr.push({year:S.year,series:p.series,name:seriesDef(p.series).name});ev.unshift(`${seriesDef(p.series).name} 챔피언!`)}}
+    else{p.jr.push({year:S.year,series:p.series,name:serName(p)});ev.unshift(`${serName(p)} 챔피언!`)}}
   // youngest records
   const yrNew=[];
   if(p.series==='F1'&&me.starts>0){const T=p.tot,a=p.age,ks=[];
@@ -1207,12 +1230,13 @@ function finishSeason(){
    if(G&&G.res==='win'&&g&&!g.slump)a+=A.gacha;
    awake=a?awaken(a):0;if(awake)ev.push(AWAKE_MSG)}
   // growth
-  const played=me.starts>0,slump=grow(p,played,pos&&fieldN&&pos/fieldN>B.driver.slump.poor_ratio);
+  const LGg=lgOf(p),played=me.starts>0,slump=grow(p,played,pos&&fieldN&&pos/fieldN>B.driver.slump.poor_ratio);
+  if(LGg&&LGg.grow&&played)for(const k in LGg.grow)p.stats[k]=clamp(p.stats[k]+LGg.grow[k],1,99);// British F4: a rainy season teaches wet driving
   if(slump)ev.push({tired:'슬럼프: 체력이 바닥나 몸이 무거웠어요. 능력치 일부가 떨어졌어요.',norace:'슬럼프: 실전 감각이 떨어져 능력치 일부가 내려갔어요.',poor:'슬럼프: 부진이 자신감까지 흔들었어요. 능력치 일부가 떨어졌어요.',random:'슬럼프: 이유 모를 부진에 능력치 일부가 떨어졌어요.'}[slump]);
   const ovrAfter=ovrOf(p.stats);p.peak=Math.max(p.peak,ovrAfter);
   if(!p.limitSeen&&atLimit()){p.limitSeen=1;ev.push('성장이 더뎌지기 시작했어요. 큰 무대에서 증명하면 한계를 넘을 수 있어요.')}
   const deltas=STATS.map(k=>({k,v:p.stats[k],d:p.stats[k]-statsBefore[k]})).filter(x=>x.d!==0);
-  const rec={lk:p.series==='ALT'?p.alt:p.series,year:S.year,age:p.age,series:p.series==='ALT'?altDef(p.alt).name:seriesDef(p.series).name,sid:p.series,team:teamName,color:teamColor,role:p.role,tid:p.team&&p.team.id||null,
+  const rec={lk:lgKey(p),year:S.year,age:p.age,series:serName(p),sid:p.series,team:teamName,color:teamColor,role:p.role,tid:p.team&&p.team.id||null,
     pos,field:fieldN,train:trName(),points:me.pts,wins:me.wins,podiums:me.pod,poles:me.poles,dnf:me.dnf,starts:me.starts,ovrBefore,ovrAfter,h2h,titled,crown,first:!!C.firstLeague,slump:slump||null};
   if(p.series==='ALT'&&ALT_DRV[p.alt]&&p.role==='race'){const sid=p.alt,A=S.altSum&&S.altSum[sid];if(me.no)rec.no=me.no;if(me.crew)rec.crew=me.crew;
     if(sid==='INDY'){let ld=0,mo=0,bo=0;Z.orders.forEach(o=>{if(o.bl&&o.bl.includes('me'))ld++;if(o.bm==='me')mo++;if(o.bp&&o.bp.me)bo+=o.bp.me});if(ld)rec.lead=ld;if(mo)rec.most=mo;if(bo)rec.bonus=bo;
@@ -1468,7 +1492,7 @@ function won(v){if(v>=1)return(v>=10?Math.round(v):Math.round(v*10)/10)+'억 원
 const fameTier=()=>S.p.rep>=85?'슈퍼스타':S.p.rep>=70?'주목받는 드라이버':S.p.rep>=50?'이름이 알려짐':S.p.rep>=30?'무명에 가까움':'무명';
 const repAdj=()=>(S.p.rep-50)/50*B.career.seat_rep_adjust;
 const fanAdj=t=>t&&t.tier==='bottom'?Math.min(5,S.p.fans/20):0;
-function jTeam(series,tier){const l=K.junior_teams[series];return pick(l.filter(t=>t.tier===tier).length?l.filter(t=>t.tier===tier):l)}
+function jTeam(series,tier,lg){const l=lg&&LGD[lg].t?LGD[lg].t.map(([name,tier])=>({name,tier})):K.junior_teams[series];return pick(l.filter(t=>t.tier===tier).length?l.filter(t=>t.tier===tier):l)}
 const up=t=>t==='bottom'?'mid':'top';
 function seatCtx(){const p=S.p,LR=S.last&&S.last.rec;return{inF1Race:p.series==='F1'&&p.role==='race',champF2:!!(LR&&LR.sid==='F2'&&LR.titled),f2Top:!!(LR&&LR.sid==='F2'&&LR.pos&&LR.pos<=3),
   altRet:!!(LR&&LR.sid==='ALT'&&LR.titled&&(LR.lk==='SF'||LR.lk==='FE')&&p.age<=29&&!p.debutYear)}}
@@ -1647,8 +1671,9 @@ function makeOffers(pos,field,h2h){
   if(p.age>=B.career.player_max_age)return[{kind:'retire',title:'은퇴',sub:'커리어를 마무리해요'}];
   const slOK=p.age>=B.super_licence.min_age&&(slPoints()>=B.super_licence.points_needed||altRet);
   const inJunior=ORDER.includes(p.series);
-  const juniorOffer=(series,tier,extra={})=>{const t=jTeam(series,tier);return{kind:'junior',series,team:{name:t.name,tier:t.tier},
-    title:extra.title||t.name,sub:extra.sub||`${seriesDef(series).name} · ${TIER_LBL[t.tier]}`,tag:extra.tag,academy:extra.academy}};
+  const juniorOffer=(series,tier,extra={})=>{const lg=LG_OF[series]?extra.lg||LG_OF[series][0]:null,t=jTeam(series,tier,lg);return{kind:'junior',series,lg,team:{name:t.name,tier:t.tier},
+    title:extra.title||t.name,sub:extra.sub||`${lg?LGD[lg].n:seriesDef(series).name} · ${TIER_LBL[t.tier]}${extra.lgd&&lg?' · '+LGD[lg].d+(LGD[lg].f1?' · '+LGD[lg].f1.map(id=>teamDef(id).name).join('·')+' 주목':''):''}`,tag:extra.tag,academy:extra.academy}};
+  const myLgK=lgOf(p)?lgKey(p):null;
   // junior ladder
   if(inJunior&&p.role==='race'){
     const idx=ORDER.indexOf(p.series),next=ORDER[idx+1],next2=ORDER[idx+2];
@@ -1656,11 +1681,15 @@ function makeOffers(pos,field,h2h){
     if(pt&&p.rep>=80)pt=up(pt);
     const sponsor=p.fans>=25&&pt&&pt!=='top';if(sponsor)pt=up(pt);
     if(p.academy){pt=pt?up(pt):(r<=.66?'bottom':null)}
-    if(next&&pt&&p.age>=seriesDef(next).age[0])o.push(juniorOffer(next,pt,{tag:sponsor?'승격 · 스폰서 지원':'승격'}));
+    // F4 and FRECA: one seat in each league of the step, the player picks the road
+    if(next&&pt&&p.age>=seriesDef(next).age[0])(LG_OF[next]||[null]).forEach(lg=>o.push(juniorOffer(next,pt,{tag:sponsor?'승격 · 스폰서 지원':'승격',lg,lgd:1})));
     if(next2&&pos===1&&p.seriesSeasons===1&&p.age>=seriesDef(next2).age[0]-1)o.push(juniorOffer(next2,'top',{tag:'월반',sub:`${joRo(seriesDef(next2).name)} 한 단계 건너뛰기 · ${TIER_LBL.top}`}));
     const canStay=champF2?false:p.series==='F2'?p.f2Seasons<B.career.f2_max_seasons:p.age<=seriesDef(p.series).age[1];
-    if(!canStay)S.leaveNote=champF2?'F2 챔피언은 규정상 다음 시즌 F2에 나올 수 없어요. F1이나 다른 무대를 골라야 해요.':p.series==='F2'?`F2에서 뛸 수 있는 ${B.career.f2_max_seasons}시즌을 다 채웠어요. 이제 F2를 떠나야 해요.`:`나이 제한으로 ${seriesDef(p.series).name}에 더 남을 수 없어요. 다음 무대를 찾아야 해요.`;
-    if(canStay)o.push(juniorOffer(p.series,r<=.2?'top':r<=.5?'mid':'bottom',{tag:p.series==='F2'&&(p.f2Seasons>=2||p.age>=24)?'마지막 도전':'잔류'}));
+    if(!canStay)S.leaveNote=champF2?'F2 챔피언은 규정상 다음 시즌 F2에 나올 수 없어요. F1이나 다른 무대를 골라야 해요.':p.series==='F2'?`F2에서 뛸 수 있는 ${B.career.f2_max_seasons}시즌을 다 채웠어요. 이제 F2를 떠나야 해요.`:`나이 제한으로 ${serName(p)}에 더 남을 수 없어요. 다음 무대를 찾아야 해요.`;
+    if(canStay)o.push(juniorOffer(p.series,r<=.2?'top':r<=.5?'mid':'bottom',{tag:p.series==='F2'&&(p.f2Seasons>=2||p.age>=24)?'마지막 도전':'잔류',lg:myLgK}));
+    // Super Formula Lights top 3: Super Formula teams call (the Japanese road to F1)
+    if(lgOf(p)&&lgOf(p).sf&&pos&&pos<=3&&p.age>=18){const a=altDef('SF'),tm=altPick('SF',pos===1?'mid':'bottom')||altTeam('SF',pos===1?'mid':'bottom');
+      if(a&&tm)o.push({kind:'alt',altId:'SF',tier:tm.tier,altTeam:tm.n,altF1:tm.f1||null,title:tm.n,sub:`${a.name} · ${TIER_LBL[tm.tier]}${tm.f1?` · ${teamDef(tm.f1).name} F1과 연결`:''}`,tag:'일본 루트'})}
     const hotAc=K.academies.map(a=>({a,v:Math.max(...a.teams.map(scv))})).filter(x=>x.v>=60).sort((x,y)=>y.v-x.v).map(x=>x.a);
     if(!p.academy&&p.series!=='F2'&&(hotAc.length||pos===1)){
       const acs=hotAc.length?hotAc.slice(0,2):[pick(K.academies)];
@@ -1756,7 +1785,7 @@ function makeOffers(pos,field,h2h){
   const f1End=p.series==='F1'&&(p.role==='reserve'||!o.some(x=>x.kind==='stay'||x.kind==='option'));
   // after F2 another stage always comes, at any age (under 21: just WEC or IndyCar)
   const altReq=p.altGo===S.year-1&&p.series==='F1';
-  const needAlt=(champF2&&!o.some(x=>x.kind==='f1'))||p.series==='F2'||altReq||p.age>=21&&(p.series==='ALT'||f1End)&&!bound;
+  const needAlt=(champF2&&!o.some(x=>x.kind==='f1'))||p.series==='F2'||altReq||(p.series==='ALT'||p.age>=21&&f1End)&&!bound;
   const altYoung=p.series==='F2'&&p.age<21;
   if(needAlt){
     const hotA=Object.keys(ALT_DRV).filter(id=>id!==p.alt&&Math.max(0,...Object.values((p.altSc||{})[id]||{}))>=25).sort((x,y)=>Math.max(...Object.values(p.altSc[y]))-Math.max(...Object.values(p.altSc[x])));
@@ -1798,14 +1827,14 @@ function makeOffers(pos,field,h2h){
    if(p.age>=30)o.push({kind:'retire',title:'은퇴',sub:'커리어를 마무리하고 커리어 카드를 받아요'});
    else if(!inF1&&!everF1&&noF1&&(p.age>=24||!canStayNow))o.push({kind:'retire',title:'은퇴',sub:'F1의 꿈을 내려놓아요 · 커리어 카드를 받아요'})}
   if(!o.length){
-    if(inJunior&&p.age<21)o.push(juniorOffer(p.series,'bottom',{tag:'잔류',sub:`${seriesDef(p.series).name} · ${TIER_LBL.bottom} · 마지막 기회`}));
+    if(inJunior&&p.age<21)o.push(juniorOffer(p.series,'bottom',{tag:'잔류',lg:lgOf(p)?lgKey(p):null,sub:`${serName(p)} · ${TIER_LBL.bottom} · 마지막 기회`}));
     else{const a=pick(K.alt_series);o.push({kind:'alt',altId:a.id,tier:'bottom',title:a.name,sub:`${TIER_LBL.bottom} 시트`,tag:'다른 진로'})}
   }
   return o;
 }
 
 function applyOffer(o){
-  const p=S.p,ev=[],stage0=stageKey(p);S.logPick={year:S.year,age:p.age,from:p.series==='ALT'?p.alt:p.series,pick:o.kind+':'+(o.teamId||o.series||o.altId||'')+':'+(o.tier||(o.team&&o.team.tier)||(o.teamId?teamDef(o.teamId).tier:'')),
+  const p=S.p,ev=[],stage0=stageKey(p);S.logPick={year:S.year,age:p.age,from:p.series==='ALT'?p.alt:p.series,...(o.lg&&o.lg!==o.series?{lg:o.lg}:{}),pick:o.kind+':'+(o.teamId||o.series||o.altId||'')+':'+(o.tier||(o.team&&o.team.tier)||(o.teamId?teamDef(o.teamId).tier:'')),
     offers:(S.offers||[]).map(x=>x.kind+':'+(x.teamId||x.series||x.altId||'')),ovr:ovrOf(p.stats)};
   const leavingF1Seat=p.series==='F1'&&p.role==='race'&&!(o.kind==='resign');
   const oldTeam=p.series==='F1'?p.team.id:null;
@@ -1813,7 +1842,7 @@ function applyOffer(o){
   if(o.kind==='junior'){
     if(o.academy){p.academy=o.academy;p.academyBad=0}
     p.seriesSeasons=p.series===o.series?p.seriesSeasons+1:1;if(o.series==='F2')p.f2Seasons++;
-    p.series=o.series;p.team=o.team;p.role='race';
+    p.series=o.series;p.team=o.team;p.role='race';p.lg=LG_OF[o.series]?o.lg||LG_OF[o.series][0]:null;
   }else if(o.kind==='resign'){p.seriesSeasons++;p.contract={left:o.years,option:o.option,clause:o.clause,sal:o.sal}}
   else if(o.kind==='stay'){p.seriesSeasons++}
   else if(o.kind==='option'){p.seriesSeasons++;p.contract={left:1,option:false,clause:!!(p.contract&&p.contract.clause),sal:o.sal}}
@@ -2231,7 +2260,7 @@ const trRatio=k=>k==='INDY'?.42:TROPHY[k]?.55:.42; // INDY base is wide: smaller
 /* full-body trophy pose; size = figure height. Trophy sits behind the gloves so they look like they grip it */
 function avatarWin(i,h,size,k,num){const th=Math.round(size*trRatio(k)),top=th-Math.round(size*.08);
   return`<div class="avwin" style="width:${Math.round(size*.62)}px;height:${size+top}px"><span class="awt">${trophyArt(k,th)}</span><img class="avfull" ${avAttr(i,h,true,num)} alt="" style="height:${size}px"></div>`}
-function sLogo(sid,h=14){return SLOGO[sid]?`<img src="${SLOGO[sid]}" alt="" style="height:${h}px;width:auto;vertical-align:-2px;margin-right:6px">`:''}
+function sLogo(sid,h=14){if(LGD[sid]&&LGD[sid].s==='F4')sid='F4';return SLOGO[sid]?`<img src="${SLOGO[sid]}" alt="" style="height:${h}px;width:auto;vertical-align:-2px;margin-right:6px">`:''}
 const TROPHY_IMG={};for(const k in TROPHY){const i=new Image();i.src=TROPHY[k];TROPHY_IMG[k]=i}
 const LOGO_IMG={};K.teams.forEach(k=>{if(k.logo){const i=new Image();i.src=k.logo;LOGO_IMG[k.id]=i}});
 const kTeam=id=>K.teams.find(x=>x.id===id);
@@ -2634,7 +2663,7 @@ function currentLine(){
   const p=S.p;
   if(p.series==='F1'){const t=teamDef(p.team.id);return{teamId:t.id,sid:'F1',series:'포뮬러 1',team:t.name,tier:t.tier,color:t.color,role:p.role}}
   if(p.series==='ALT')return{sid:p.alt,series:altDef(p.alt).name,team:p.team.name,tier:p.team.tier,role:'race'};
-  return{series:seriesDef(p.series).name,team:p.team.name,tier:p.team.tier,role:'race'};
+  return{sid:lgKey(p),series:serName(p),team:p.team.name,tier:p.team.tier,role:'race'};
 }
 function profileCard(){
   const p=S.p,c=currentLine(),ac=p.academy?K.academies.find(a=>a.id===p.academy):null;
@@ -2649,7 +2678,7 @@ function readyCard(){
   const p=S.p,c=currentLine();let desc;
   if(p.series==='F1'&&p.role==='race'){const t=teamDef(p.team.id),mate=S.f1.find(d=>d.team===t.id);desc=`${K.series.find(s=>s.id==='F1').races}R${mate?' · 팀메이트 '+esc(mate.name):''}`}
   else if(p.series==='F1')desc='리저브 · 주전이 빠지면 대타 출전';
-  else{const sd=p.series==='ALT'?altDef(p.alt):seriesDef(p.series);desc=`${sd.races}R · ${TIER_LBL[c.tier]}`}
+  else{const sd=p.series==='ALT'?altDef(p.alt):lgOf(p)||seriesDef(p.series);desc=`${sd.races||seriesDef(p.series).races}R · ${TIER_LBL[c.tier]}`}
   const n=S.events.length;
   const row=(attr,ic,title,sub,hot)=>`<button class="trow${hot?' need':''}" type="button" ${attr}><span class="ti">${ic}</span><span class="tb"><b>${title}</b><span>${sub}</span></span><span class="ta">›</span></button>`;
   return`<section class="card prep"><div><h2 class="h3" style="font-size:20px;margin:0">${S.year} 시즌 준비</h2><span class="muted" style="font-size:13px">${desc}</span></div>
@@ -2737,7 +2766,7 @@ function offersCard(){
     ${(S.last&&S.last.ev||[]).filter(e=>typeof e==='string'&&ALERT_EV.test(e)&&!/조기 해지|재계약을 하지 않기로/.test(e)).map(e=>`<div class="leave${/옵션을 행사|탈출 조항/.test(e)?' info':''}">${/옵션을 행사|탈출 조항/.test(e)?'📄':'⚠'} ${withLogos(esc(e))}</div>`).join('')}
     ${topNews()}
     <div class="list">${o.map((x,i)=>`<div class="offerrow"><button class="item" type="button" data-offer="${i}" aria-pressed="${sel===i}">
-      ${offerTeam(x)?bigLogo(offerTeam(x)):x.kind==='alt'&&contractInfo(x).logo?`<span style="width:52px;height:52px;border-radius:14px;display:grid;place-items:center;flex:none;overflow:hidden;background:#2B2E36"><img src="${contractInfo(x).logo}" alt="" style="${x.altId==='WEC'||x.altId==='SF'||x.altId==='FE'?'width:100%;height:100%;object-fit:cover':'width:86%;height:86%;object-fit:contain'}"></span>`:`<span class="dot">${x.kind==='retire'?'END':x.kind==='alt'?'ALT':SLOGO[x.series]?`<img src="${SLOGO[x.series]}" alt="${x.series}" style="width:80%;height:auto">`:x.series||''}</span>`}
+      ${offerTeam(x)?bigLogo(offerTeam(x)):x.kind==='alt'&&contractInfo(x).logo?`<span style="width:52px;height:52px;border-radius:14px;display:grid;place-items:center;flex:none;overflow:hidden;background:#2B2E36"><img src="${contractInfo(x).logo}" alt="" style="${x.altId==='WEC'||x.altId==='SF'||x.altId==='FE'?'width:100%;height:100%;object-fit:cover':'width:86%;height:86%;object-fit:contain'}"></span>`:`<span class="dot">${x.kind==='retire'?'END':x.kind==='alt'?'ALT':x.lg&&x.lg!==x.series&&LGD[x.lg].s!=='F4'?`<b style="font-size:12px">${x.lg}</b>`:SLOGO[x.series]?`<img src="${SLOGO[x.series]}" alt="${x.series}" style="width:80%;height:auto">`:x.series||''}</span>`}
       <span class="body"><b>${esc(x.title)}</b>${offerTerms(x)}${x.tag?`<span style="color:var(--accent)">${esc(x.tag)}${x.tag==='월반'?`<span class="ibtn" role="button" tabindex="0" data-sheet="skip_${x.series}" aria-label="월반 설명">${ISVG}</span>`:x.academy?`<span class="ibtn" role="button" tabindex="0" data-sheet="acad_${x.academy}" aria-label="육성 계약 설명">${ISVG}</span>`:/^리저브/.test(x.tag)?`<span class="ibtn" role="button" tabindex="0" data-sheet="rsv_" aria-label="리저브 설명">${ISVG}</span>`:''}</span>`:''}</span><span class="tick"></span></button>
       ${offerTeam(x)?`<button class="infobtn" type="button" data-brief="${i}">팀 정보</button>`:''}</div>`).join('')}</div>
     <button class="btn" type="button" id="chooseBtn" ${sel==null?'disabled':''}>이 진로로 갈게요</button></section>`;
@@ -3155,10 +3184,10 @@ const JRCAL={KART:{t:['사르노','프란차코르타','겡크','크리스티안
  F3:{t:['앨버트 파크','사키르','이몰라','몬테카를로','카탈루냐','레드불링','실버스톤','스파','헝가로링','몬차'],n:2,lb:['스프린트','피처']},
  F2:{t:['앨버트 파크','사키르','제다','이몰라','몬테카를로','카탈루냐','레드불링','실버스톤','스파','헝가로링','몬차','바쿠','루사일','야스 마리나'],n:2,lb:['스프린트','피처']}};
 let progTimer=null,progI=0,feed=[];
-function roundName(r){const C=S.season.ctx;if(C.f1)return`R${r+1} · ${F1CAL[r%F1CAL.length]} GP`;const A=ALTCAL[C.sid];if(A)return`R${r+1} · ${A[r%A.length][0]}`;const J=JRCAL[C.sid];if(!J)return`${r+1}라운드`;
+function roundName(r){const C=S.season.ctx;if(C.f1)return`R${r+1} · ${F1CAL[r%F1CAL.length]} GP`;const A=ALTCAL[C.sid];if(A)return`R${r+1} · ${A[r%A.length][0]}`;const J=JRCAL[C.sid]||LGD[C.sid]&&LGD[C.sid].cal;if(!J)return`${r+1}라운드`;
   const i=Math.floor(r/J.n),k=r%J.n;return`R${i+1} · ${J.t[i%J.t.length]}${J.n>1?' '+(J.lb?J.lb[k]:`레이스 ${k+1}`):''}`}
 // progress line: "8 / 24 · 모나코 GP · 몬테카를로"
-function roundLine(r,n){const C=S.season.ctx,T=F1TR[r%F1TR.length];const A=ALTCAL[C.sid]&&ALTCAL[C.sid][r%ALTCAL[C.sid].length];return`${r+1} / ${n}${C.f1?` · ${T[0]} GP · ${T[1]}`:A?` · ${A[0]} · ${A[1]}`:JRCAL[C.sid]?` · ${roundName(r)}`:' 라운드'}`}
+function roundLine(r,n){const C=S.season.ctx,T=F1TR[r%F1TR.length];const A=ALTCAL[C.sid]&&ALTCAL[C.sid][r%ALTCAL[C.sid].length];return`${r+1} / ${n}${C.f1?` · ${T[0]} GP · ${T[1]}`:A?` · ${A[0]} · ${A[1]}`:JRCAL[C.sid]||LGD[C.sid]&&LGD[C.sid].cal?` · ${roundName(r)}`:' 라운드'}`}
 function progressView(){
   const C=S.season.ctx;
   return`<section class="prog">${stepper()}<div class="eyebrow">${C.year} ${sLogo(C.sid)}시즌 · ${withLogos(esc(C.teamName))}${C.role==='reserve'?' 리저브':''}</div>
@@ -3329,7 +3358,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.13-d3',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.13-d4',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3545,8 +3574,8 @@ function contractInfo(o){const p=S.p,y=S.year,W=seatWho(o),N=a=>a.map(esc).join(
     who:W&&W.t,news:N([...(db?[`${p.name}, 카트에서 시작해 ${yrs}년 만에 F1 데뷔`]:[]),...(W?[`${p.name}, ${W.t}`]:[]),`${p.name}, ${jo(t.name,"과","와")} ${o.years}년 계약 체결`,`연봉 ${won(o.sal)} · ${y} 시즌부터 레이스 시트`,`${t.name} 팬들 "드디어 왔다"`])}}
   if(o.kind==='reserve'){const t=teamDef(o.teamId);return{color:t.color,logo:teamLogo(t.id),name:t.name,line:`${y} 시즌 ${t.name} 리저브 드라이버`,terms:'FP1 · 시뮬레이터 작업'}}
   if(o.kind==='alt'){const a=altDef(o.altId),T=ALT_TS[o.altTeam],tl=o.altId==='GT3'?SLOGO.GT3:T&&(o.altId==='WEC'&&altW(T[0])&&K.alt_logos[altW(T[0])]||K.alt_logos&&K.alt_logos[T[0]]||(teamByShort(T[0])?teamLogo(teamByShort(T[0]).id):null));return{alt:true,who:W&&W.t,color:o.altF1?teamDef(o.altF1).color:T?T[1]:'#3182F6',logo:tl||SLOGO[o.altId]||null,badge:tl||SLOGO[o.altId]?null:a.name,name:o.altTeam||a.name,line:`${y} 시즌 ${a.name} · ${o.altTeam||''}`,terms:`${TIER_LBL[o.tier]||''} 시트`}}
-  const ac=o.academy?K.academies.find(a=>a.id===o.academy):null,sd=seriesDef(o.series);
-  return{color:ac?teamDef(ac.teams[0]).color:'#3182F6',logo:SLOGO[o.series]||null,badge:SLOGO[o.series]?null:o.series,name:o.team.name,line:`${y} ${sd.name} · ${o.team.name}`,terms:ac?`${ac.name} 입단`:(o.tag||'')}}
+  const ac=o.academy?K.academies.find(a=>a.id===o.academy):null,lgD=o.lg&&LGD[o.lg],sd=lgD||seriesDef(o.series),lk=lgD&&lgD.s==='F4'?'F4':lgD?o.lg:o.series;
+  return{color:ac?teamDef(ac.teams[0]).color:'#3182F6',logo:SLOGO[lk]||null,badge:SLOGO[lk]?null:o.series,name:o.team.name,line:`${y} ${sd.n||sd.name} · ${o.team.name}`,terms:ac?`${ac.name} 입단`:(o.tag||'')}}
 // smooth stroke path: one Chaikin pass, then quadratic curves through midpoints (no corners)
 function sigPath(pts){let a=pts;if(a.length>2){const b=[a[0]];for(let i=0;i<a.length-1;i++){const[x0,y0]=a[i],[x1,y1]=a[i+1];b.push([x0*.75+x1*.25,y0*.75+y1*.25],[x0*.25+x1*.75,y0*.25+y1*.75])}b.push(a.at(-1));a=b}
   const f=v=>v.toFixed(1),P=([x,y])=>`${f(x)} ${f(y)}`;if(a.length<3)return`M${P(a[0])} L${P(a.at(-1))}`;
