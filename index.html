@@ -4137,10 +4137,10 @@ function resultCard(){
     ${nextCard()?`<button class="btn" type="button" data-go="react">반응 보기</button>`:`<div style="display:flex;gap:8px"><button class="btn ghost" type="button" data-go="react" style="flex:1">반응 보기</button><button class="btn" type="button" id="okBtn" style="flex:1">이적 시장으로</button></div>`}</section>`;
 }
 const mRank=id=>[...S.teams].sort((a,b)=>b.machine-a.machine).findIndex(x=>x.id===id)+1;
-function offerTerms(x){const clean=s=>String(s||'').replace(/ · 머신 [\d.]+/g,'');
-  if(!x.years||!x.teamId)return`<span>${esc(clean(x.sub))}</span>`;
+function offerTerms(x,pre=''){const clean=s=>String(s||'').replace(/ · 머신 [\d.]+/g,'');
+  if(!x.years||!x.teamId)return`<span>${pre}${esc(clean(x.sub))}</span>`;
   const extra=clean(x.sub).replace(x.termTxt||'','').split(' · ').map(s=>s.trim()).filter(s=>s&&!/^(상위팀|중위팀|하위팀)$/.test(s)&&!/년 남음$|년 계약$|^연봉 |옵션$|^탈출 조항/.test(s));
-  return`<span style="word-break:keep-all"><b>${x.years}</b>년${x.kind==='stay'?' 남음':''}, <b>${won(x.sal).replace(/ 원$/,'')}</b>원, 다음 머신 예상 <b>${mRank(x.teamId)}</b>위</span>
+  return`<span style="word-break:keep-all">${pre}<b>${x.years}</b>년${x.kind==='stay'?' 남음':''}, <b>${won(x.sal).replace(/ 원$/,'')}</b>원, 다음 머신 예상 <b>${mRank(x.teamId)}</b>위</span>
     ${x.option||x.clause||extra.length?`<span class="oex">${[x.option?'+1년 옵션':'',x.clause?'탈출 조항 O':'',x.bid?`영입 경쟁 +${x.bid}%`:'',...extra].filter(Boolean).map(esc).join(' · ')}</span>`:''}`}
 // the three things worth knowing before signing
 function topNews(){const N=S.news;if(!N||!N.heads)return'';const out=[],nm=nextMajorYear();
@@ -4166,6 +4166,7 @@ function topNews(){const N=S.news;if(!N||!N.heads)return'';const out=[],nm=nextM
     ${out.slice(0,3).map(x=>`<div class="tn ${x.c}">${withLogos(esc(x.t))}</div>`).join('')}</div>`}
 // offer groups: where each offer takes me, best first (the list keeps S.offers' indexes)
 const STEP_LBL={KART:'카트',F4:'F4',FRECA:'FRECA급',F3:'F3',F2:'F2'};
+const offerLg=x=>x.kind==='f1'||x.kind==='reserve'?'F1':x.kind==='junior'?(x.lg||x.series):x.kind==='alt'?x.altId:['stay','resign','option'].includes(x.kind)?(S.p.series==='ALT'?S.p.alt:S.p.series==='F1'?'F1':lgKey(S.p)):null;
 function offerGroup(x){const p=S.p;
   if(x.kind==='stay'||x.kind==='resign'||x.kind==='option'||x.kind==='alt'&&x.tag==='잔류')return{k:0,h:'지금 팀'};
   if(x.kind==='f1')return{k:1,h:'F1 레이스 시트',o:mRank(x.teamId)};
@@ -4183,7 +4184,7 @@ function offersCard(){
     ${topNews()}
     <div class="list">${G.map(({i,g})=>{const x=o[i],hd=showH&&g.h&&g.k!==lastK?`<div class="ogh"><b>${esc(g.h)}</b>${g.m?' · '+g.m:''}</div>`:'';lastK=g.k;return hd+`<div class="offerrow"><button class="item" type="button" data-offer="${i}" aria-pressed="${sel===i}">
       ${offerTeam(x)?bigLogo(offerTeam(x),46):x.kind==='alt'&&contractInfo(x).logo?`<span style="width:46px;height:46px;border-radius:14px;display:grid;place-items:center;flex:none;overflow:hidden;background:#2B2E36"><img src="${contractInfo(x).logo}" alt="" style="${x.altId==='WEC'||x.altId==='SF'||x.altId==='FE'?'width:100%;height:100%;object-fit:cover':'width:86%;height:86%;object-fit:contain'}"></span>`:`<span class="dot">${x.kind==='retire'?'END':x.kind==='alt'?'ALT':x.lg&&SLOGO[x.lg]?`<img src="${SLOGO[x.lg]}" alt="${x.lg}" style="width:94%;height:auto">`:SLOGO[x.series]?`<img src="${SLOGO[x.series]}" alt="${x.series}" style="width:80%;height:auto">`:x.series||''}</span>`}
-      <span class="body"><b>${esc(x.title)}</b>${offerTerms(x)}${x.tag?`<span style="color:var(--accent)">${esc(x.tag)}${x.lg&&x.tag!=='월반'&&!x.academy?`<span class="ibtn" role="button" tabindex="0" data-sheet="lg_${x.lg}" aria-label="리그 설명">${ISVG}</span>`:x.tag==='월반'?`<span class="ibtn" role="button" tabindex="0" data-sheet="skip_${x.series}" aria-label="월반 설명">${ISVG}</span>`:x.academy?`<span class="ibtn" role="button" tabindex="0" data-sheet="acad_${x.academy}" aria-label="육성 계약 설명">${ISVG}</span>`:/^리저브/.test(x.tag)?`<span class="ibtn" role="button" tabindex="0" data-sheet="rsv_" aria-label="리저브 설명">${ISVG}</span>`:''}</span>`:''}</span><span class="tick"></span></button>
+      <span class="body"><b>${esc(x.title)}</b>${offerTerms(x,offerLg(x)?sLogo(offerLg(x),11):'')}${x.tag?`<span style="color:var(--accent)">${esc(x.tag)}${x.lg&&x.tag!=='월반'&&!x.academy?`<span class="ibtn" role="button" tabindex="0" data-sheet="lg_${x.lg}" aria-label="리그 설명">${ISVG}</span>`:x.tag==='월반'?`<span class="ibtn" role="button" tabindex="0" data-sheet="skip_${x.series}" aria-label="월반 설명">${ISVG}</span>`:x.academy?`<span class="ibtn" role="button" tabindex="0" data-sheet="acad_${x.academy}" aria-label="육성 계약 설명">${ISVG}</span>`:/^리저브/.test(x.tag)?`<span class="ibtn" role="button" tabindex="0" data-sheet="rsv_" aria-label="리저브 설명">${ISVG}</span>`:''}</span>`:''}</span><span class="tick"></span></button>
       ${offerTeam(x)?`<button class="infobtn" type="button" data-brief="${i}">팀 정보</button>`:''}</div>`}).join('')}</div>
     <button class="btn" type="button" id="chooseBtn" ${sel==null?'disabled':''}>이 진로로 갈게요</button></section>`;
 }
@@ -4774,7 +4775,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.13-d10',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.13-d11',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
