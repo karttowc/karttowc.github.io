@@ -279,7 +279,7 @@
   }
  },
  "career": {
-  "alt_ease": {"WEC": 4.5, "INDY": 5, "SF": 5},
+  "alt_ease": {"WEC": 4.5, "INDY": 5, "SF": 5, "FE": 3.5, "GT3": 4.5},
   "teammate_absence_per_season": 0.1,
   "sub_races": [
    1,
