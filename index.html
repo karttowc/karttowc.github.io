@@ -530,6 +530,7 @@ html,body{margin:0}
 .hof .rkch{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent);padding-right:16px;gap:4px;margin-top:3px}.hof .rkch .chip{font-size:11px;padding:2px 7px;white-space:nowrap;flex:none}
 .hof .rkwc{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
 .hof .rkwc .t{display:flex;align-items:center;gap:4px}
+.hof .rkwc.etc{flex-direction:row;align-items:center;gap:8px}.hof .rkwc.etc img{height:24px}.hof .rkwc.etc b{font-size:22px}
 .hof .rkwc .w{font-size:12px;color:var(--dim);white-space:nowrap}
 .hof .rkwc img{height:30px;width:auto;display:block;filter:drop-shadow(0 2px 6px rgba(242,193,78,.35))}
 .hof .rkwc .t.alt b{background:linear-gradient(180deg,#FFFFFF,#C9CFD8 45%,#7D8592 55%,#E3E7ED);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -4697,7 +4698,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.9',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.10-d1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -4742,10 +4743,13 @@ const RK_FROM='2026-11-02T07:31:00Z';
 const SB_URL='https://nylfktkmicqqlgkjfvyg.supabase.co/rest/v1/ranking',SB_KEY='sb_publishable_oIyy0JrrciMA_g_iX70j_A_coEepIDF',RK_VER='0.21.0';
 let rkInfo=false,rkTab='week',rkLg='f1',rkD={},rkErr={},rkBusy={};
 // league rankings: WEC / IndyCar = champion count -> big race wins -> peak OVR (from the trophy list, so old records count too)
-const RK_LG={WEC:{c:'WEC 하이퍼카 챔피언',r:'르망 24시 우승',rn:'르망',cn:'WEC 챔피언',tro:'WEC',lbl:'WEC'},INDY:{c:'인디카 챔피언',r:'인디 500 우승',rn:'인디 500',cn:'인디카 챔피언',tro:'INDY',lbl:'인디카'}};
-const rkCnt=(h,t)=>(h.trs||[]).filter(x=>x===t).length;
+// ETC(기타) = SF·FE·DTM champions added up -> peak OVR, each league's trophy shown on the right
+const RK_LG={WEC:{c:'WEC 하이퍼카 챔피언',r:'르망 24시 우승',rn:'르망',cn:'WEC 챔피언',tro:'WEC',lbl:'WEC'},INDY:{c:'인디카 챔피언',r:'인디 500 우승',rn:'인디 500',cn:'인디카 챔피언',tro:'INDY',lbl:'인디카'},
+  ETC:{m:[{c:'일본 슈퍼포뮬러 챔피언',tro:'SF',cn:'슈퍼포뮬러 챔피언'},{c:'포뮬러E 챔피언',tro:'FE',cn:'포뮬러E 챔피언'},{c:'DTM (GT3) 챔피언',tro:'GT3',cn:'DTM 챔피언'}],cn:'슈퍼포뮬러·포뮬러E·DTM 챔피언 합계',lbl:'기타 리그'}};
+const rkCnt=(h,t)=>t?(h.trs||[]).filter(x=>x===t).length:0;
+const rkCs=g=>g.m?g.m.map(x=>x.c):[g.c],rkC=(h,g)=>rkCs(g).reduce((n,t)=>n+rkCnt(h,t),0);
 const rkKey=()=>rkTab+(rkLg==='f1'?'':rkLg);
-function rkLgSort(a,lg){const g=RK_LG[lg];return a.filter(h=>rkCnt(h,g.c)||rkCnt(h,g.r)).sort((x,y)=>rkCnt(y,g.c)-rkCnt(x,g.c)||rkCnt(y,g.r)-rkCnt(x,g.r)||(y.peak||0)-(x.peak||0))}
+function rkLgSort(a,lg){const g=RK_LG[lg];return a.filter(h=>rkC(h,g)||rkCnt(h,g.r)).sort((x,y)=>rkC(y,g)-rkC(x,g)||rkCnt(y,g.r)-rkCnt(x,g.r)||(y.peak||0)-(x.peak||0))}
 // weekly ranking resets every Monday 00:00 KST
 function rkWeek(){const K=9*3600e3,D=86400e3,n=Date.now()+K,d=new Date(n).getUTCDay(),m=Math.floor(n/D)*D-((d+6)%7)*D-K;return new Date(Math.max(m,Date.parse(RK_FROM))).toISOString()}
 const rkOn=t=>t==='week'||t==='all';
@@ -4774,7 +4778,7 @@ function rkPush(){if(!rkNet())return;
     .then(r=>{if(!r.ok&&r.status!==409)return;const b=hofLoad(),x=b.find(y=>y.cid===h.cid);if(x){x.sent=1;hofSave(b)}rkD={};if(hofOpen&&rkOn(rkTab))rkLoad(rkKey())}).catch(()=>{})})}
 function rkLoad(t){if(rkBusy[t]||!rkNet())return;rkBusy[t]=true;rkErr[t]=false;const from=t.startsWith('week')?rkWeek():RK_FROM,g=RK_LG[t.replace(/^(week|all)/,'')];
   // league tab: careers holding that league's trophies, most other-stage trophies first, sorted on the page
-  const q=g?'&or='+encodeURIComponent(`(trophies.cs.${JSON.stringify([g.c])},trophies.cs.${JSON.stringify([g.r])})`)+'&order=tro.desc,created_at.asc&limit=500':'&order=titles.desc,wins.desc,tro.desc,podiums.desc,jr.desc,peak.desc.nullslast,created_at.asc&limit=100';
+  const q=g?'&or='+encodeURIComponent(`(${[...rkCs(g),...(g.r?[g.r]:[])].map(t=>`trophies.cs.${JSON.stringify([t])}`).join(',')})`)+'&order=tro.desc,created_at.asc&limit=500':'&order=titles.desc,wins.desc,tro.desc,podiums.desc,jr.desc,peak.desc.nullslast,created_at.asc&limit=100';
   fetch(SB_URL+'?select=*&created_at=gte.'+from+q,{headers:{apikey:SB_KEY}})
     .then(r=>r.ok?r.json():Promise.reject(r.status))
     .then(d=>{rkD[t]={from,L:d.filter(r=>!badName(r.name)).map(r=>({cid:r.cid,name:r.name,num:r.num,nat:r.nat,helmet:r.helmet,start:r.start_year,end:r.end_year,age:r.age,titles:r.titles,wins:r.wins,podiums:r.podiums,starts:r.starts,peak:r.peak,top:r.top,tro:r.tro,jr:r.jr,trs:r.trophies||[],at:Date.parse(r.created_at)||0}))};if(g)rkD[t].L=rkLgSort(rkD[t].L,t.replace(/^(week|all)/,''))})
@@ -4835,8 +4839,9 @@ function rkTrs(a){const m=new Map();a.forEach(t=>m.set(t,(m.get(t)||0)+1));retur
 function rkAltSer(h){const t=h.trs||[],o=[['WEC','WEC'],['르망','WEC'],['인디','인디카'],['포뮬러E','포뮬러E'],['슈퍼포뮬러','슈퍼포뮬러'],['DTM','DTM']].filter(([k])=>t.some(x=>x.includes(k)&&!x.includes('트리플'))).map(x=>x[1]);return[...new Set(o)].slice(0,2).join(' · ')}
 function hofSheet(H){
   const mine=new Set(H.map(h=>h.cid)),all=rkOn(rkTab),wk=rkTab==='week',k=rkKey(),g=RK_LG[rkLg],L=all?rkD[k]&&rkD[k].L:g?rkLgSort([...H],rkLg):H;
-  const row=(h,i)=>{const tr=rkTrs(h.trs||[]).sort((x,y)=>g?(y[0]===g.c)-(x[0]===g.c)||(y[0]===g.r)-(x[0]===g.r):0),ser=h.top==='포뮬러 1'?'F1':rkAltSer(h)||h.top||'',
-    side=g?((c,r)=>c||r?`<span class="rkwc">${c?`<span class="t alt" aria-label="${g.cn} ${c}회"><img src="${TROPHY[g.tro]}" alt=""><b>${c}</b></span>`:''}${r?`<span class="w">${g.rn} ${r}승</span>`:''}</span>`:'')(rkCnt(h,g.c),rkCnt(h,g.r))
+  const row=(h,i)=>{const gc=g?rkCs(g):[],tr=rkTrs(h.trs||[]).sort((x,y)=>g?gc.includes(y[0])-gc.includes(x[0])||(y[0]===g.r)-(x[0]===g.r):0),ser=h.top==='포뮬러 1'?'F1':rkAltSer(h)||h.top||'',
+    side=g&&g.m?(m=>m.length?`<span class="rkwc etc">${m.map(([x,c])=>`<span class="t alt" aria-label="${x.cn} ${c}회"><img src="${TROPHY[x.tro]}" alt=""><b>${c}</b></span>`).join('')}</span>`:'')(g.m.map(x=>[x,rkCnt(h,x.c)]).filter(([,c])=>c))
+      :g?((c,r)=>c||r?`<span class="rkwc">${c?`<span class="t alt" aria-label="${g.cn} ${c}회"><img src="${TROPHY[g.tro]}" alt=""><b>${c}</b></span>`:''}${r?`<span class="w">${g.rn} ${r}승</span>`:''}</span>`:'')(rkCnt(h,g.c),rkCnt(h,g.r))
       :h.titles||h.wins?`<span class="rkwc">${h.titles?`<span class="t" aria-label="월드 챔피언 ${h.titles}회"><img src="${TROPHY.F1}" alt=""><b>${h.titles}</b></span>`:''}${h.wins?`<span class="w">우승 ${h.wins}</span>`:''}</span>`:'';
     return`<div class="row2${i<3?' p'+i:''}${all&&mine.has(h.cid)?' me':''}"><span class="rk${i<3?' m'+i:''}">${i+1}</span>${helmet(h.helmet,h.num,40)}
       <span style="flex:1;min-width:0"><span class="rkn"><b>${esc(h.name)}</b>${h.at?`<i>${rkAgo(h.at)}</i>`:''}</span>
@@ -4846,11 +4851,11 @@ function hofSheet(H){
     all&&rkErr[k]?`<p class="muted" style="margin:0">랭킹을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.</p><button class="btn ghost" type="button" id="rkRetry">다시 불러오기</button>`:
     all&&!L?`<p class="muted" style="margin:0">랭킹을 불러오는 중이에요…</p>`:
     L.length?L.slice(0,100).map(row).join(''):
-    g?`<p class="muted" style="margin:0">${all?`아직 ${g.lbl} 랭킹에 오른 드라이버가 없어요.`:`${g.lbl}에서 트로피를 딴 은퇴 드라이버가 아직 없어요.`}</p>`:
+    g?`<p class="muted" style="margin:0">${all?`아직 ${g.lbl} 랭킹에 오른 드라이버가 없어요.${g.m?' 첫 주인공이 되어 보세요.':''}`:`${g.lbl}에서 트로피를 딴 은퇴 드라이버가 아직 없어요.`}</p>`:
     `<p class="muted" style="margin:0">${wk?'이번 주엔 아직 랭킹에 오른 드라이버가 없어요. 첫 번째 이름을 남겨 보세요.':all?'아직 랭킹에 오른 드라이버가 없어요. 첫 번째 이름을 남겨 보세요.':'아직 은퇴한 드라이버가 없어요. 커리어를 마치면 여기에 이름이 남아요.'}</p>`;
-  return`<div class="sheet" id="hofBg"><section class="card hof" style="max-height:85vh;overflow:auto"><div class="rkhd"><h3 class="h2">랭킹</h3><button type="button" class="ibtn" id="rkInfo" aria-label="순위 정하는 법" aria-expanded="${rkInfo}">${ISVG}</button>${rkInfo?`<div class="rkhow" role="tooltip"><b>순위 정하는 법</b><ol>${g?`<li>${g.cn} 횟수</li><li>${g.rn} 우승 수</li><li>최고 OVR</li>`:`<li>F1 월드 챔피언 횟수</li><li>F1 우승 수</li><li>다른 무대 트로피(르망·인디 500 등)</li><li>포디움 수</li><li>주니어 챔피언 수</li><li>최고 OVR</li>`}</ol><span>앞 기준이 같을 때만 다음 기준으로 비교해요.</span></div>`:''}</div>
+  return`<div class="sheet" id="hofBg"><section class="card hof" style="max-height:85vh;overflow:auto"><div class="rkhd"><h3 class="h2">랭킹</h3><button type="button" class="ibtn" id="rkInfo" aria-label="순위 정하는 법" aria-expanded="${rkInfo}">${ISVG}</button>${rkInfo?`<div class="rkhow" role="tooltip"><b>순위 정하는 법</b><ol>${g?`<li>${g.cn} 횟수</li>${g.rn?`<li>${g.rn} 우승 수</li>`:''}<li>최고 OVR</li>`:`<li>F1 월드 챔피언 횟수</li><li>F1 우승 수</li><li>다른 무대 트로피(르망·인디 500 등)</li><li>포디움 수</li><li>주니어 챔피언 수</li><li>최고 OVR</li>`}</ol><span>앞 기준이 같을 때만 다음 기준으로 비교해요.</span></div>`:''}</div>
     <div class="segs"><button type="button" data-rk="week" aria-pressed="${wk}">이번 주</button><button type="button" data-rk="all" aria-pressed="${rkTab==='all'}">전체</button><button type="button" data-rk="mine" aria-pressed="${!all}">내 기록</button></div>
-    <div class="segs lgsegs">${LGS.filter(([x])=>x==='f1'||RK_LG[x]).map(([x,lo,n,o])=>`<button type="button" data-rklg="${x}" aria-pressed="${rkLg===x}" aria-label="${n}">${lgBtn([x,lo,n,o])}</button>`).join('')}</div>
+    <div class="segs lgsegs">${[...LGS.filter(([x])=>x==='f1'||RK_LG[x]),['ETC','','기타']].map(([x,lo,n,o])=>`<button type="button" data-rklg="${x}" aria-pressed="${rkLg===x}" aria-label="${x==='ETC'?'기타 리그':n}">${lgBtn([x,lo,n,o])}</button>`).join('')}</div>
     ${wk&&rkNet()?`<p class="muted" style="margin:0 0 8px;font-size:13px">매주 월요일 0시(한국 시간)에 새로 시작해요.</p>`:''}${body}
     <div class="stick"><button class="btn" type="button" id="hofClose">닫기</button></div></section></div>`}
 let lightsT=[];
