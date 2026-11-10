@@ -73,14 +73,20 @@
    {
     "from": 33,
     "to": 35,
-    "min": -3,
-    "max": -1.5
+    "min": -1.4,
+    "max": -0.6
    },
    {
     "from": 36,
+    "to": 38,
+    "min": -2,
+    "max": -1.2
+   },
+   {
+    "from": 39,
     "to": 99,
-    "min": -4,
-    "max": -2.5
+    "min": -3.2,
+    "max": -1.8
    }
   ],
   "growth_curve": {
@@ -95,6 +101,7 @@
    ]
   },
   "focus_multiplier": 1.8, "rest_multiplier": 0.85,
+  "focus_decline_multiplier": 0.5,
   "max_focus_stats": 2,
   "no_race_multiplier": 0.5,
   "near_potential": {
@@ -306,7 +313,7 @@
    "mid": 78,
    "bottom": 72
   },
-  "f1_top_extra": 4,
+  "f1_top_extra": 6,
   "seat_rep_adjust": 3,
   "academy": {
    "keep_top_fraction": 0.33,
@@ -343,7 +350,7 @@
   "old_seat_per_year": 5,
   "rookie_adapt": 3,
   "first_kart_easy": 5,
-  "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 1.5, "dev_max": 4.5, "window": 4},
+  "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 2, "dev_max": 6, "window": 4},
   "alt_hunt": {"dev": 1.5, "dev_max": 3, "window": 3}
  },
  "super_licence": {

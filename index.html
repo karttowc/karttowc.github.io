@@ -801,14 +801,20 @@ const B = {
    {
     "from": 33,
     "to": 35,
-    "min": -3,
-    "max": -1.5
+    "min": -1.4,
+    "max": -0.6
    },
    {
     "from": 36,
+    "to": 38,
+    "min": -2,
+    "max": -1.2
+   },
+   {
+    "from": 39,
     "to": 99,
-    "min": -4,
-    "max": -2.5
+    "min": -3.2,
+    "max": -1.8
    }
   ],
   "growth_curve": {
@@ -823,6 +829,7 @@ const B = {
    ]
   },
   "focus_multiplier": 1.8, "rest_multiplier": 0.85,
+  "focus_decline_multiplier": 0.5,
   "max_focus_stats": 2,
   "no_race_multiplier": 0.5,
   "near_potential": {
@@ -1034,7 +1041,7 @@ const B = {
    "mid": 78,
    "bottom": 72
   },
-  "f1_top_extra": 4,
+  "f1_top_extra": 6,
   "seat_rep_adjust": 3,
   "academy": {
    "keep_top_fraction": 0.33,
@@ -1071,7 +1078,7 @@ const B = {
   "old_seat_per_year": 5,
   "rookie_adapt": 3,
   "first_kart_easy": 5,
-  "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 1.5, "dev_max": 4.5, "window": 4},
+  "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 2, "dev_max": 6, "window": 4},
   "alt_hunt": {"dev": 1.5, "dev_max": 3, "window": 3}
  },
  "super_licence": {
@@ -2658,7 +2665,7 @@ function grow(p,played,poor){
   const FS=B.driver.focus_spread||GS;// focused stats swing less so the focus always shows
   const VT=B.driver.veteran,vg=VT&&p.age>=VT.from&&p.age<=VT.to?{...VT.gain,...(VT.style_gain[p.style]||{})}:null;
   STATS.forEach(k=>{if(vg&&vg[k]){p.stats[k]=clamp(p.stats[k]+ri(...vg[k]),1,99);return}// experience stats keep growing for veterans
-    const sp=base>0&&!rest&&p.focus.includes(k)?FS:GS;let g=base*rnd(sp[0],sp[1]);if(g<0)g*=AD[k]??1;
+    const sp=base>0&&!rest&&p.focus.includes(k)?FS:GS;let g=base*rnd(sp[0],sp[1]);if(g<0){g*=AD[k]??1;if(!rest&&p.focus.includes(k))g*=B.driver.focus_decline_multiplier??1}// training holds off decline
     if(g>0){g*=mult;if(rest)g*=B.driver.rest_multiplier;else if(p.focus.includes(k))g*=B.driver.focus_multiplier;
       if(!gc){const OP=B.driver.over_potential;if(ovr>=p.potential+OP.max)g=0;else if(ovr>=p.potential)g*=OP.multiplier;else if(ovr>=p.potential-B.driver.near_potential.distance)g*=B.driver.near_potential.multiplier}}// growth_curve already slows near the ceiling
     p.stats[k]=clamp(p.stats[k]+sround(g),1,99)});
@@ -4710,7 +4717,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.12-d1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.12-d2',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -5251,7 +5258,7 @@ function sheetView(){
       <button class="btn" type="button" id="evNext" data-i="${i}" ${evPick==null?'disabled':''}>${chain?(lastPre()?`${S.year} 시즌 시작!`:'다음'):'결정하기'}</button>
       ${chain?'':'<button class="btn ghost" type="button" id="closeSheet">닫기</button>'}</section></div>`}
   if(sheet==='train'){const p=S.p,can=S.phase==='ready',open=can&&trOpen(),rest=S.train==='rest',RG=recProg(),RS=recStats()[0],C='font-size:11px;padding:2px 7px';
-    return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">${esc(p.name)} · 프리시즌</div><h3 class="h2">훈련 계획</h3><p class="muted" style="margin:0">${!can?'시즌 준비 단계에서 바꿀 수 있어요.':open?`${S.progFree==='stage'?'새 무대에 왔어요. ':S.progFree==='max'?'최대치를 찍은 능력치가 있어요. ':''}고른 프로그램의 능력치가 빨리 자라요. ${PROG_LOCK}시즌 동안 이어져요.`:`지금 프로그램은 ${S.progYear+PROG_LOCK}년에 바꿀 수 있어요. 휴식은 언제든 고를 수 있어요.`}</p>
+    return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">${esc(p.name)} · 프리시즌</div><h3 class="h2">훈련 계획</h3><p class="muted" style="margin:0">${!can?'시즌 준비 단계에서 바꿀 수 있어요.':open?`${S.progFree==='stage'?'새 무대에 왔어요. ':S.progFree==='max'?'최대치를 찍은 능력치가 있어요. ':''}${p.age>=B.driver.veteran.from?'고른 프로그램의 능력치는 절반만 떨어져요.':'고른 프로그램의 능력치가 빨리 자라요.'} ${PROG_LOCK}시즌 동안 이어져요.`:`${p.age>=B.driver.veteran.from?'고른 프로그램의 능력치는 절반만 떨어져요. ':''}지금 프로그램은 ${S.progYear+PROG_LOCK}년에 바꿀 수 있어요. 휴식은 언제든 고를 수 있어요.`}</p>
       <div class="list">${PROGS.map(g=>{const on=!rest&&S.prog===g.id,mx=g.st.every(k=>p.stats[k]>=99),half=g.st.find(k=>p.stats[k]>=99);return`<button class="item" type="button" data-prog="${g.id}" aria-pressed="${on}" ${open&&!mx||on&&can?'':'disabled'}><span class="body"><b>${g.name}${mx?` <span class="chip red" style="${C}">최대</span>`:g===RG?` <span class="chip blue" style="${C}">추천</span>`:''}</b><span>${g.st.map(k=>`${LBL[k]} <b class="num">${p.stats[k]}</b>`).join(' · ')}</span>${half&&!mx?`<span>${LBL[half]}${josa2(LBL[half])} 최대치예요</span>`:g===RG&&RS?`<span>${LBL[RS.k]}: ${RS.why}</span>`:''}</span><span class="tick"></span></button>`}).join('')}
         <button class="item" type="button" data-rest="1" aria-pressed="${rest}" ${can?'':'disabled'}><span class="body"><b>이번 시즌은 휴식</b><span>성장이 조금 느려지고, 다음 프리시즌에 체력 +15 (지금 ${p.morale})</span></span><span class="tick"></span></button></div>
       <div class="stick">${chain&&sheetBack!=='go'?`<button class="btn" type="button" id="trNext">다음</button>`:'<button class="btn" type="button" id="closeSheet">완료</button>'}</div></section></div>`}
