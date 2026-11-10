@@ -37,9 +37,11 @@ for(let i=0;i<300;i++){smart=i%2===0;
   res.n++;(res.pk=res.pk||[]).push(S.p.peak);(res.pot=res.pot||[]).push(S.p.potential);(res.w=res.w||[]).push(S.p.tot.wins);if(S.p.debutYear){res.f1++;res.debut.push(S.p.debutYear-S.startYear+14)}
   {const H=S.p.history;for(let j=0;j+1<H.length;j++)if(H[j].role==='reserve'&&H[j].lk==='F1'){res.rs++;if(H[j+1].role==='race'&&H[j+1].lk==='F1')res.rr++;if(H[j].age<=30){res.ys++;if(H[j+1].role==='race'&&H[j+1].lk==='F1')res.yr++}}}
   if(S.p.tot.titles>=1)res.ch1++;if(S.p.tot.titles>=5)res.ch5++;if(S.p.tot.titles>=10)res.ch10=(res.ch10||0)+1;if(S.p.tot.titles>=8)res.ch8=(res.ch8||0)+1;if(S.p.tot.titles>=12)res.ch12=(res.ch12||0)+1;res.tmax=Math.max(res.tmax||0,S.p.tot.titles);(res.rage=res.rage||[]).push(S.p.age);
+  if(process.env.DUMP)(res.dump=res.dump||[]).push({pot:S.p.pot0??S.p.potential,t:S.p.tot.titles,h:S.p.history.map(h=>[h.age,h.sid==='F1'?(h.role==='race'?'F':'R'):h.sid==='ALT'?'A':'J',h.pos||0,h.ovrAfter,h.titled?1:0,h.wins||0])});
   {const P=S.p.pot0??S.p.potential,b=P<70?'<70':P<75?'70-74':P<80?'75-79':'80+',G=res.pb=res.pb||{};const g=G[b]=G[b]||{n:0,f1:0,ov:{}};g.n++;if(S.p.debutYear)g.f1++;
    S.p.history.forEach(h=>{(g.ov[h.age]=g.ov[h.age]||[]).push(h.ovrAfter)})}
 }
+if(process.env.DUMP)fs.writeFileSync(process.env.DUMP,JSON.stringify(res.dump));
 const avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
 const q=(a,p)=>[...a].sort((x,y)=>x-y)[Math.floor(a.length*p)];console.log('peak p10/50/90',q(res.pk,.1),q(res.pk,.5),q(res.pk,.9),'pot med',q(res.pot,.5),'wins med/p90',q(res.w,.5),q(res.w,.9));console.log('reserve->race',res.rr+'/'+res.rs,'age<=30',res.yr+'/'+res.ys);console.log('champ8+/12+ count',res.ch8||0,res.ch12||0);console.log('champ10+',(res.ch10||0)/res.n,'max titles',res.tmax,'retire age avg',avg(res.rage).toFixed(1));{const AG=[16,18,20,22,24,26,28,30,32,34,36,38,40];console.log('pot   n  debut | OVR med @'+AG.join('/'));for(const b of ['<70','70-74','75-79','80+']){const g=(res.pb||{})[b];if(!g)continue;console.log(b.padEnd(6),String(g.n).padStart(3),(g.f1/g.n*100).toFixed(0).padStart(4)+'% |',AG.map(a=>g.ov[a]&&g.ov[a].length>=5?q(g.ov[a],.5):'-').join('/'))}}
 console.log('F1 debut',res.f1/res.n,'champ1+',res.ch1/res.n,'champ5+',res.ch5/res.n,'debut age avg',avg(res.debut).toFixed(1));
