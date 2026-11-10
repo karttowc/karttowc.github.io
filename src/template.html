@@ -1729,11 +1729,15 @@ function makeOffers(pos,field,h2h){
     if(safe){evs.push(`${jo(tn,'이','가')} 경고를 보냈어요. 팀메이트에게 크게 밀린 건 문제래요. 내년에도 이러면 위험해요.`);return 0}
     evs.push(`${jo(tn,'이','가')} 팀메이트에 크게 밀린 성적을 이유로 계약을 조기 해지했어요.`);S.leaveNote=`${jo(tn,'이','가')} 계약을 조기 해지했어요. 새 팀을 찾아야 해요.`;return 1})();
   // other series
-  const needAlt=(champF2&&!o.some(x=>x.kind==='f1'))||p.age>=21&&(p.series==='F2'||p.series==='ALT'||(p.series==='F1'&&(p.role==='reserve'||!contracted())))&&!bound;
+  // F1 race driver whose contract ends (even with a re-sign offer on the table) may also leave for another stage
+  const f1End=p.series==='F1'&&(p.role==='reserve'||!o.some(x=>x.kind==='stay'||x.kind==='option'));
+  // after F2 another stage always comes, at any age (under 21: just WEC or IndyCar)
+  const needAlt=(champF2&&!o.some(x=>x.kind==='f1'))||p.series==='F2'||p.age>=21&&(p.series==='ALT'||f1End)&&!bound;
+  const altYoung=p.series==='F2'&&p.age<21;
   if(needAlt){
     const hotA=Object.keys(ALT_DRV).filter(id=>id!==p.alt&&Math.max(0,...Object.values((p.altSc||{})[id]||{}))>=25).sort((x,y)=>Math.max(...Object.values(p.altSc[y]))-Math.max(...Object.values(p.altSc[x])));
     const others=[...hotA.map(altDef),...K.alt_series.filter(a=>a.id!==p.alt&&!hotA.includes(a.id)).sort(()=>Math.random()-.5)];
-    const alts=p.series==='ALT'?[altDef(p.alt),...others.slice(0,1)]:others.slice(0,2);
+    const alts=p.series==='ALT'?[altDef(p.alt),...others.slice(0,1)]:others.slice(0,altYoung?1:2);
     // after F2, WEC or IndyCar always comes (the main second-chapter stages; F2 drivers often go to IndyCar)
     if(p.series==='F2'&&!alts.some(a=>a.id==='WEC'||a.id==='INDY')){const w=['WEC','INDY'].sort((x,y)=>Math.max(0,...Object.values((p.altSc||{})[y]||{}))-Math.max(0,...Object.values((p.altSc||{})[x]||{}))||Math.random()-.5)[0];alts[alts.length?alts.length-1:0]=altDef(w)}
     const tier=ovr>=82?'top':ovr>=76?'mid':'bottom';
@@ -3297,7 +3301,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.8',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.9-d1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
