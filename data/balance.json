@@ -353,7 +353,7 @@
   "rookie_adapt": 3,
   "first_kart_easy": 5,
   "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 1.75, "dev_max": 5.25, "window": 4, "legend_from": 8, "legend_dev": 1, "legend_max": 4},
-  "alt_hunt": {"dev": 1.5, "dev_max": 3, "window": 3}
+  "alt_hunt": {"dev": 1.5, "dev_max": 4, "window": 3, "legend_from": 4, "legend_dev": 2, "legend_max": 8}
  },
  "super_licence": {
   "min_age": 18,

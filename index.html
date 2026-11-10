@@ -1083,7 +1083,7 @@ const B = {
   "rookie_adapt": 3,
   "first_kart_easy": 5,
   "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 1.75, "dev_max": 5.25, "window": 4, "legend_from": 8, "legend_dev": 1, "legend_max": 4},
-  "alt_hunt": {"dev": 1.5, "dev_max": 3, "window": 3}
+  "alt_hunt": {"dev": 1.5, "dev_max": 4, "window": 3, "legend_from": 4, "legend_dev": 2, "legend_max": 8}
  },
  "super_licence": {
   "min_age": 18,
@@ -2816,7 +2816,10 @@ function champHunt(fresh){const H=B.career.champ_hunt,p=S.p;if(!H)return;
     if(t&&d>0){t.machine=r1(t.machine-d);S.hunt={y:S.year,sid:'F1',d:r1(d)};if(S.news&&S.news.heads)S.news.heads.unshift({t:`라이벌 팀들, ${p.name} 타도에 개발 총력… ${t.name} 머신 우위 줄어`,c:''})}}}
 // WEC / IndyCar: a lighter version of the F1 hunt. The champion's car is held back (WEC: BoP) for every title in that league in the last few seasons
 function altHunt(){const H=B.career.alt_hunt,p=S.p;if(!H||p.series!=='ALT'||!ALT_DRV[p.alt]||!p.team)return;
-  const n=p.history.slice(-(H.window||1)).filter(h=>h.lk===p.alt&&h.titled).length,d=r1(Math.min(H.dev*n,H.dev_max||99));if(!(d>0))return;
+  const n=p.history.slice(-(H.window||1)).filter(h=>h.lk===p.alt&&h.titled).length,
+    // legends draw extra fire: from legend_from league titles on, while still winning (a title in the window)
+    T=p.history.filter(h=>h.lk===p.alt&&h.titled).length,lg=n>0&&H.legend_from&&T>=H.legend_from?Math.min((T-H.legend_from+1)*H.legend_dev,H.legend_max):0,
+    d=r1(Math.min(H.dev*n,H.dev_max||99)+lg);if(!(d>0))return;
   S.altHunt={sid:p.alt,n:p.team.name,d};S.hunt={y:S.year,sid:p.alt,d};
   if(S.altNews&&S.altNews[p.alt])S.altNews[p.alt].unshift(BOP(p.alt)?`BoP 조정: 챔피언 ${p.name}의 ${p.team.name}, 성능 제한`:`라이벌 팀들, 챔피언 ${p.name} 타도에 총력`)}
 function fillSeat(teamId){const n=S.f1.filter(d=>d.team===teamId).length;for(let i=n;i<2;i++)S.f1.push(newcomer(teamId))}
@@ -4806,7 +4809,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.1-d4',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.1-d5',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
