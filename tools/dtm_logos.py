@@ -16,10 +16,20 @@ def cut(path,box=None):
     for c in [(0,0),(im.width-1,0),(0,im.height-1),(im.width-1,im.height-1)]:ImageDraw.floodfill(im,c,(0,0,0,0),thresh=60)
     im=im.crop(im.getbbox());k=120/max(im.size);im=im.resize((round(im.width*k),round(im.height*k)),Image.LANCZOS)
     t=Image.new('RGBA',(128,128),(0,0,0,0));t.paste(im,((128-im.width)//2,(128-im.height)//2),im);return b64(t)
+def roundel():
+    """BMW: just the round badge out of the WEC tile (no blue tile: coloured tiles are the WEC look)"""
+    im=Image.open(io.BytesIO(base64.b64decode(K['alt_logos']['BMW'].split(',')[1]))).convert('RGBA');W,H=im.size;px=im.load()
+    pts=[(x,y) for y in range(H) for x in range(W) if min(px[x,y][:3])>225 and px[x,y][3]>200];xs=[p[0] for p in pts];ys=[p[1] for p in pts]
+    cx,cy=(min(xs)+max(xs))/2,(min(ys)+max(ys))/2;r=max(max(xs)-min(xs),max(ys)-min(ys))/2+.5
+    S=4;big=im.resize((W*S,H*S),Image.LANCZOS);m=Image.new('L',big.size,0);ImageDraw.Draw(m).ellipse(((cx-r)*S,(cy-r)*S,(cx+r)*S,(cy+r)*S),fill=255)
+    big.putalpha(Image.composite(big.getchannel('A'),Image.new('L',big.size,0),m));big=big.crop(big.getbbox())
+    k=120/max(big.size);big=big.resize((round(big.width*k),round(big.height*k)),Image.LANCZOS)
+    t=Image.new('RGBA',(128,128),(0,0,0,0));t.paste(big,((128-big.width)//2,(128-big.height)//2),big);return b64(t)
+bmw=roundel()
 ford=cut(R/'data/logos_src/ford_racing.jpg',(60,40,950,380));lambo=cut(R/'data/logos_src/dtm/lamborghini.png')
 A=K['alt_logos']
 # '=CODE' / '=f1:id' point at a logo the skin already has (the game resolves them at start), so nothing is stored twice
-L={'MTH':'=PFE','LND':'=PFE','WIN':'=f1:mercedes','LGF':'=f1:mercedes','SCH':'=BMW','EFR':'=f1:ferrari',
+L={'MTH':'=PFE','LND':'=PFE','WIN':'=f1:mercedes','LGF':'=f1:mercedes','SCH':bmw,'EFR':'=f1:ferrari',
    'DOR':'=f1:mclaren','CTY':'=f1:astonmartin','HRT':ford,'ABT':lambo,'GRT':'=ABT'}
 if len(sys.argv)>1:
     P=Image.new('RGBA',(8+136*6,8+136*2),(43,46,54,255))
