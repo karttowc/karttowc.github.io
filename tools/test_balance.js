@@ -32,14 +32,14 @@ for(let i=0;i<300;i++){smart=i%2===0;
   let guard=0;
   while(!S.p.retired&&guard++<40){quickSeason();
     if(process.env.LGR)S.offers.sort(()=>Math.random()-.5);// LGR=1: pick F4/FRECA leagues at random (ties in priority)
-    const o=S.offers;const pr=x=>({f1:0,resign:1,junior:x.tag==='월반'?2:x.tag==='아카데미'?2.5:x.tag==='승격'?3:5,reserve:6,alt:7,retire:9}[x.kind]);
+    const o=S.offers;const pr=x=>({f1:0,resign:1,junior:x.tag==='인디 루트'?7:x.tag==='월반'?2:x.tag==='아카데미'?2.5:x.tag==='승격'?3:5,reserve:6,alt:7,retire:9}[x.kind]);
     const best=BOT||BOFF?botOffer(o,pr):[...o].sort((a,b)=>{if(a.kind==='f1'&&b.kind==='f1')return teamDef(b.teamId).machine-teamDef(a.teamId).machine;return pr(a)-pr(b)})[0];
     if(best.kind==='retire'&&S.p.age<38&&o.length>1){applyOffer(o.find(x=>x.kind!=='retire'))}else applyOffer(best);}
   res.n++;(res.pk=res.pk||[]).push(S.p.peak);(res.pot=res.pot||[]).push(S.p.potential);(res.w=res.w||[]).push(S.p.tot.wins);if(S.p.debutYear){res.f1++;res.debut.push(S.p.debutYear-S.startYear+14)}
   {const H=S.p.history;for(let j=0;j+1<H.length;j++)if(H[j].role==='reserve'&&H[j].lk==='F1'){res.rs++;if(H[j+1].role==='race'&&H[j+1].lk==='F1')res.rr++;if(H[j].age<=30){res.ys++;if(H[j+1].role==='race'&&H[j+1].lk==='F1')res.yr++}}}
   if(S.p.tot.titles>=1)res.ch1++;if(S.p.tot.titles>=5)res.ch5++;if(S.p.tot.titles>=10)res.ch10=(res.ch10||0)+1;if(S.p.tot.titles>=8)res.ch8=(res.ch8||0)+1;if(S.p.tot.titles>=12)res.ch12=(res.ch12||0)+1;res.tmax=Math.max(res.tmax||0,S.p.tot.titles);(res.rage=res.rage||[]).push(S.p.age);
   if(process.env.DUMP)(res.dump=res.dump||[]).push({pot:S.p.pot0??S.p.potential,t:S.p.tot.titles,h:S.p.history.map(h=>[h.age,h.sid==='F1'?(h.role==='race'?'F':'R'):h.sid==='ALT'?'A':'J',h.pos||0,h.ovrAfter,h.titled?1:0,h.wins||0])});
-  {const G=res.lgs=res.lgs||{};new Set(S.p.history.map(h=>h.lk).filter(k=>['F4','F4UK','F4ES','FRECA','EFO','SFL'].includes(k))).forEach(k=>{const g=G[k]=G[k]||{n:0,f1:0,c:0};g.n++;if(S.p.debutYear)g.f1++;if(S.p.tot.titles)g.c++})}
+  {const G=res.lgs=res.lgs||{};new Set(S.p.history.map(h=>h.lk).filter(k=>['F4','F4UK','F4ES','FRECA','EFO','SFL','NXT'].includes(k))).forEach(k=>{const g=G[k]=G[k]||{n:0,f1:0,c:0};g.n++;if(S.p.debutYear)g.f1++;if(S.p.tot.titles)g.c++})}
   {const P=S.p.pot0??S.p.potential,b=P<70?'<70':P<75?'70-74':P<80?'75-79':'80+',G=res.pb=res.pb||{};const g=G[b]=G[b]||{n:0,f1:0,ov:{}};g.n++;if(S.p.debutYear)g.f1++;
    S.p.history.forEach(h=>{(g.ov[h.age]=g.ov[h.age]||[]).push(h.ovrAfter)})}
 }
