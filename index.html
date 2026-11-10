@@ -3081,8 +3081,11 @@ function makeOffers(pos,field,h2h){
     if(pt&&p.rep>=80)pt=up(pt);
     const sponsor=p.fans>=25&&pt&&pt!=='top';if(sponsor)pt=up(pt);
     if(p.academy){pt=pt?up(pt):(r<=.66?'bottom':null)}
-    // F4 and FRECA: one seat in each league of the step, the player picks the road
-    if(next&&pt&&p.age>=seriesDef(next).age[0])(LG_OF[next]||[null]).forEach(lg=>o.push(juniorOffer(next,pt,{tag:sponsor?'승격 · 스폰서 지원':'승격',lg,lgd:1})));
+    // F4 and FRECA: seats come from the leagues of the step. A top-10% season gets all three,
+    // otherwise two at random, leaning to leagues whose F1 teams already watch me
+    if(next&&pt&&p.age>=seriesDef(next).age[0]){let L=LG_OF[next]||[null];
+      if(L.length>2&&r>.1){const w=lg=>1+Math.max(0,...(LGD[lg].f1||[]).map(scv))/50;L=[...L].map(lg=>({lg,k:Math.random()**(1/w(lg))})).sort((a,b)=>b.k-a.k).slice(0,2).map(x=>x.lg).sort((a,b)=>LG_OF[next].indexOf(a)-LG_OF[next].indexOf(b))}
+      L.forEach(lg=>o.push(juniorOffer(next,pt,{tag:sponsor?'승격 · 스폰서 지원':'승격',lg,lgd:1})))}
     if(next2&&pos===1&&p.seriesSeasons===1&&p.age>=seriesDef(next2).age[0]-1)o.push(juniorOffer(next2,'top',{tag:'월반',sub:`${joRo(seriesDef(next2).name)} 한 단계 건너뛰기 · ${TIER_LBL.top}`}));
     const canStay=champF2?false:p.series==='F2'?p.f2Seasons<B.career.f2_max_seasons:p.age<=seriesDef(p.series).age[1];
     if(!canStay)S.leaveNote=champF2?'F2 챔피언은 규정상 다음 시즌 F2에 나올 수 없어요. F1이나 다른 무대를 골라야 해요.':p.series==='F2'?`F2에서 뛸 수 있는 ${B.career.f2_max_seasons}시즌을 다 채웠어요. 이제 F2를 떠나야 해요.`:`나이 제한으로 ${serName(p)}에 더 남을 수 없어요. 다음 무대를 찾아야 해요.`;
@@ -4758,7 +4761,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.13-d5',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.13-d6',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
