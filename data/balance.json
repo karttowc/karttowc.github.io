@@ -343,6 +343,7 @@
     "reserve_promote_gap": 5,
     "f1_debut_extra": 14,
   "debut_age_penalty_from": 27,
+  "prospect": {"note": "유망주 보정: max_age세 이하 F1 드라이버는 재계약·조기 해지 판정에서 OVR에 (max_age+1-나이) x per_year(최대 max)를 더해 봄", "max_age": 25, "per_year": 1, "max": 4},
   "debut_age_penalty_per_year": 2,
   "player_max_age": 45,
   "ai_max_age": 46,

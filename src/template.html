@@ -1675,11 +1675,15 @@ function makeOffers(pos,field,h2h){
     const tm=teamDef(p.team.id),thr=B.career.f1_seat_ovr[tm.tier]-repAdj()+oldPen();
     const mateOvr=S.f1.filter(d=>d.team===tm.id).map(d=>ovrOf(d.stats))[0]||0;
     const h=h2h?(h2h.q[0]+h2h.r[0])/Math.max(1,h2h.q[0]+h2h.q[1]+h2h.r[0]+h2h.r[1]):.5;
-    const keepOK=ovr>=thr-3||(h>=.4&&ovr>=thr-6)||ovr>=mateOvr-2+oldPen();
+    // prospects: a young driver is still growing, so the team judges him on where he is heading, not where he is
+    const PR=B.career.prospect,pb=PR&&p.age<=PR.max_age?Math.min(PR.max,(PR.max_age+1-p.age)*PR.per_year):0,ovrP=ovr+pb;
+    const keepRaw=ovr>=thr-3||(h>=.4&&ovr>=thr-6)||ovr>=mateOvr-2+oldPen();
+    const keepOK=keepRaw||ovrP>=thr-3||(h>=.4&&ovrP>=thr-6)||ovrP>=mateOvr-2+oldPen(),prosp=keepOK&&!keepRaw;
     const c=p.contract||{left:0,option:false,clause:false};
     const base={color:tm.color,short:tm.short,teamId:tm.id},curSal=c.sal||terms(tm).sal;
     const safe=(pos&&pos<=3)||(h2h&&h2h.tp&&h2h.tp[1]>0&&h2h.tp[0]/h2h.tp[1]>=.35);
-    if(h2h&&h<.25&&ovr<mateOvr-4&&safe){evs.push(`${jo(tm.name,'이','가')} 경고를 보냈어요. 팀메이트에게 크게 밀린 건 문제래요. 내년에도 이러면 위험해요.`)}
+    const rook=pb>0&&p.history.filter(x=>x.sid==='F1'&&x.role==='race').length<=1;// a young rookie's first F1 season never ends in an early termination
+    if(h2h&&h<.25&&ovr<mateOvr-4&&(safe||rook||ovrP>=mateOvr-4)){evs.push(`${jo(tm.name,'이','가')} 경고를 보냈어요. 팀메이트에게 크게 밀린 건 문제래요. 내년에도 이러면 위험해요.`)}
     else if(h2h&&h<.25&&ovr<mateOvr-4){evs.push(`${jo(tm.name,'이','가')} 팀메이트에 크게 밀린 성적을 이유로 계약을 조기 해지했어요.`);p.contract=null;S.leaveNote=`${jo(tm.name,'이','가')} 계약을 조기 해지했어요. 새 팀을 찾아야 해요.`}
     else if(c.left>0){
       const rank=[...S.teams].sort((a,b)=>b.machine-a.machine).findIndex(x=>x.id===tm.id)+1;
@@ -1687,10 +1691,10 @@ function makeOffers(pos,field,h2h){
       else{bound=true;buyout=(pos&&pos<=5)||h>=.65}
       o.push({kind:'stay',...base,years:c.left,sal:curSal,title:'계약 유지',sub:`${c.left}년 남음 · ${TIER_LBL[tm.tier]} · 머신 ${tm.machine}`,tag:'계약 중'});
     }else if(c.option&&keepOK){
-      evs.push(`${jo(tm.name,'이','가')} 1년 옵션을 행사했어요.`);bound=true;
+      evs.push(prosp?`아직 성장 중인 유망주예요. ${jo(tm.name,'이','가')} 1년 옵션을 행사하고 기다려 주기로 했어요.`:`${jo(tm.name,'이','가')} 1년 옵션을 행사했어요.`);bound=true;
       o.push({kind:'option',...base,years:1,sal:curSal,title:'옵션 연장',sub:`팀이 옵션을 행사해 1년 더 함께해요 · 머신 ${tm.machine}`,tag:'옵션'});
     }else if(!keepOK){S.leaveNote=`${jo(tm.name,'이','가')} 재계약을 하지 않기로 했어요. 새 팀을 찾아야 해요.`;evs.push(`${jo(tm.name,'이','가')} 재계약을 하지 않기로 했어요.`)}
-    else if(keepOK){const tr=terms(tm);o.push({kind:'resign',...base,...tr,title:'재계약',sub:`${tr.termTxt} · 머신 ${tm.machine}`,tag:null})}
+    else if(keepOK){const tr=terms(tm);if(prosp)evs.push(`성적은 아쉬웠지만 아직 성장 중인 유망주예요. ${jo(tm.name,'이','가')} 더 지켜보기로 했어요.`);o.push({kind:'resign',...base,...tr,title:'재계약',sub:`${tr.termTxt} · 머신 ${tm.machine}`,tag:prosp?'유망주':null})}
   }
   const contracted=()=>o.some(x=>['resign','stay','option'].includes(x.kind));
   if((slOK||inF1Race)&&(!bound||buyout)){
@@ -2806,8 +2810,9 @@ function reactTab(){
   ${S.phase==='result'?`<button class="btn" type="button" id="okBtn">이적 시장으로</button>`:''}`;
 }
 function gauges(c=''){const p=S.p;return`<div class="hg ${c}"><div><span>인기<button class="ibtn" type="button" data-sheet="st_fans" aria-label="인기 설명"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="currentColor" opacity=".18"/><circle cx="10" cy="10" r="8.25" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="6.2" r="1.25" fill="currentColor"/><rect x="9" y="8.6" width="2" height="6" rx="1" fill="currentColor"/></svg></button></span><b class="num">${p.fans}</b><div class="bar"><i class="fan" style="width:${p.fans}%"></i></div></div><div><span>평판<button class="ibtn" type="button" data-sheet="st_rep" aria-label="평판 설명"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="currentColor" opacity=".18"/><circle cx="10" cy="10" r="8.25" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="6.2" r="1.25" fill="currentColor"/><rect x="9" y="8.6" width="2" height="6" rx="1" fill="currentColor"/></svg></button></span><b class="num">${p.rep}</b><div class="bar"><i class="rep" style="width:${p.rep}%"></i></div></div><div><span>체력<button class="ibtn" type="button" data-sheet="st_morale" aria-label="체력 설명">${ISVG}</button></span><b class="num">${p.morale}</b><div class="bar"><i class="mor" style="width:${p.morale}%;${p.morale<40?'background:var(--bad)':''}"></i></div></div></div>`}
+const isProsp=()=>{const PR=B.career.prospect,p=S.p;return!!(PR&&p&&!p.retired&&p.age<=PR.max_age&&p.series==='F1')};
 function homeHero(){const p=S.p,c=currentLine();
-  return`<section class="dhero"><div class="dhl">${avatar(pAv(p),p.helmet,52)}<div class="hn"><b>${esc(p.name)}</b><span>${p.age}세 · ${sLogo(c.sid||p.series,13)}${c.teamId?logo(c.teamId,18):''}${esc(c.team)}${c.role==='reserve'?' 리저브':''}</span></div>
+  return`<section class="dhero"><div class="dhl">${avatar(pAv(p),p.helmet,52)}<div class="hn"><b>${esc(p.name)}</b><span>${p.age}세${isProsp()?' 유망주':''} · ${sLogo(c.sid||p.series,13)}${c.teamId?logo(c.teamId,18):''}${esc(c.team)}${c.role==='reserve'?' 리저브':''}</span></div>
     <div class="ho"><b class="num">${ovrOf(p.stats)}</b><span>OVR</span></div></div>
     ${heroLadder()}${gauges()}</section>`}
 // where we are on the road to F1, always on the home card (junior series and F1 only)
@@ -2827,7 +2832,7 @@ function driverTab(){
     ${STATS.map(k=>`<div class="statrow${dl?' dl':''}"><span${p.focus.includes(k)?' style="color:var(--accent)"':''}>${LBL[k]} <button class="ibtn" type="button" data-sheet="st_${k}" aria-label="${LBL[k]} 설명"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="currentColor" opacity=".18"/><circle cx="10" cy="10" r="8.25" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="6.2" r="1.25" fill="currentColor"/><rect x="9" y="8.6" width="2" height="6" rx="1" fill="currentColor"/></svg></button></span><div class="bar"><i style="width:${p.stats[k]}%"></i></div><b>${p.stats[k]}</b>${dl?`<em class="${(dl[k]||0)>0?'up':(dl[k]||0)<0?'dn':''}">${dl[k]?(dl[k]>0?'+':'')+dl[k]:''}</em>`:''}</div>`).join('')}</section>
   ${scoutCard()}
   <section class="card kv">
-    <div class="row"><span>잠재력</span><span${atLimit()?' style="color:var(--gold)"':''}>${atLimit()?'한계에 다가옴':'숨겨져 있어요'}</span></div>
+    <div class="row"><span>잠재력</span><span${atLimit()?' style="color:var(--gold)"':''}>${atLimit()?'한계에 다가옴':isProsp()?'아직 성장 중인 유망주':'숨겨져 있어요'}</span></div>
     <div class="row"><span>몸값</span><span class="num">${won(p.val||valueOf())}</span></div>
     <div class="row"><span>평판<button class="ibtn" type="button" data-sheet="st_rep" aria-label="평판 설명"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="currentColor" opacity=".18"/><circle cx="10" cy="10" r="8.25" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="6.2" r="1.25" fill="currentColor"/><rect x="9" y="8.6" width="2" height="6" rx="1" fill="currentColor"/></svg></button></span><span class="num">${p.rep} / 100</span></div>
     <div class="row"><span>인기</span><span class="num">${p.fans} / 100${p.fans>=25?' · 스폰서가 붙어요':''}</span></div>
@@ -3324,7 +3329,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.13-d2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.13-d3',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
