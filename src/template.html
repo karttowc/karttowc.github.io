@@ -1675,7 +1675,7 @@ function makeOffers(pos,field,h2h){
   const slOK=p.age>=B.super_licence.min_age&&(slPoints()>=B.super_licence.points_needed||altRet===2);
   const inJunior=ORDER.includes(p.series);
   const juniorOffer=(series,tier,extra={})=>{const lg=LG_OF[series]?extra.lg||LG_OF[series][0]:null,t=jTeam(series,tier,lg);return{kind:'junior',series,lg,team:{name:t.name,tier:t.tier},
-    title:extra.title||t.name,sub:extra.sub||`${lg?LGD[lg].n:seriesDef(series).name} · ${TIER_LBL[t.tier]}${extra.lgd&&lg?' · '+LGD[lg].d+(LGD[lg].f1?' · '+LGD[lg].f1.map(id=>teamDef(id).name).join('·')+' 주목':''):''}`,tag:extra.tag,academy:extra.academy}};
+    title:extra.title||t.name,sub:extra.sub||`${lg?LGD[lg].n:seriesDef(series).name} · ${TIER_LBL[t.tier]}`,tag:extra.tag,academy:extra.academy}};
   const myLgK=lgOf(p)?lgKey(p):null;
   // junior ladder
   if(inJunior&&p.role==='race'){
@@ -2773,7 +2773,7 @@ function offersCard(){
     ${topNews()}
     <div class="list">${o.map((x,i)=>`<div class="offerrow"><button class="item" type="button" data-offer="${i}" aria-pressed="${sel===i}">
       ${offerTeam(x)?bigLogo(offerTeam(x)):x.kind==='alt'&&contractInfo(x).logo?`<span style="width:52px;height:52px;border-radius:14px;display:grid;place-items:center;flex:none;overflow:hidden;background:#2B2E36"><img src="${contractInfo(x).logo}" alt="" style="${x.altId==='WEC'||x.altId==='SF'||x.altId==='FE'?'width:100%;height:100%;object-fit:cover':'width:86%;height:86%;object-fit:contain'}"></span>`:`<span class="dot">${x.kind==='retire'?'END':x.kind==='alt'?'ALT':x.lg&&SLOGO[x.lg]?`<img src="${SLOGO[x.lg]}" alt="${x.lg}" style="width:94%;height:auto">`:SLOGO[x.series]?`<img src="${SLOGO[x.series]}" alt="${x.series}" style="width:80%;height:auto">`:x.series||''}</span>`}
-      <span class="body"><b>${esc(x.title)}</b>${offerTerms(x)}${x.tag?`<span style="color:var(--accent)">${esc(x.tag)}${x.tag==='월반'?`<span class="ibtn" role="button" tabindex="0" data-sheet="skip_${x.series}" aria-label="월반 설명">${ISVG}</span>`:x.academy?`<span class="ibtn" role="button" tabindex="0" data-sheet="acad_${x.academy}" aria-label="육성 계약 설명">${ISVG}</span>`:/^리저브/.test(x.tag)?`<span class="ibtn" role="button" tabindex="0" data-sheet="rsv_" aria-label="리저브 설명">${ISVG}</span>`:''}</span>`:''}</span><span class="tick"></span></button>
+      <span class="body"><b>${esc(x.title)}</b>${offerTerms(x)}${x.tag?`<span style="color:var(--accent)">${esc(x.tag)}${x.lg&&x.tag!=='월반'&&!x.academy?`<span class="ibtn" role="button" tabindex="0" data-sheet="lg_${x.lg}" aria-label="리그 설명">${ISVG}</span>`:x.tag==='월반'?`<span class="ibtn" role="button" tabindex="0" data-sheet="skip_${x.series}" aria-label="월반 설명">${ISVG}</span>`:x.academy?`<span class="ibtn" role="button" tabindex="0" data-sheet="acad_${x.academy}" aria-label="육성 계약 설명">${ISVG}</span>`:/^리저브/.test(x.tag)?`<span class="ibtn" role="button" tabindex="0" data-sheet="rsv_" aria-label="리저브 설명">${ISVG}</span>`:''}</span>`:''}</span><span class="tick"></span></button>
       ${offerTeam(x)?`<button class="infobtn" type="button" data-brief="${i}">팀 정보</button>`:''}</div>`).join('')}</div>
     <button class="btn" type="button" id="chooseBtn" ${sel==null?'disabled':''}>이 진로로 갈게요</button></section>`;
 }
@@ -3364,7 +3364,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.13-d7',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.13-d8',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3687,7 +3687,7 @@ function celebrate(R,done){
 }
 let chainSeen={},sheetBack=null;
 const PRE=s=>typeof s==='string'&&(/^ev\d/.test(s)||s==='train'||s==='ch');
-const INFO=s=>typeof s==='string'&&/^(st_|skip_|acad_|rsv_)/.test(s);
+const INFO=s=>typeof s==='string'&&/^(st_|skip_|acad_|rsv_|lg_)/.test(s);
 function openSheet(s){if(INFO(s)&&PRE(sheet)||s==='train'&&sheet==='go')sheetBack=sheet;sheet=s;render()}
 const PEEK=`<button class="peekbtn" type="button">꾹 눌러 능력치 보기</button>`;
 function peekShow(){if(document.getElementById('peek'))return;const p=S.p,d=document.createElement('div');d.id='peek';
@@ -3838,6 +3838,14 @@ function statSheet(k){const I=STAT_INFO[k];
     <p class="muted" style="margin:0;font-size:13px">${I.t} 레이스 결과는 드라이버 40% + 머신 60%로 정해지고, OVR(6개 평균)은 팀 제안·시트 기준·몸값에 쓰여요.</p>
     <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`}
 function sheetView(){
+  if(typeof sheet==='string'&&sheet.startsWith('lg_')&&LGD[sheet.slice(3)]){const k=sheet.slice(3),L=LGD[k],sd=seriesDef(L.s),m=Math.round(AI_MEAN[L.s]+(L.ai||0)),o=ovrOf(S.p.stats),sc=L.sc||1;
+    return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">리그 설명</div><h3 class="h2">${sLogo(k,20)}${esc(L.n)}</h3>
+    <p style="margin:0">${esc(L.d)}</p>
+    <div class="kv"><div class="row"><span>레이스</span><span class="num">${L.races||sd.races}번</span></div><div class="row"><span>출전</span><span class="num">${Math.min(L.field||sd.field,30)}대</span></div>
+    <div class="row"><span>상대 평균 OVR</span><span class="num">${m}</span></div><div class="row"><span>내 OVR</span><span class="num">${o}</span></div>
+    <div class="row"><span>F1 팀 관심도</span><span>${sc>=1?'잘 올라요':sc>=.85?'조금 덜 올라요':'덜 올라요'}</span></div>
+    ${L.f1?`<div class="row"><span>주목하는 F1 팀</span><span>${L.f1.map(id=>teamDef(id).name).join('·')}</span></div>`:''}</div>
+    <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`}
   if(typeof sheet==='string'&&sheet.startsWith('skip_')){const s=sheet.slice(5),m=AI_MEAN[s],o=ovrOf(S.p.stats),ok=o>=m-5;
     return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">진로 설명</div><h3 class="h2">월반</h3>
     <p style="margin:0">한 단계를 건너뛰고 ${joRo(esc(seriesDef(s).name))} 바로 가요. 상위팀 시트가 보장돼요.</p>
