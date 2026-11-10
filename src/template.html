@@ -3321,7 +3321,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.11',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.12',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3401,7 +3401,7 @@ function rkPush(){if(!rkNet())return;
     .then(r=>{if(!r.ok&&r.status!==409)return;const b=hofLoad(),x=b.find(y=>y.cid===h.cid);if(x){x.sent=1;hofSave(b)}rkD={};if(hofOpen&&rkOn(rkTab))rkLoad(rkKey())}).catch(()=>{})})}
 function rkLoad(t){if(rkBusy[t]||!rkNet())return;rkBusy[t]=true;rkErr[t]=false;const from=t.startsWith('week')?rkWeek():RK_FROM,g=RK_LG[t.replace(/^(week|all)/,'')];
   // league tab: careers holding that league's trophies, most other-stage trophies first, sorted on the page
-  const q=g?'&or='+encodeURIComponent(`(${[...rkCs(g),...(g.r?[g.r]:[])].map(t=>`trophies.cs.${JSON.stringify([t])}`).join(',')})`)+'&order=tro.desc,created_at.asc&limit=500':'&order=titles.desc,wins.desc,tro.desc,podiums.desc,jr.desc,peak.desc.nullslast,created_at.asc&limit=100';
+  const q=g?'&or='+encodeURIComponent(`(${[...rkCs(g),...(g.r?[g.r]:[])].map(t=>`trophies.cs."${JSON.stringify([t]).replace(/"/g,'\\"')}"`).join(',')})`)+'&order=tro.desc,created_at.asc&limit=500':'&order=titles.desc,wins.desc,tro.desc,podiums.desc,jr.desc,peak.desc.nullslast,created_at.asc&limit=100';
   fetch(SB_URL+'?select=*&created_at=gte.'+from+q,{headers:{apikey:SB_KEY}})
     .then(r=>r.ok?r.json():Promise.reject(r.status))
     .then(d=>{rkD[t]={from,L:d.filter(r=>!badName(r.name)).map(r=>({cid:r.cid,name:r.name,num:r.num,nat:r.nat,helmet:r.helmet,start:r.start_year,end:r.end_year,age:r.age,titles:r.titles,wins:r.wins,podiums:r.podiums,starts:r.starts,peak:r.peak,top:r.top,tro:r.tro,jr:r.jr,trs:r.trophies||[],at:Date.parse(r.created_at)||0}))};if(g)rkD[t].L=rkLgSort(rkD[t].L,t.replace(/^(week|all)/,''))})
