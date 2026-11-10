@@ -176,6 +176,28 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .cxw .ln{font-size:14px;color:rgba(255,255,255,.78);opacity:0;animation:cxup .4s 1.6s forwards}
 .cxw .tt{font-family:var(--num);font-weight:600;font-size:15px;letter-spacing:.06em;padding:3px 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--tc) 60%,#fff);background:color-mix(in srgb,var(--tc) 30%,transparent);opacity:0;animation:cxup .4s 1.75s forwards}
 .cxw .sgn{position:relative;width:170px;height:56px;border-bottom:1px solid rgba(255,255,255,.3)}.cxw .sgn svg{position:absolute;inset:0}
+/* Super Formula / Formula E / DTM: kept simple (sky + number board), so the F1 reveal stays the big one */
+/* Super Formula: dusk and a low sun */
+.t-sf .sky{background:radial-gradient(60% 30% at 50% 56%,rgba(255,150,80,.55),transparent 70%),linear-gradient(#0B1030 0%,#3A2150 38%,#C2465A 64%,#F08A4B 82%,#1A0F1A 100%)}
+.t-sf .sun{position:absolute;z-index:0;left:50%;bottom:44%;width:240px;height:240px;margin-left:-120px;border-radius:50%;transform:translateY(42%);background:radial-gradient(circle at 50% 45%,#FFD27A,#FF6B3D 58%,#E8402F);box-shadow:0 0 80px rgba(255,110,60,.7);opacity:0;animation:fade .9s .15s forwards}
+.t-sf .board b{display:block;font-family:var(--num);font-weight:700;font-style:italic;font-size:150px;line-height:.9;color:#fff;-webkit-text-stroke:3px #12131A;paint-order:stroke fill;text-shadow:6px 6px 0 color-mix(in srgb,var(--tc) 70%,#000)}
+.t-sf .board{top:calc(6% + 40px);opacity:0;animation:cxdrop .7s .4s cubic-bezier(.2,.8,.3,1) forwards}
+/* Formula E: city street at night, neon number */
+.t-fe .sky{background:radial-gradient(80% 40% at 50% 30%,rgba(0,220,255,.22),transparent 70%),radial-gradient(60% 30% at 80% 60%,rgba(200,40,255,.25),transparent 70%),linear-gradient(#030512,#0A0F2A 60%,#140A2A)}
+.t-fe .board b{display:block;font-family:var(--num);font-weight:700;font-size:170px;line-height:.9;color:transparent;-webkit-text-stroke:3px #7DF9FF;filter:drop-shadow(0 0 6px #00E5FF) drop-shadow(0 0 18px #00B8FF)}
+.t-fe .board{opacity:0;animation:cxneon 1.2s .4s steps(1) forwards}
+@keyframes cxneon{0%{opacity:.8}10%{opacity:0}20%{opacity:1}30%{opacity:.2}45%,100%{opacity:1}}
+.t-fe .lane::before{background:linear-gradient(90deg,transparent,#00E5FF 30%,#C040FF 70%,transparent);box-shadow:0 0 14px #00E5FF}
+.t-fe .lane i:nth-child(odd){background:linear-gradient(90deg,transparent,rgba(192,64,255,.9))}
+.t-fe .lane i:nth-child(even){background:linear-gradient(90deg,transparent,rgba(0,229,255,.9))}
+.t-fe .lane .car{animation-duration:2.4s}
+/* DTM: a bright race day, kerbs and a GT car */
+.t-dtm .sky{background:radial-gradient(40% 30% at 82% 10%,rgba(255,250,220,.9),transparent 60%),linear-gradient(#2F7FD8,#7DB8EE 52%,#CFE3F2 66%,#3C4A3A 66.5%,#1C241C 100%)}
+.t-dtm .mq2 div{-webkit-text-stroke:1.5px rgba(255,255,255,.22)}
+.t-dtm .board{min-width:170px;height:118px;padding:0 22px;border-radius:16px;background:#0B0B0D;border:3px solid #FFCC00;box-shadow:0 10px 30px rgba(0,0,0,.4);opacity:0;animation:cxdrop .7s .4s cubic-bezier(.2,.8,.3,1) forwards}
+.t-dtm .board b{font-family:var(--num);font-weight:700;font-style:italic;font-size:104px;line-height:1;color:#FFCC00}
+.t-dtm .lane::after{content:"";position:absolute;left:0;right:0;bottom:-10px;height:10px;background:repeating-linear-gradient(90deg,#E30613 0 22px,#fff 22px 44px);opacity:.85}
+.t-dtm .lane .car{animation-duration:2.5s}
 @media (max-height:720px){.cxw .info{bottom:calc(1% + 30px + env(safe-area-inset-bottom,0px));gap:4px}.cxw .drv,.cxw .lane{bottom:45%}.cxw .drv .avfull{height:27vh!important}.cxw .board{top:calc(5% + 36px)}.t-wec .board{transform:scale(.8)}.cxw .sgn{height:46px}}
 
 .cxpad{position:absolute;inset:0;z-index:9;background:rgba(6,8,15,.88);display:flex;flex-direction:column;justify-content:center;gap:12px;padding:24px}
@@ -3272,7 +3294,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.8-d8',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.8-d9',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3524,10 +3546,13 @@ RRRRRWWWWWWWWWWWWWRRRRRRRRRRRRRRYY
 RRTTTTTTRRRRRRRRRRRRRRRRTTTTTTRRRR
 ..TTggTT................TTggTT....
 ...TTTT..................TTTT.....`;
-const CXW={WEC:{th:'t-wec',tag:'FIA WEC · HYPERCAR',mq:['24 HOURS','HYPERCAR'],car:'h'},INDY:{th:'t-indy',tag:'INDYCAR SERIES',mq:['INDYCAR','500 MILES'],car:'o'},GT3:{car:'h'}};
+const CXW={WEC:{th:'t-wec',tag:'FIA WEC · HYPERCAR',mq:['24 HOURS','HYPERCAR'],car:'h'},INDY:{th:'t-indy',tag:'INDYCAR SERIES',mq:['INDYCAR','500 MILES'],car:'o'},
+ SF:{th:'t-sf',tag:'SUPER FORMULA',mq:['SUPER FORMULA','SUZUKA · FUJI'],car:'o',ex:()=>'<div class="sun"></div>'},
+ FE:{th:'t-fe',tag:'ABB FIA FORMULA E',mq:['FORMULA E','ATTACK MODE'],car:'o'},
+ GT3:{th:'t-dtm',tag:'DTM · GT3',mq:['DTM','GT3 MASTERS'],car:'h'}};
 function cxAlt(o,I,mark){const p=S.p,sid=o.altId,d=CXW[sid]||{},en=SER_EN[sid]||altDef(sid).name,mq=d.mq||[en,'NEW CHAPTER'];
   const car=d.car==='h'?px(HYPER_MAP,{...CAR_PAL,R:I.color,Y:'#FFF4C2',V:'#10131C'},150):px(F1_MAP,{...CAR_PAL,R:I.color},140);
-  return`<div class="cxw ${d.th||'t-alt'}"><div class="sky"></div>
+  return`<div class="cxw ${d.th||'t-alt'}"><div class="sky"></div>${d.ex?d.ex():''}
     <div class="mq2">${[0,1,2,3,4,5].map(i=>{const w=Array(5).fill(mq[i%2]).join(' · ');return`<div class="${i%2?'r':'l'}">${esc(w)} · ${esc(w)} · </div>`}).join('')}</div>
     <div class="tag">${sLogo(sid,16)}<span>${esc(d.tag||en.toUpperCase())}</span></div>
     <div class="board"><b>${esc(p.num)}</b></div>
