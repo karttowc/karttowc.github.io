@@ -125,6 +125,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .cxa .tk{flex:1;min-width:0;overflow:hidden;display:flex;align-items:center}
 .cxa .tk span{white-space:nowrap;font-size:13px;font-weight:700;padding-left:100%;animation:cxtk 8s .6s linear infinite}.cxa .tk em{font-style:normal;color:var(--gold);margin:0 10px}
 @keyframes cxtk{to{transform:translateX(-100%)}}
+.cxa .brk.db b{background:linear-gradient(90deg,#F2C14E,#FFE08A);color:#141414}
+.cxa .dbl{font-size:15px;font-weight:700;color:#F2C14E;letter-spacing:.02em;text-shadow:0 0 12px rgba(242,193,78,.45);opacity:0;animation:cxup .4s 1.85s forwards;text-align:center}
 .cxa .off{font-family:var(--num);font-weight:700;letter-spacing:.32em;font-size:15px;opacity:0;animation:cxup .4s .4s forwards}
 .cxa .lg{width:112px;height:112px;border-radius:28px;background:rgba(255,255,255,.12);display:grid;place-items:center;opacity:0;animation:cxdrop .7s .6s cubic-bezier(.2,.8,.3,1) forwards}
 .cxa .lg img{width:78px;height:78px;object-fit:contain}
@@ -3294,7 +3296,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.8-d9',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.8',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3502,8 +3504,8 @@ function seatWho(o){
     return{n:d.n,w:'poach',t:`${jo(d.n,'을','를')} 밀어내고 ${d.c?'#'+d.c+' ':''}합류${cm.length?` · 크루 ${cm.join('·')}`:''}`}}
   return null}
 function contractInfo(o){const p=S.p,y=S.year,W=seatWho(o),N=a=>a.map(esc).join('<em>●</em>');
-  if(o.kind==='f1'){const t=teamDef(o.teamId);return{big:true,color:t.color,logo:teamLogo(t.id),name:t.name,en:TEAM_EN[t.id]||t.name,line:`${y} 시즌부터 ${t.name} 드라이버`,terms:`${o.years}년 · ${won(o.sal)}${o.option?' · +1년 옵션':''}`,
-    who:W&&W.t,news:N([...(W?[`${p.name}, ${W.t}`]:[]),`${p.name}, ${jo(t.name,"과","와")} ${o.years}년 계약 체결`,`연봉 ${won(o.sal)} · ${y} 시즌부터 레이스 시트`,`${t.name} 팬들 "드디어 왔다"`])}}
+  if(o.kind==='f1'){const t=teamDef(o.teamId),db=!p.debutYear,yrs=S.year-S.startYear;return{big:true,debut:db,dline:db?`카트에서 시작해 ${yrs}년 만에 F1`:'',color:t.color,logo:teamLogo(t.id),name:t.name,en:TEAM_EN[t.id]||t.name,line:`${y} 시즌부터 ${t.name} 드라이버`,terms:`${o.years}년 · ${won(o.sal)}${o.option?' · +1년 옵션':''}`,
+    who:W&&W.t,news:N([...(db?[`${p.name}, 카트에서 시작해 ${yrs}년 만에 F1 데뷔`]:[]),...(W?[`${p.name}, ${W.t}`]:[]),`${p.name}, ${jo(t.name,"과","와")} ${o.years}년 계약 체결`,`연봉 ${won(o.sal)} · ${y} 시즌부터 레이스 시트`,`${t.name} 팬들 "드디어 왔다"`])}}
   if(o.kind==='reserve'){const t=teamDef(o.teamId);return{color:t.color,logo:teamLogo(t.id),name:t.name,line:`${y} 시즌 ${t.name} 리저브 드라이버`,terms:'FP1 · 시뮬레이터 작업'}}
   if(o.kind==='alt'){const a=altDef(o.altId),T=ALT_TS[o.altTeam],tl=o.altId==='GT3'?SLOGO.GT3:T&&(o.altId==='WEC'&&altW(T[0])&&K.alt_logos[altW(T[0])]||K.alt_logos&&K.alt_logos[T[0]]||(teamByShort(T[0])?teamLogo(teamByShort(T[0]).id):null));return{alt:true,who:W&&W.t,color:o.altF1?teamDef(o.altF1).color:T?T[1]:'#3182F6',logo:tl||SLOGO[o.altId]||null,badge:tl||SLOGO[o.altId]?null:a.name,name:o.altTeam||a.name,line:`${y} 시즌 ${a.name} · ${o.altTeam||''}`,terms:`${TIER_LBL[o.tier]||''} 시트`}}
   const ac=o.academy?K.academies.find(a=>a.id===o.academy):null,sd=seriesDef(o.series);
@@ -3578,13 +3580,13 @@ function contractShow(o,done){
     let opened=false;
     const open=()=>{if(opened)return;opened=true;const bk=el.querySelector('.bk');
       bk.innerHTML=I.big?`<div class="cxa">
-          <div class="mq">${['o l','f r','o l','f r','o l'].map((c,i)=>{const w=i%2?I.en:'BREAKING',s=Array(6).fill(w).join(' · ');return`<div class="${c}">${esc(s)} · ${esc(s)} · </div>`}).join('')}</div>
-          <div class="brk"><b>BREAKING</b><div class="tk"><span>${I.news}</span></div></div>
+          <div class="mq">${['o l','f r','o l','f r','o l'].map((c,i)=>{const w=i%2?I.en:I.debut?'F1 DEBUT':'BREAKING',s=Array(6).fill(w).join(' · ');return`<div class="${c}">${esc(s)} · ${esc(s)} · </div>`}).join('')}</div>
+          <div class="brk${I.debut?' db':''}"><b>${I.debut?'F1 DEBUT':'BREAKING'}</b><div class="tk"><span>${I.news}</span></div></div>
           <div class="off">OFFICIAL</div><div class="duo"><div class="lg">${mark}</div><div class="hel">${avatar(pAv(p),p.helmet,150,true,p.num)}</div></div>
-          <div class="nm">${esc(p.name)}</div><div class="ln">${esc(I.line)}</div><div class="tt">${esc(I.terms)}</div>${I.who?`<div class="rp">${esc(I.who)}</div>`:''}
+          <div class="nm">${esc(p.name)}</div><div class="ln">${esc(I.line)}</div><div class="tt">${esc(I.terms)}</div>${I.debut?`<div class="dbl">${esc(I.dline)}</div>`:''}${I.who?`<div class="rp">${esc(I.who)}</div>`:''}
           <div class="sgn">${sigSVG(p.sig,220,74,'#fff')}<div class="stp" style="--stc:#fff">${I.logo?`<img src="${I.logo}" alt="">`:''}SIGNED</div></div>
           <div class="wf"></div><div class="fl">${Array.from({length:11},(_,i)=>`<i style="left:${8+Math.random()*78}%;top:${10+Math.random()*70}%;animation-delay:${(3.05+i*.08+Math.random()*.08).toFixed(2)}s"></i>`).join('')}</div>
-          <div class="conf">${Array.from({length:46},(_,i)=>`<i style="left:${Math.random()*100}%;background:${['#F2C14E','#fff',I.color,'#3182F6'][i%4]};animation-duration:${2+Math.random()*1.6}s;animation-delay:${2.8+Math.random()*.8}s"></i>`).join('')}</div></div>`
+          <div class="conf">${Array.from({length:I.debut?90:46},(_,i)=>`<i style="left:${Math.random()*100}%;background:${(I.debut?['#F2C14E','#FFD979','#fff','#F2C14E',I.color]:['#F2C14E','#fff',I.color,'#3182F6'])[i%(I.debut?5:4)]};animation-duration:${2+Math.random()*1.6}s;animation-delay:${2.8+Math.random()*.8}s"></i>`).join('')}</div></div>`
         :cxAlt(o,I,mark);
       el.querySelector('.cxg').classList.add('open');
       drawSig(el.querySelector(I.big?'.cxa .sgn svg':'.cxw .sgn svg'),I.big?1900:1950,800);
