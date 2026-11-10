@@ -823,7 +823,7 @@ const B = {
    "jitter": [0.8, 1.2],
    "by_age": [
     {"from": 14, "to": 18, "rate": 0.24, "cap": 6},
-    {"from": 19, "to": 23, "rate": 0.09, "cap": 4},
+    {"from": 19, "to": 23, "rate": 0.13, "cap": 4},
     {"from": 24, "to": 28, "rate": 0.15, "cap": 2.5},
     {"from": 29, "to": 32, "rate": 0.14, "cap": 1.5}
    ]
@@ -1041,7 +1041,7 @@ const B = {
    "mid": 78,
    "bottom": 72
   },
-  "f1_top_extra": 6,
+  "f1_top_extra": 7,
   "seat_rep_adjust": 3,
   "academy": {
    "keep_top_fraction": 0.33,
@@ -1071,6 +1071,7 @@ const B = {
     "reserve_promote_gap": 5,
     "f1_debut_extra": 14,
   "debut_age_penalty_from": 27,
+  "alt_return": {"note": "다른 리그 성적으로 F1 문이 다시 열림: max_age세 이하, 직전 시즌 챔피언이면 시트 기준 -champ·나이 벌점 절반·슈퍼라이선스 통과, 3위 안이면 -top3·나이 벌점 0.75배. F1 경험자도 포함", "max_age": 31, "champ": 10, "top3": 5},
   "prospect": {"note": "유망주 보정: max_age세 이하 F1 드라이버는 재계약·조기 해지 판정에서 OVR에 (max_age+1-나이) x per_year(최대 max)를 더해 봄", "max_age": 25, "per_year": 1, "max": 4},
   "debut_age_penalty_per_year": 2,
   "player_max_age": 45,
@@ -1079,7 +1080,7 @@ const B = {
   "old_seat_per_year": 5,
   "rookie_adapt": 3,
   "first_kart_easy": 5,
-  "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 1.5, "dev_max": 4.5, "window": 4, "legend_from": 8, "legend_dev": 1, "legend_max": 4},
+  "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 1.75, "dev_max": 5.25, "window": 4, "legend_from": 8, "legend_dev": 1, "legend_max": 4},
   "alt_hunt": {"dev": 1.5, "dev_max": 3, "window": 3}
  },
  "super_licence": {
@@ -2581,6 +2582,7 @@ function finishSeason(){
     if(p.series==='F1'){p.tot.titles++;ev.unshift(`${S.year} 포뮬러 1 월드 챔피언!`)}
     else if(p.series==='ALT'){p.alts.push({year:S.year,name:altDef(p.alt).name});ev.unshift(`${altDef(p.alt).name} 챔피언!${me.crew?` #${me.no} 크루 ${jo(me.crew,'과','와')} 함께 들어 올린 타이틀이에요.`:''}`)}
     else{p.jr.push({year:S.year,series:p.series,name:serName(p)});ev.unshift(`${serName(p)} 챔피언!`)}}
+  if(p.series==='ALT'&&pos&&pos<=3&&p.age<=B.career.alt_return.max_age)ev.push(titled?'F1 팀들이 이 타이틀을 지켜봤어요. F1의 문이 다시 열려요.':`${altDef(p.alt).name} ${pos}위. F1 팀들이 눈여겨보고 있어요.`);
   // youngest records
   const yrNew=[];
   if(p.series==='F1'&&me.starts>0){const T=p.tot,a=p.age,ks=[];
@@ -2890,15 +2892,17 @@ const repAdj=()=>(S.p.rep-50)/50*B.career.seat_rep_adjust;
 const fanAdj=t=>t&&t.tier==='bottom'?Math.min(5,S.p.fans/20):0;
 function jTeam(series,tier,lg){const l=lg&&LGD[lg].t?LGD[lg].t.map(([name,tier])=>({name,tier})):K.junior_teams[series];return pick(l.filter(t=>t.tier===tier).length?l.filter(t=>t.tier===tier):l)}
 const up=t=>t==='bottom'?'mid':'top';
+// other leagues are a real road to F1: a title (2) or a top-3 season (1) there reopens the door, also for drivers who already raced in F1
+const altRetOf=(LR,p)=>{const AR=B.career.alt_return;return AR&&LR&&LR.sid==='ALT'&&p.age<=AR.max_age?(LR.titled?2:LR.pos&&LR.pos<=3?1:0):0};
 function seatCtx(){const p=S.p,LR=S.last&&S.last.rec;return{inF1Race:p.series==='F1'&&p.role==='race',champF2:!!(LR&&LR.sid==='F2'&&LR.titled),f2Top:!!(LR&&LR.sid==='F2'&&LR.pos&&LR.pos<=3),
-  altRet:!!(LR&&LR.sid==='ALT'&&LR.titled&&(LR.lk==='SF'||LR.lk==='FE')&&p.age<=29&&!p.debutYear)}}
+  altRet:altRetOf(LR,p)}}
 // reserve with a team that rates them highly: a realistic way up via a non-top team (e.g. Red Bull junior -> Racing Bulls)
 const rsvBoost=t=>{const p=S.p;return p.series==='F1'&&p.role==='reserve'&&scv(t.id)>=90&&t.tier!=='top'?8:0};
 // 40+: teams want more from an ageing driver, so only the very best stay on (Alonso is the exception)
 const oldPen=()=>Math.max(0,S.p.age-B.career.old_seat_from+1)*B.career.old_seat_per_year;
 function f1SeatThr(t,c=seatCtx()){const p=S.p,ac=p.academy?K.academies.find(a=>a.id===p.academy):null,mine=ac&&ac.teams.includes(t.id);
-  const resBonus=c.inF1Race?0:c.champF2?10:c.f2Top?5:c.altRet?10:0;
-  const agePen=c.inF1Race?0:Math.max(0,p.age-B.career.debut_age_penalty_from+1)*B.career.debut_age_penalty_per_year*(c.altRet?.5:1);
+  const resBonus=c.inF1Race?0:c.champF2?10:c.f2Top?5:c.altRet===2?B.career.alt_return.champ:c.altRet?B.career.alt_return.top3:0;
+  const agePen=c.inF1Race?0:Math.max(0,p.age-B.career.debut_age_penalty_from+1)*B.career.debut_age_penalty_per_year*(c.altRet===2?.5:c.altRet?.75:1);
   const si=scv(t.id);return oldPen()+B.career.f1_seat_ovr[t.tier]+(t.tier==='top'?B.career.f1_top_extra||0:0)+agePen+(c.inF1Race?0:(B.career.f1_debut_extra||0))-repAdj()-fanAdj(t)-(mine?3:0)-(si>=90?5:si>=80?3:si>=60?1:0)-resBonus-rsvBoost(t)}
 // real 2026 teams in the other series; f1 = the F1 team they feed (same manufacturer or engine partner)
 const ALT_TEAMS={
@@ -3063,9 +3067,9 @@ function altTeam(id,tier,excl){const L=ALT_DRV[id]?altRank(id).map(x=>({...(ALT_
 const TIER_I=['bottom','mid','top'];
 function makeOffers(pos,field,h2h){
   const p=S.p,o=[],ovr=ovrOf(p.stats),r=pos?pos/field:1;S.leaveNote=null;
-  const LR=S.last&&S.last.rec,champF2=LR&&LR.sid==='F2'&&LR.titled,f2Top=LR&&LR.sid==='F2'&&LR.pos&&LR.pos<=3,altRet=LR&&LR.sid==='ALT'&&LR.titled&&(LR.lk==='SF'||LR.lk==='FE')&&p.age<=29&&!p.debutYear;
+  const LR=S.last&&S.last.rec,champF2=LR&&LR.sid==='F2'&&LR.titled,f2Top=LR&&LR.sid==='F2'&&LR.pos&&LR.pos<=3,altRet=altRetOf(LR,p);
   if(p.age>=B.career.player_max_age)return[{kind:'retire',title:'은퇴',sub:'커리어를 마무리해요'}];
-  const slOK=p.age>=B.super_licence.min_age&&(slPoints()>=B.super_licence.points_needed||altRet);
+  const slOK=p.age>=B.super_licence.min_age&&(slPoints()>=B.super_licence.points_needed||altRet===2);
   const inJunior=ORDER.includes(p.series);
   const juniorOffer=(series,tier,extra={})=>{const lg=LG_OF[series]?extra.lg||LG_OF[series][0]:null,t=jTeam(series,tier,lg);return{kind:'junior',series,lg,team:{name:t.name,tier:t.tier},
     title:extra.title||t.name,sub:extra.sub||`${lg?LGD[lg].n:seriesDef(series).name} · ${TIER_LBL[t.tier]}${extra.lgd&&lg?' · '+LGD[lg].d+(LGD[lg].f1?' · '+LGD[lg].f1.map(id=>teamDef(id).name).join('·')+' 주목':''):''}`,tag:extra.tag,academy:extra.academy}};
@@ -3195,7 +3199,7 @@ function makeOffers(pos,field,h2h){
       if(stay&&cur&&altFire){const nx=altPick(a.id,tier,cur.n)||altTeam(a.id,tier,cur.n);if(nx&&nx.n!==cur.n)o.push(altO(a,nx,'이적'))}
       else if(stay&&cur){o.push(altO(a,cur,'잔류'));const up=ALT_DRV[a.id]?altPick(a.id,tier,cur.n):null;
         if(up&&TIER_I.indexOf(up.tier)>TIER_I.indexOf(cur.tier))o.push(altO(a,up,'이적'));else if(!ALT_DRV[a.id]&&TIER_I.indexOf(tier)>TIER_I.indexOf(cur.tier))o.push(altO(a,altTeam(a.id,tier,cur.n),'이적'))}
-      else o.push(altO(a,(ALT_DRV[a.id]&&altPick(a.id,tier))||altTeam(a.id,tier),stay?'잔류':altReq?'전향':p.series==='F2'&&p.age>=23?'새 출발':'다른 진로'))});
+      else o.push(altO(a,(ALT_DRV[a.id]&&altPick(a.id,tier))||altTeam(a.id,tier),stay?'잔류':altReq?'전향':p.series==='F2'&&p.age>=23?'새 출발':'새 무대'))});
     if(altReq){const got=o.filter(x=>x.kind==='alt');p.altGoDone={year:S.year-1,n:got.length};p.altGo=null;
       evs.push(`전향 의사에 ${jo(got.map(x=>x.altTeam).join(', '),'이','가')} 응답했어요! 남을지 떠날지 골라요.`)}
   }
@@ -3224,7 +3228,7 @@ function makeOffers(pos,field,h2h){
    else if(!inF1&&!everF1&&noF1&&(p.age>=24||!canStayNow))o.push({kind:'retire',title:'은퇴',sub:'F1의 꿈을 내려놓아요 · 커리어 카드를 받아요'})}
   if(!o.length){
     if(inJunior&&p.age<21)o.push(juniorOffer(p.series,'bottom',{tag:'잔류',lg:lgOf(p)?lgKey(p):null,sub:`${serName(p)} · ${TIER_LBL.bottom} · 마지막 기회`}));
-    else{const a=pick(K.alt_series);o.push({kind:'alt',altId:a.id,tier:'bottom',title:a.name,sub:`${TIER_LBL.bottom} 시트`,tag:'다른 진로'})}
+    else{const a=pick(K.alt_series);o.push({kind:'alt',altId:a.id,tier:'bottom',title:a.name,sub:`${TIER_LBL.bottom} 시트`,tag:'새 무대'})}
   }
   return o;
 }
@@ -3925,7 +3929,7 @@ function buildReact(R,x){
   else if(R.age>=33&&st.tyre>=st.quali)adv=pick(['퀄리파잉 속도는 줄어도 타이어 관리와 멘탈은 여전히 무기예요. 경험으로 버티는 시즌이 될 거예요.',`베테랑의 운영이 빛날 때예요. ${LBL[weak]}(${st[weak]})만 지켜 내면 돼요.`]);
   else adv=pick([`다음 시즌 과제는 ${LBL[weak]}${ieyo(LBL[weak])} (지금 ${st[weak]}). ${trTxt}`,`${LBL[weak]}(${st[weak]})만 끌어올리면 한 단계 더 올라설 수 있어요. ${trTxt}`,`다음 시즌엔 ${LBL[weak]}${josa(LBL[weak])} 키워 보세요 (지금 ${st[weak]}). ${rs0.why}.`]);
   if(R.titled&&(R.sid==='F1'||ALT_DRV[R.lk]))adv+=BOP(R.lk)?' 다음 시즌엔 BoP 조정으로 차가 묶일 거예요.':' 다음 시즌엔 라이벌 팀들의 견제가 시작돼요.';
-  if(R.lk==='SF'&&R.titled&&R.age<=29&&!p.debutYear)adv+=' 슈퍼포뮬러 챔피언이라 F1 팀들의 문이 다시 열려요.';
+  if(R.sid==='ALT'&&R.age<=B.career.alt_return.max_age&&(R.titled||R.pos&&R.pos<=3))adv+=R.titled?` ${R.series} 챔피언이라 F1 팀들의 문이 다시 열려요.`:` ${R.series} ${R.pos}위는 F1 팀들도 눈여겨보는 성적이에요.`;
   E.push(pre+adv);
   // fans: the season's story first (who, where, compared with what); choices only as a side note
   const tags=[],side=[],V={name,team:R.team||'',series:R.series,pos:R.pos,age:R.age,wins:R.wins,poles:R.poles||0,crown:R.crown?R.crown.n:'',champ:x.champ||null,gap:x.gap};
@@ -4754,7 +4758,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.13-d4',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.13-d5',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -5315,10 +5319,10 @@ function sheetView(){
       <button class="btn" type="button" id="chDone">${chain?'다음':c.season?(popQ.length?'다음':'시즌 결과 보기'):'확인'}</button></section></div>`}
   if(sheet&&sheet.type==='newpath'){const N=NEWPATH[sheet.sid]||NEWPATH.GT3;
     return`<div class="sheet" id="sheetBg"><section class="card chres win"><div class="eyebrow">${sheet.year} 새로운 길</div>
-      <div class="crbig">${sLogo(sheet.sid,40)}<b style="color:var(--fg);font-size:17px">F1의 꿈은 멀어졌지만</b><span style="color:var(--gold)">${N.line}</span></div>
+      <div class="crbig">${sLogo(sheet.sid,40)}<b style="color:var(--fg);font-size:17px">새로운 무대가 열렸어요</b><span style="color:var(--gold)">${N.line}</span></div>
       <p class="muted" style="margin:0;word-break:keep-all">${N.story}</p>
       <div class="kv nw"><div class="row"><span>새 목표</span><span>${N.goals.map(g=>`<b style="color:var(--gold)">${g}</b>`).join(' · ')}</span></div></div>
-      <button class="btn" type="button" id="npDone">새 출발</button></section></div>`}
+      ${S.p.age<=B.career.alt_return.max_age?'<p class="muted" style="margin:0;font-size:13px;word-break:keep-all">여기서 실력을 키워 챔피언이나 3위 안에 들면 F1 팀들이 다시 지켜봐요.</p>':''}<button class="btn" type="button" id="npDone">새 출발</button></section></div>`}
   if(sheet&&sheet.type==='num1'){const p=S.p;
     return`<div class="sheet" id="sheetBg"><section class="card chres win"><div class="eyebrow">${sheet.year} 월드 챔피언</div><h3 class="h2">챔피언 번호 1번을 달까요?</h3>
       <p class="muted" style="margin:0">F1 챔피언은 다음 시즌 1번을 달 수 있어요. 베르스타펜은 1번을 달았고, 해밀턴은 44번을 지켰어요. 타이틀을 내주면 원래 번호로 돌아가요.</p>
