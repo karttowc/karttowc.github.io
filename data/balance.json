@@ -95,9 +95,9 @@
    "jitter": [0.8, 1.2],
    "by_age": [
     {"from": 14, "to": 18, "rate": 0.24, "cap": 6},
-    {"from": 19, "to": 23, "rate": 0.17, "cap": 4},
-    {"from": 24, "to": 28, "rate": 0.12, "cap": 2.5},
-    {"from": 29, "to": 32, "rate": 0.12, "cap": 1.5}
+    {"from": 19, "to": 23, "rate": 0.09, "cap": 4},
+    {"from": 24, "to": 28, "rate": 0.15, "cap": 2.5},
+    {"from": 29, "to": 32, "rate": 0.14, "cap": 1.5}
    ]
   },
   "focus_multiplier": 1.8, "rest_multiplier": 0.85,
@@ -341,8 +341,8 @@
     "reserve_promote_chance": 0.4,
     "reserve_promote_max_age": 34,
     "reserve_promote_gap": 5,
-    "f1_debut_extra": 17.5,
-  "debut_age_penalty_from": 25,
+    "f1_debut_extra": 14.5,
+  "debut_age_penalty_from": 27,
   "debut_age_penalty_per_year": 2,
   "player_max_age": 45,
   "ai_max_age": 46,

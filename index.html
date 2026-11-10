@@ -823,9 +823,9 @@ const B = {
    "jitter": [0.8, 1.2],
    "by_age": [
     {"from": 14, "to": 18, "rate": 0.24, "cap": 6},
-    {"from": 19, "to": 23, "rate": 0.17, "cap": 4},
-    {"from": 24, "to": 28, "rate": 0.12, "cap": 2.5},
-    {"from": 29, "to": 32, "rate": 0.12, "cap": 1.5}
+    {"from": 19, "to": 23, "rate": 0.09, "cap": 4},
+    {"from": 24, "to": 28, "rate": 0.15, "cap": 2.5},
+    {"from": 29, "to": 32, "rate": 0.14, "cap": 1.5}
    ]
   },
   "focus_multiplier": 1.8, "rest_multiplier": 0.85,
@@ -1069,8 +1069,8 @@ const B = {
     "reserve_promote_chance": 0.4,
     "reserve_promote_max_age": 34,
     "reserve_promote_gap": 5,
-    "f1_debut_extra": 17.5,
-  "debut_age_penalty_from": 25,
+    "f1_debut_extra": 14.5,
+  "debut_age_penalty_from": 27,
   "debut_age_penalty_per_year": 2,
   "player_max_age": 45,
   "ai_max_age": 46,
@@ -4717,7 +4717,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.12-d2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.6.12-d3',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
