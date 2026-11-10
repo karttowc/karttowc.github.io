@@ -341,7 +341,7 @@
     "reserve_promote_chance": 0.4,
     "reserve_promote_max_age": 34,
     "reserve_promote_gap": 5,
-    "f1_debut_extra": 14.5,
+    "f1_debut_extra": 14,
   "debut_age_penalty_from": 27,
   "debut_age_penalty_per_year": 2,
   "player_max_age": 45,
