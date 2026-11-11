@@ -27,6 +27,7 @@ function botOffer(o,pr){const myM=S.p.series==='F1'&&S.p.role==='race'?teamDef(S
 
 let res={n:0,f1:0,ch1:0,ch5:0,debut:[],seasons:0,rs:0,rr:0,ys:0,yr:0};
 if(process.env.RPC!=null)B.career.reserve_promote_chance=+process.env.RPC;
+if(process.env.TOPX)B.career.f1_top_extra=+process.env.TOPX;// TOPX=6: try another top-team seat extra
 if(process.env.F2AI)AI_MEAN.F2=+process.env.F2AI;// F2AI=73: try another F2 AI mean
 for(let i=0;i<300;i++){smart=i%2===0;
   const st=styleStats(45,'racer');newGame({name:'T',num:7,nat:'KOR',helmet:'#fff',style:'racer',stats:st,focus:['race','quali']});
