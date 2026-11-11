@@ -350,6 +350,10 @@
   "prospect": {"note": "유망주 보정: max_age세 이하 F1 드라이버는 재계약·조기 해지 판정에서 OVR에 (max_age+1-나이) x per_year(최대 max)를 더해 봄", "max_age": 25, "per_year": 1, "max": 4},
   "debut_age_penalty_per_year": 2,
   "player_max_age": 45,
+  "alt_max_age": {
+   "WEC": 50,
+   "GT3": 50
+  },
   "ai_max_age": 46,
   "old_seat_from": 40,
   "old_seat_per_year": 5,
