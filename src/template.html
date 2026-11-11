@@ -327,7 +327,7 @@ label.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--
 .tbl tr:first-child td{border-top:0}
 .tbl td.r{text-align:right}
 .tbl tr.me td{color:var(--accent);font-weight:700}
-.cno{font-family:var(--num);font-size:11px;color:var(--muted);margin-right:5px}.crw{display:block;font-size:11px;color:var(--muted);margin:1px 0 0 31px}
+.tie{font-family:inherit;font-size:10px;color:var(--muted);margin-right:4px}.cno{font-family:var(--num);font-size:11px;color:var(--muted);margin-right:5px}.crw{display:block;font-size:11px;color:var(--muted);margin:1px 0 0 31px}
 .lg{display:inline-grid;place-items:center;border-radius:7px;background:#2B2E36;vertical-align:-7px;margin-right:7px;overflow:hidden;flex:none}
 .lg img{width:88%;height:88%;object-fit:contain;display:block}
 .lg.fb{color:#fff;font-family:var(--num);font-size:9px;font-weight:700;letter-spacing:0}
@@ -1073,6 +1073,8 @@ function indyBonus(pr,fin,best,r,T){const bp={},add=(e,v)=>{bp[e.key]=(bp[e.key]
   return{bp,bl:Ls.map(e=>e.key),bm:mo&&mo.key}}
 // ties: countback like F1 (more P1s, then P2s, ...), not list order (the player sat last in F1 and lost every 0-point tie)
 const cbk=e=>e.fp.filter(x=>x&&x<99).sort((a,b)=>a-b),cbCmp=(a,b)=>{const x=cbk(a),y=cbk(b);for(let i=0;i<Math.max(x.length,y.length);i++){const u=x[i]??999,v=y[i]??999;if(u!==v)return u-v}return 0};
+// why a points tie went the way it did: the first finishing position whose count differs (F1 countback)
+const cbWhy=(a,b)=>{const x=cbk(a),y=cbk(b);for(let i=0;i<Math.max(x.length,y.length);i++){const u=x[i]??999,v=y[i]??999;if(u!==v){const q=Math.min(u,v),c=l=>l.filter(z=>z===q).length;return{k:q===1?'우승 수':`${q}위 횟수`,a:c(x),b:c(y)}}}return null};
 const standingsOf=ents=>ents.filter(e=>e.starts>0).sort((a,b)=>b.pts-a.pts||cbCmp(a,b));
 
 /* ---------- season ---------- */
@@ -1196,6 +1198,9 @@ function finishSeason(){
     if(p.series==='F1'){p.tot.titles++;ev.unshift(`${S.year} 포뮬러 1 월드 챔피언!`)}
     else if(p.series==='ALT'){p.alts.push({year:S.year,name:altDef(p.alt).name});ev.unshift(`${altDef(p.alt).name} 챔피언!${me.crew?` #${me.no} 크루 ${jo(me.crew,'과','와')} 함께 들어 올린 타이틀이에요.`:''}`)}
     else{p.jr.push({year:S.year,series:p.series,name:serName(p)});ev.unshift(`${serName(p)} 챔피언!`)}}
+  let tie=null;if(pos){const up=st[pos-2],dn=st[pos];
+    for(const[o,won]of[[up,false],[dn,true]])if(!tie&&o&&o.pts===me.pts){const w=won?cbWhy(me,o):cbWhy(o,me);if(!w)continue;const sc=won?`${w.a}:${w.b}`:`${w.b}:${w.a}`;
+      tie={n:o.name,k:w.k,won,pos};ev.push(won?`${jo(o.name,'과','와')} 포인트 동점이고, ${w.k} ${joRo(sc)} 앞서 ${pos===1?'챔피언!':pos+'위예요.'}`:`${jo(o.name,'과','와')} 포인트 동점이지만, ${w.k} ${joRo(sc)} 밀려 ${pos}위예요.`)}}
   if(p.series==='ALT'&&pos&&pos<=3&&p.age<=B.career.alt_return.max_age)ev.push(titled?'F1 팀들이 이 타이틀을 지켜봤어요. F1의 문이 다시 열려요.':`${altDef(p.alt).name} ${pos}위. F1 팀들이 눈여겨보고 있어요.`);
   // youngest records
   const yrNew=[];
@@ -1249,7 +1254,7 @@ function finishSeason(){
   if(!p.limitSeen&&atLimit()){p.limitSeen=1;ev.push('성장이 더뎌지기 시작했어요. 큰 무대에서 증명하면 한계를 넘을 수 있어요.')}
   const deltas=STATS.map(k=>({k,v:p.stats[k],d:p.stats[k]-statsBefore[k]})).filter(x=>x.d!==0);
   const rec={lk:lgKey(p),year:S.year,age:p.age,series:serName(p),sid:p.series,team:teamName,color:teamColor,role:p.role,tid:p.team&&p.team.id||null,
-    pos,field:fieldN,train:trName(),points:me.pts,wins:me.wins,podiums:me.pod,poles:me.poles,dnf:me.dnf,starts:me.starts,ovrBefore,ovrAfter,h2h,titled,crown,first:!!C.firstLeague,slump:slump||null};
+    pos,field:fieldN,train:trName(),points:me.pts,wins:me.wins,podiums:me.pod,poles:me.poles,dnf:me.dnf,starts:me.starts,ovrBefore,ovrAfter,h2h,titled,crown,first:!!C.firstLeague,slump:slump||null};if(tie)rec.tie=tie;
   if(p.series==='ALT'&&ALT_DRV[p.alt]&&p.role==='race'){const sid=p.alt,A=S.altSum&&S.altSum[sid];if(me.no)rec.no=me.no;if(me.crew)rec.crew=me.crew;
     if(sid==='INDY'){let ld=0,mo=0,bo=0;Z.orders.forEach(o=>{if(o.bl&&o.bl.includes('me'))ld++;if(o.bm==='me')mo++;if(o.bp&&o.bp.me)bo+=o.bp.me});if(ld)rec.lead=ld;if(mo)rec.most=mo;if(bo)rec.bonus=bo;
       const io=Z.orders[ALT_CROWN.INDY.r],qi=io?io.q.indexOf('me'):-1;if(qi>=0&&qi<12)rec.f12=qi+1;if(A&&A.roy&&A.roy.me)rec.roy=1}
@@ -1273,7 +1278,7 @@ function finishSeason(){
    rec.earn={sal,prize};p.earn=(p.earn||0)+sal+(crown&&crown.res==='우승'&&PRIZE[crown.id]?PRIZE[crown.id]:0)}
   p.history.push(rec);
   const valBefore=p.val||valueOf();p.rep=recentForm();p.repBonus=Math.round((p.repBonus||0)*.5);p.val=valueOf();p.valPeak=Math.max(p.valPeak||0,p.val);rec.val=p.val;rec.valBefore=valBefore;
-  S.last={rec,ev,deltas,standings:st.slice(0,12).map((e,i)=>({pos:i+1,name:e.name,no:e.no,crew:e.crew,team:e.team,color:e.color||null,pts:e.pts,wins:e.wins,me:!!e.isPlayer})),meRow:pos&&pos>12?{pos,name:me.name,no:me.no,crew:me.crew,team:me.team,color:me.color||null,pts:me.pts,wins:me.wins,me:true}:null};
+  S.last={rec,ev,deltas,standings:st.slice(0,12).map((e,i)=>({pos:i+1,tie:(st[i-1]&&st[i-1].pts===e.pts)||(st[i+1]&&st[i+1].pts===e.pts)||undefined,name:e.name,no:e.no,crew:e.crew,team:e.team,color:e.color||null,pts:e.pts,wins:e.wins,me:!!e.isPlayer})),meRow:pos&&pos>12?{pos,tie:st[pos-2].pts===me.pts||(st[pos]&&st[pos].pts===me.pts)||undefined,name:me.name,no:me.no,crew:me.crew,team:me.team,color:me.color||null,pts:me.pts,wins:me.wins,me:true}:null};
   // world moves on
   if(!p.retired){scoutUpdate(pos,fieldN,titled,ev);altScoutUpdate(pos,fieldN,titled,ev)}
   ageF1Grid();altMarket(ev);rivalMove(ev);jrMove();
@@ -2477,6 +2482,7 @@ function buildReact(R,x){
   if((R.lk==='SF'||R.lk==='GT3')&&R.qpt>=6&&R.pos)f=(f?f+' ':'')+`퀄리파잉 포인트로 ${R.qpt}점을 더했어요.`;
   if(R.lk==='WEC'&&R.poles>=2&&R.pos)f=(f?f+' ':'')+`하이퍼폴 ${R.poles}번, 폴 보너스로 ${R.poles}점을 더했어요.`;
   if(R.hunt&&R.pos)f=(f?f+' ':'')+(BOP(R.lk)?`BoP 견제로 머신이 ${R.hunt} 묶인 채 달렸어요`:`라이벌들의 견제로 머신 우위가 ${R.hunt} 줄어든 채 달렸어요`)+(R.titled?'. 그래도 타이틀을 지켜 냈어요.':R.pos<=3?'. 그래도 정상 경쟁을 했어요.':'.');
+  if(R.tie&&R.tie.pos<=2&&R.tie.won===(R.tie.pos===1))f=(f?f+' ':'')+(R.tie.won?`${jo(R.tie.n,'과','와')} 포인트는 같았지만 ${R.tie.k}에서 앞서 타이틀을 가져왔어요.`:`${jo(R.tie.n,'과','와')} 포인트는 같았지만 ${R.tie.k}에서 밀려 타이틀을 놓쳤어요.`);
   if(f)E.push(f);
   // 4) what next
   const st=p.stats,rs0=recStats()[0]||{k:STATS.reduce((a,b)=>st[a]<=st[b]?a:b)},weak=rs0.k,dO=R.ovrAfter-R.ovrBefore,trTxt=S.train!=='rest'&&p.focus.includes(weak)?'지금 훈련 방향이 맞아요.':`${LBL[weak]}${josa3(LBL[weak])} 든 훈련 프로그램을 골라 보세요${trOpen()?'':` (${S.progYear+PROG_LOCK}년에 변경 가능)`}.`;
@@ -2660,7 +2666,7 @@ function readyCard(){
       :`<button class="tleave" type="button" data-sheet="leave"><span class="lt"><b>팀 떠나기</b><span>이적 요청 · 다른 리그로 전향</span></span><span class="la">선택지 보기<i>›</i></span></button>`):''}</section>`;
 }
 function standRows(){const st=S.last.standings;
-  return[...st,...(S.last.meRow?[S.last.meRow]:[])].map(e=>`<tr class="${e.me?'me':''}"><td class="num" style="width:28px">${e.pos}</td><td>${e.team&&S.last.rec&&S.last.rec.lk==='WEC'&&altW(e.team)?altLogo(altW(e.team),24):e.team&&teamByShort(e.team)?logo(teamByShort(e.team).id,24):JLOGO[e.team]?jLogo(e.team,24):altLogo(e.team,24)}${e.no?`<span class="cno">#${esc(e.no)}</span>`:''}${esc(e.name)}${e.crew?`<span class="crw">${esc(e.crew)}</span>`:''}</td><td class="muted">${esc(e.team||'')}</td><td class="r num">${e.pts}</td></tr>`).join('')}
+  return[...st,...(S.last.meRow?[S.last.meRow]:[])].map(e=>`<tr class="${e.me?'me':''}"><td class="num" style="width:28px">${e.pos}</td><td>${e.team&&S.last.rec&&S.last.rec.lk==='WEC'&&altW(e.team)?altLogo(altW(e.team),24):e.team&&teamByShort(e.team)?logo(teamByShort(e.team).id,24):JLOGO[e.team]?jLogo(e.team,24):altLogo(e.team,24)}${e.no?`<span class="cno">#${esc(e.no)}</span>`:''}${esc(e.name)}${e.crew?`<span class="crw">${esc(e.crew)}</span>`:''}</td><td class="muted">${esc(e.team||'')}</td><td class="r num">${e.tie?'<span class="tie">동점</span>':''}${e.pts}</td></tr>`).join('')}
 function resultBoard(){
   const R=S.last&&S.last.rec;if(!R)return'';
   const so=S.notice&&S.notice.so&&S.notice.so.year===R.year?S.notice.so:{year:R.year,sid:R.lk||R.sid,series:R.series,pos:R.pos,field:R.field,wins:R.wins,pod:R.podiums,poles:R.poles,pts:R.points,h2:R.h2h||null,prev:null};
@@ -3341,7 +3347,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.4-d2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.4-d3',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
