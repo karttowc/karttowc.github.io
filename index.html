@@ -2689,7 +2689,7 @@ function finishSeason(){
   S.offers=makeOffers(pos,fieldN,h2h);
   S.news=buildNews(tierLines,prevM);
   buildNotice();
-  S.react=buildReact(rec,{inc:Z.incidents||[],gacha:Z.gacha||null,monacoWin:p.series==='F1'&&me.fp[7]===1,wetN,wetPod,prevCons:prevSum&&prevSum.cons,gap:pos>1&&p.role==='race'?st[0].pts-me.pts:null,champ:st[0]&&st[0].name,injured:ev.some(x=>x.includes('결장')),dnfAvg:(()=>{const f=me.fp.filter(x=>x&&x<99);return f.length?Math.round(f.reduce((a,b)=>a+b,0)/f.length):null})()});
+  S.react=buildReact(rec,{inc:Z.incidents||[],gacha:Z.gacha||null,monacoWin:p.series==='F1'&&me.fp[7]===1,wetN,wetPod,prevCons:prevSum&&prevSum.cons,gap:pos>1&&p.role==='race'?st[0].pts-me.pts:null,champ:st[0]&&st[0].name,injured:ev.some(x=>x.includes('결장')),...(()=>{const f=me.fp.map(v=>v===99?fieldN:v).filter(v=>v>0);if(f.length<8)return{};const h=Math.floor(f.length/2),av=a=>Math.round(a.reduce((x,y)=>x+y,0)/a.length);return{h1:av(f.slice(0,h)),h2:av(f.slice(h))}})(),dnfAvg:(()=>{const f=me.fp.filter(x=>x&&x<99);return f.length?Math.round(f.reduce((a,b)=>a+b,0)/f.length):null})()});
   logSeason(rec);S.logPre=null;S.logPick=null;
   S.season=null;S.evSeason=[];S.phase='result';sel=null;save();
 }
@@ -3739,162 +3739,91 @@ function jo(w,a,b){w=String(w);const ch=w.replace(/[\s)\]]+$/,'').slice(-1),c=ch
 function joRo(w){w=String(w);const ch=w.replace(/[\s)\]]+$/,'').slice(-1),c=ch.charCodeAt(0)-0xAC00;const b=c>=0&&c<11172?c%28:/[036]/.test(ch)&&!/[A-Za-z]\d*$/.test(w)?1:0;return w+(b&&b!==8?'으로':'로')}
 function josa(w){const c=w.charCodeAt(w.length-1)-0xAC00;return c>=0&&c<11172&&c%28?'을':'를'}
 const batchim=w=>{const c=w.charCodeAt(w.length-1)-0xAC00;return c>=0&&c<11172&&c%28>0},josa2=w=>batchim(w)?'은':'는',josa3=w=>batchim(w)?'이':'가';
-const NICKS=['새벽알람','피트레인직관러','타이어요정','DRS열어','언더컷장인','입문3년차','헬멧수집가','패독고양이','세이프티카','블루플래그','체커기','퀄리덕후','풀웻파','부산f1팬','대전레이싱'];
+// fan comments: community tone (short, opinions split, numbers and names), always about the whole season
+const NICKS=['새벽알람','피트레인직관러','타이어요정','DRS열어','언더컷장인','입문3년차','헬멧수집가','패독고양이','세이프티카','블루플래그','체커기','퀄리덕후','풀웻파','부산f1팬','대전레이싱',
+ '하드타이어','미디엄파','소프트러버','2스톱전략','트랙리밋','에이펙스','헤어핀','시케인','슬립스트림','다운포스','그레이닝','블리스터','패스티스트랩','포메이션랩','중계만10년',
+ '새벽3시기상','야식은치킨','퇴근후F1','주말은레이스','라이트아웃','언더스티어','오버스티어','록업','에어로덕후','윈드터널','피트월','무전덕후','스튜어드','페널티5초','휠투휠',
+ '인사이드라인','카트출신','시뮬레이서','레이싱휠','풀스로틀','ERS충전','온보드캠','그리드10번','백마커','레드플래그','인터미디어트','풀웻','클린에어','더티에어','언더컷각'];
 const PLAT=['커뮤니티','SNS','영상 댓글','팬카페'];
+const fanNick=()=>Math.random()<.3?`ㅇㅇ(${ri(1,223)}.${ri(1,255)})`:pick(NICKS);
 const FAN={
- champ:['와 이번 시즌 미쳤다 ㄷㄷ','챔피언 확정 순간 소리 질렀다','헬멧 디자인까지 완벽함','이 선수 응원한 내가 자랑스럽다','{name} 챔피언 기념으로 치킨 시킴 🍗','오늘부로 내 최애 확정','중계 보다가 옆집까지 소리 들렸을 듯','역사는 오늘 바뀌었다','카트 시절부터 본 사람 손 ✋'],
- wc:['와!!! 월드 챔피언!!!! 실화냐','{name} 월챔 기념 오늘 회사 반차 씀','우리 애가 드디어 월챔이라니 눈물 난다 ㅠㅠ','레전드 반열 입성 축하합니다','이제 F1 역사책에 {name} 이름 박제','월챔 확정 순간 캡처해서 배경화면 함','{team} 팬 인생 최고의 날','다음 목표는 2연패다 가자!!'],
- firstpod:['첫 포디움 축하해!! 울컥했다','샴페인 뿌리는 거 보고 소름','드디어 해냈다 진짜','포디움 위에서 웃는 거 보니까 내가 다 행복','첫 트로피 집에 어디 둘지 궁금하다 ㅋㅋ'],
- win:['우승 장면 몇 번째 돌려보는지 모르겠다','이 페이스면 내년엔 타이틀 각','레이스 운영 미쳤다','{wins}승이면 이제 우승 후보 맞지?','체커기 받을 때 무전 듣고 울었음'],
- pole:['폴 {poles}번 ㄷㄷ 토요일의 사나이','퀄리파잉 한 바퀴 보고 입 벌어짐','퀄리파잉만 보면 이미 월드클래스'],
- poor:['차가 문제지 드라이버 잘못 아님','이번 시즌은 진짜 실망이다…','내년엔 탈출해라 제발','아직 포기 안 함. 내년에 보자','머신이 발목 잡는 게 눈에 보인다','이 차로 이 정도면 선방한 거임'],
- matelost:['팀메이트한테 그 전적은 좀…','멘탈 괜찮냐 진짜','팀이 밀어주는 게 아니라면 실력 차인가','팀메이트한테 밀리는 거 보기 힘들다'],
- matewon:['팀메이트 압살 ㅋㅋㅋ','팀 리더는 이제 확실하네','팀메이트가 좀 불쌍해짐 ㅋㅋ'],
- dnf:['리타이어만 몇 번이냐 ㅋㅋ 운도 실력이다','엔지니어들 정신 차려라','완주만 했어도 순위 훨씬 위였는데','리타이어 할 때마다 내 수명도 줄어듦'],
- rookie:['루키가 이 정도면 재능충 맞다','벌써부터 다음 시즌 기대됨','루키 시즌에 이 정도? 미래가 무섭다'],
- junior:['이 페이스면 F1 각이다','카트 때부터 봐온 팬인데 감회가 새롭다','아카데미들 뭐 하냐 빨리 데려가라','F1 팀들 연락처 돌려라 빨리'],
- injury:['몸 먼저 챙겨라 진짜','복귀하고 바로 포인트? 클래스 미쳤다','결장한 경기 생각하면 아직도 아쉽다'],
- kor:['태극기 들고 직관 간다','새벽에 알람 맞춰놓고 봤다','한국 모터스포츠 역사 쓰는 중','새벽 3시에 혼자 소리 지르다 가족한테 혼남'],
- mid:['꾸준한 게 제일 무섭다','한 방만 터지면 된다','올해 성장한 게 보인다','중계진도 이제 이름 외운 듯 ㅋㅋ'],
- tired:['요즘 얼굴 너무 지쳐 보임 좀 쉬어라','체력 관리 좀… 걱정된다'],
- star:['팬미팅 언제 하냐','굿즈 나오면 바로 산다','인스타 팔로워 또 늘었네 ㄷㄷ'],
- vet:['아직도 이 페이스? 와인처럼 익는 중','노련함은 돈 주고도 못 산다','타이어 아끼는 거 보면 베테랑 맞음'],
- decline:['세월은 못 이기나… 퀄리파잉이 예전 같지 않다','그래도 레이스 운영은 여전히 클래스','은퇴 얘기는 아직 하지 마라'],
- monaco:['모나코 우승은 클래스가 다르다','모나코에서 이긴 자 = 진짜 드라이버','몬테카를로 항구에 뛰어드는 거 언제 봄?'],
- rainstar:['비 오면 무조건 이 선수 픽','빗길에서 혼자 다른 차 타는 줄'],
- // mid-season moments
- rain0ok:['비 오자마자 인터 갈아낀 판단 미쳤다','타이어 교체 타이밍 완벽했음'],rain0bad:['인터 교체가 오히려 손해였네…','비 그칠 줄 누가 알았냐 ㅠ'],
- rain1ok:['슬릭으로 버틴 거 실화냐 ㅋㅋㅋ 강심장','슬릭 도박 성공 장면 레전드 박제'],rain1bad:['슬릭 고집은 좀… 엔지니어 말 들어라','빗길에 슬릭은 무리였다 ㅋㅋ'],
- sc0ok:['세이프티카 때 바로 피트인 판단 완벽했다','새 타이어로 재시작 쭉쭉 올라가는 거 짜릿'],sc0bad:['세이프티카 피트인 왜 했냐 순위만 잃음'],
- sc1ok:['헌 타이어로 재시작 버틴 거 진짜 장인','트랙 포지션 지킨 거 신의 한 수'],sc1bad:['세이프티카 때 안 들어간 거 아직도 이해 안 됨'],
- battle0ok:['그 추월 각 진짜 미쳤다 몇 번 돌려봄','브레이킹 포인트 늦춰서 들어간 거 소름'],battle0bad:['추월 욕심이 화를 불렀다…','그 배틀은 좀 무리였어'],battle0dnf:['그 배틀에서 리타이어 ㅠㅠ 무리했어','추월하다 리타이어… 오늘 잠 못 잠'],
- battle1ok:['끝까지 압박해서 실수 끌어낸 거 노련하다'],battle1bad:['기다리다 끝난 레이스… 한 번은 질렀어야지'],
- tyre0ok:['원스톱으로 버틴 거 타이어 관리 장인','타이어 다 닳았는데 끝까지 버틴 거 미쳤음'],tyre0bad:['타이어 다 녹았는데 왜 안 들어가냐고 ㅋㅋ'],
- tyre1ok:['투스톱 전략 바꾼 판단 좋았다'],tyre1bad:['투스톱은 결국 시간만 날렸다'],
- damage0ok:['윙 갈고도 순위 회복한 거 대단'],damage0bad:['윙 교체하느라 날린 순위 아깝다'],
- damage1ok:['윙 부서진 채로 달린 거 간지는 인정','부서진 차로 포인트 가져옴 ㄷㄷ'],damage1bad:['부서진 차로 버티다 결국…'],damage1dnf:['부서진 윙 그대로 달리다 리타이어 ㅠㅠ'],
- order0ok:['팀 오더 따른 거 프로답다… 근데 아쉽다','팀 플레이어 인정, 대신 다음엔 네가 받아라'],
- order1ok:['팀 오더 무시 ㅋㅋㅋ 이게 레이서지','팀 무전 씹는 거 보고 소름 돋음','팀 미팅 분위기 상상된다 ㅋㅋㅋ'],
- g_boxing_win:['복싱 훈련 영상 봤는데 펀치 장난 아님 ㅋㅋ','반사신경 좋아진 게 레이스에서 보임'],g_boxing_inj:['복싱하다 다쳤다고? 매니저 뭐 했냐','스파링은 좀 살살 하지…'],
- g_mtb_win:['산악자전거 영상 보니까 체력 괴물 맞음'],g_mtb_inj:['산악자전거 타다 넘어짐 ㅠ 제발 조심'],
- g_kart_win:['카트 시절 라이벌들이랑 노는 거 훈훈하다','카트 타는 모습 보니 초심 그대로'],g_kart_inj:['카트에서 휠투휠 하다 다침 ㅋㅋ 본업에서 다치지 말라고'],
- g_simnight_win:['밤새 시뮬 돌렸다는데 퀄리파잉 보니 효과 확실'],g_simnight_slump:['밤샘 후유증 레이스에서 보였다… 잠 좀 자라'],
- g_skydive_win:['스카이다이빙 영상 조회수 터짐 ㅋㅋ','하늘에서 브이 하는 거 봤음? 귀여움'],g_skydive_inj:['스카이다이빙은 좀 참지…','스폰서 이벤트로 결장이라니 ㅋㅋ ㅠ'],
- g_rainold_win:['구형 머신 빗길 테스트 효과 보는 중'],g_rainold_inj:['구형 머신 테스트하다 다친 건 좀…'],
- g_padel_win:['파델 치는 영상 귀여움 ㅋㅋ','드라이버들끼리 파델 케미 좋다'],g_padel_inj:['파델하다 발목… 이게 무슨 일','파델로 결장한 F1 드라이버가 있다?'],
- g_rest:['휴식기에 푹 쉰 거 잘한 선택','쉴 땐 쉬어야지 현명하다'],
- reserve:['언젠간 기회가 오길… 응원합니다','리저브라도 패독에 있는 게 어디야','시뮬레이터에서 갈고닦는 중이겠지','팀들 눈 좀 떠라 이 선수 시트 줘라','기다림도 실력이다. 꼭 돌아와'],
- reserveSub:['대타로 나와서 이 정도면 시트 줘야지','갑자기 투입됐는데도 침착했다','짧은 기회 제대로 잡았다'],
- g_football_win:['축구도 잘하네 ㅋㅋ 운동신경 좋다'],g_football_inj:['축구하다 발목 접질림… 조심 좀 ㅠ'],
- g_rentkart_win:['렌탈 카트장에서 형들 다 이김 ㅋㅋ 될성부른 떡잎'],g_rentkart_inj:['렌탈 카트에서 부딪혀서 결장이라니 ㅋㅋ ㅠ'],
- g_gamenight_win:['게임으로 연습한 거 퀄리파잉에서 나오네 ㅋㅋ'],g_gamenight_slump:['밤새 게임하더니 다음 레이스 졸았나 봄 ㅋㅋ'],
- g_trampoline_win:['트램펄린 영상 귀엽다 ㅋㅋ'],g_trampoline_inj:['트램펄린에서 다쳤다고? 어머님 걱정하시겠다'],
- giveup:['이제 다른 길 생각해 봐야 하는 거 아님?','인디카 가면 바로 우승 경쟁할 실력인데','F1 팀들 눈이 삐었다 진짜','마지막 도전이다 이번엔 가자'],
- xferOk:['이적 요청 공개라니 ㄷㄷ 판 커진다','드디어 탈출 선언!! 응원한다','의리 없다… 그래도 실력은 인정','{team} 팬들 지금 난리남 ㅋㅋ'],
- xferNone:['이적 요청했는데 아무도 안 데려감… 어색','내년 팀 분위기 어쩌냐 ㅋㅋ','의리 없다더니 갈 데도 없네','그래도 남은 팀에서 증명하면 된다']
+ wc:['월챔 ㅊㅊ {wins}승이면 아무도 토 못 단다','이게 되네 ㄹㅇ {name} 월챔','카트 때부터 본 사람으로서 좀 울컥함','시즌 중반까진 반신반의했는데 결국 해냄','차빨이라던 사람들 이제 뭐라 할지 궁금','{wins}승 {poles}폴. 할 말 없음','올해는 {name} 말고 챔피언 될 사람이 없었음','내년에도 이 차면 연패 각'],
+ champ:['{series} 챔피언 ㅊㅊ 이제 다음 무대 가야지','{series}에서 {wins}승이면 여기 있을 급이 아님','{series} 챔피언 먹었으니 연락 좀 오겠네','이 정도면 {series} 졸업 맞지','시즌 내내 독주였음','챔피언은 챔피언인데 올해 상대들이 좀 약했던 듯'],
+ repeat:['{streak}연패면 이제 그냥 시대임','{streak}연패 ㄷㄷ 다른 팀들 뭐 함','솔직히 {streak}연패쯤 되니까 좀 지루함 ㅋㅋ','{streak}년째 같은 사람이 우승이라니'],
+ youngChamp:['{age}살에 {series} 챔피언이면 말 다 했지','{age}살 ㄷㄷ 나는 그 나이에 뭐 했나','{age}살이 이걸 함? 재능은 타고나는 듯'],
+ oldWc:['{age}살 월챔 ㄷㄷㄷ','{age}살에 젊은 애들 다 이김. 경험 무시 못 함','{age}살 월챔은 다시 안 나올 듯','은퇴하라던 사람들 지금 조용함','{age}살에 이 폼 유지하는 게 제일 대단함'],
+ oldFirstWc:['{age}살에 첫 월챔 ㅠㅠ 버틴 보람 있다','첫 월챔까지 진짜 오래 걸렸다','늦게 핀 게 더 오래 감'],
+ vetWc:['{age}살 챔피언. 운영이 다 했음','퀄리는 젊은 애들이 빨라도 시즌은 {name|이|가} 가져감','{age}살에도 정상. 클래스는 안 늙음'],
+ firstWin:['{seasons}시즌 만에 첫 승 ㅠㅠ','첫 승까지 {seasons}시즌. 오래 걸렸네','드디어 첫 승. 이제 시작임','첫 승 못 하고 끝나는 줄 알았는데 해냄'],
+ win:['{wins}승 했는데 챔피언 못 한 게 아쉽네','올해 {wins}승. 내년엔 진짜 해볼 만함','{wins}승이면 성공한 시즌 맞음','우승은 하는데 꾸준함이 좀 부족함','{wins}승 하고 {pos}위면 기복이 있었다는 거'],
+ firstpod:['첫 포디움 ㅊㅊ','드디어 포디움 한 번 올라감','첫 포디움까지 꽤 걸렸네','포디움 맛 봤으니 이제 자주 올라가자'],
+ pole:['폴 {poles}번 ㄷㄷ 한 랩은 진짜 빠름','폴 {poles}번이면 토요일은 이미 끝판왕','퀄리는 이미 탑급임','퀄리 끝나면 앞자리는 거의 정해져 있었음'],
+ closeP2:['{gap}점 차 2위 ㅠㅠ','{champ|이랑|랑} {gap}점 차면 진짜 한 끗이었다','{gap}점이면 한 경기 차이임','올해는 아쉽게 됐고 내년엔 뒤집자','{gap}점 차 2위가 1위보다 더 기억에 남음'],
+ p2:['시즌 2위면 충분히 잘한 거','올해는 {champ|이|가} 너무 셌음','2위도 대단한데 왠지 아쉬움','{champ|은|는} 못 넘었지만 내년엔 모름'],
+ stageGood:['{series} 첫해 {pos}위면 적응 끝난 거','{series} 루키가 {pos}위? 내년엔 우승 후보','{series} 오자마자 {pos}위면 할 말 없지','첫해부터 이러면 금방 올라가겠네'],
+ stageOk:['{series} 첫해 {pos}위. 첫해는 원래 이럼','{series} 레벨이 다르긴 하네','첫 시즌은 적응기. 내년 보고 판단하자','{series} 첫해 {pos}위면 생각보다 나쁘진 않음'],
+ firstGood:['첫 시즌부터 존재감 있음','적응 끝나면 더 무서워질 듯','내년이 더 기대되는 선수'],
+ firstOk:['처음엔 다 이럼','조급할 필요 없음','첫해 순위로 판단하긴 이름'],
+ rookie:['F1 루키가 {pos}위면 괜찮은 출발','루키 시즌 치고 잘함','F1 첫해는 원래 힘듦. 내년이 진짜'],
+ oldTeamUp:['{oldteam} 떠난 거 정답이었네','팀 순위 {myrank}위 vs {oldteam} {oldrank}위. 이적 성공','{oldteam} 남았으면 이 순위 못 찍음','이적 잘했다 진짜'],
+ oldTeamDown:['{oldteam} 올해 {oldrank}위던데… 이적 타이밍 아쉽다','{oldteam} 남았어야 했나','이적은 결과로 말하는 건데 올해는 실패','{oldteam} 팬들은 지금 웃고 있을 듯'],
+ moveUp:['{oldteam}에서 {prevpos}위 → 여기서 {pos}위. 팀이랑 잘 맞음','팀 바꾸고 확 살아남','이적 효과 확실하네'],
+ moveDown:['작년 {prevpos}위였는데 팀 옮기고 {pos}위','{team} 차랑 안 맞는 듯','이적 첫해라 그렇다고 믿음'],
+ bounce:['작년 {prevpos}위 → 올해 {pos}위. 뭐 먹었냐','한 시즌에 {gain}계단 ㄷㄷ','작년에 끝났다던 사람들 어디 감','한 해 만에 이렇게 바뀌네'],
+ slide:['작년 {prevpos}위 하던 선수 맞음?','{prevpos}위 → {pos}위… 올해 무슨 일 있었냐','한 해 쉬어 가는 거라고 생각하자','폼이 확 떨어졌네'],
+ arcUp:['전반기 평균 {h1}위 → 후반기 {h2}위. 갈수록 좋아짐','시즌 초반엔 걱정했는데 후반기 미쳤음','후반기 폼이면 내년 기대됨','초반 부진 털고 올라온 거 보기 좋았음'],
+ arcDown:['전반기 평균 {h1}위였는데 후반기 {h2}위','초반엔 좋았는데 후반에 힘 빠짐','후반기에 무슨 일 있었냐','시즌 중반부터 페이스가 뚝 떨어짐'],
+ carOver:['{team} 차로 {pos}위는 드라이버가 끌고 간 거','이 차로 {pos}위면 사실상 우승임','차 순위보다 한참 위에서 끝냄','좋은 차 타면 어떨지 궁금함'],
+ carUnder:['{team} 차로 {pos}위는 좀 아쉽다','차는 좋은데 순위가 안 따라옴','이 차면 포디움 경쟁은 했어야지','차빨 소리 듣기 싫으면 더 해야 함'],
+ matewon:['{mate} 상대로 퀄리 {mq} ㄷㄷ','팀메이트 상대로 퀄리 {mq}면 팀 에이스 확정','{mate|이|가} 좀 불쌍해짐','팀 안에서는 상대가 없었음'],
+ matelost:['{mate}한테 퀄리 {mq}… 이건 변명 못 함','같은 차인데 {mate|이|가} 더 빠름','팀메이트 비교는 거짓말을 안 함','{mate|은|는} 같은 차로 저기 있는데'],
+ dnfCost:['리타이어 {dnf}번에 {gap}점 차. 계산 나옴','{champ|이랑|랑} {gap}점 차인데 리타이어가 {dnf}번…','리타이어 한 번만 덜 했어도 몰랐다'],
+ dnf:['리타이어 {dnf}번이면 순위 의미 없음','완주만 했어도 몇 계단은 위였다','올해 리타이어 너무 많았음','{dnf}번 리타이어는 운이라고만 하기엔 좀'],
+ poor:['올해는 진짜 할 말이 없다','{pos}위면 내년 시트 걱정해야 함','차 탓만 하기엔 순위가 너무 낮음','올해는 그냥 잊자','내년에도 이러면 진짜 위험','버티는 시즌이었음'],
+ mid:['{pos}위. 딱 이 정도가 지금 실력인 듯','무난한 시즌. 근데 무난하기만 함','한 단계 올라가려면 뭔가 더 필요함','튀진 않는데 꾸준함','{pos}위면 나쁘진 않음','내년엔 좀 더 위에서 보고 싶다'],
+ junior:['{series} {pos}위면 위 단계 보일 만함','이 성적이면 팀들이 연락하겠지','{series}에서 이 정도면 재능은 확실','올라갈 때 됐다'],
+ injury:['부상으로 빠진 경기가 너무 아까움','결장만 없었으면 순위 더 위였다','몸 관리 좀 하자'],
+ kor:['한국 드라이버가 {series} {pos}위 ㄷㄷ','새벽에 중계 챙겨 본 보람 있다','한국에서도 이제 이름 좀 알려지는 중','국내 중계 해설도 이제 이름 외운 듯'],
+ tired:['요즘 얼굴 많이 지쳐 보임','시즌 끝나면 좀 쉬어라','컨디션 관리가 안 되는 듯'],
+ star:['인기는 이미 탑급','굿즈 품절이라던데 ㄷㄷ','성적보다 인기가 먼저 올라가는 중','팬 진짜 많아졌다'],
+ vet:['{age}살에 이 순위면 아직 쌩쌩함','나이 먹어도 운영은 최고','{age}살인데 젊은 애들이랑 비빔','은퇴 얘기는 아직 이름'],
+ decline:['{age}살… 퀄리가 예전 같지 않다','세월은 못 이기나','그래도 레이스 운영은 아직 쓸 만함','슬슬 은퇴 각 보는 중?'],
+ rainstar:['비 오는 날엔 무조건 이 선수','빗길 포디움만 {wetPod}번','비 예보 뜨면 일단 기대부터 함'],
+ reserve:['리저브로 한 시즌 버티는 것도 쉽지 않음','시트 언제 주냐 진짜','리저브만 계속이면 다른 리그도 생각해 봐야','기다리다 보면 기회 옴'],
+ reserveSub:['대타로 나와서 이 정도면 시트 줘야지','갑자기 나왔는데 침착했음','대타 {starts}경기로 보여 줄 건 보여 줌'],
+ giveup:['{age}살인데 아직 F1 못 감… 다른 길도 봐야 할 듯','이 실력이면 인디카 가서 우승 경쟁 가능','F1 팀들 눈이 없음','올해가 마지막 기회일 수도'],
+ xferOk:['이적 요청 공개하더니 진짜 나가네','판 커졌다 ㅋㅋ','의리는 모르겠고 실력은 인정','{team} 팬들 지금 분위기 안 좋음'],
+ xferNone:['이적 요청했는데 아무도 안 데려감','내년 팀 분위기 어떡하냐','결국 남는 거면 성적으로 보여 줘야 함'],
+ backPts:['하위팀으로 포인트 따 옴 ㄷㄷ','이 차로 포인트면 잘한 거임','팀 입장에선 이 포인트가 엄청 큼','하위팀에서 이 정도면 위에서 데려가야 함'],
+ youngrec:['최연소 기록 또 깨짐','{age}살 ㄷㄷ 기록 제조기','기록 깨지는 거 실시간으로 봄'],
+ triple:['트리플 크라운 ㄷㄷㄷ','모나코 르망 인디 500 다 이긴 사람이 나옴','그레이엄 힐 이후 처음이라는 거 실화냐','이건 진짜 역사임','{name} 이름은 이제 안 잊혀짐'],
+ crownWin:['{crown} 우승은 시즌 우승이랑 급이 다름','{crown} 트로피면 커리어 하나는 완성','{crown} 우승 ㄷㄷ 평생 남을 기록','F1 아니어도 {crown} 우승이면 전설임'],
+ crewChamp:['#{no} 크루 셋이 같이 챔피언','{crew|이랑|랑} 같이 한 타이틀이라 더 값짐','내구는 셋이 다 잘해야 이김','교대 운영이 완벽했음'],
+ crew:['#{no} 크루 호흡 점점 좋아짐','{crew|이랑|랑} 한 차 타는 거 잘 맞는 듯','내구는 혼자 빨라서 되는 게 아님'],
+ makers:['{team} 제조사 타이틀까지 ㄷㄷ','팀 전체가 잘한 시즌','제조사 타이틀은 공장 사람들 몫도 큼'],
+ hyperpole:['하이퍼폴 {poles}번이면 한 랩은 최고','폴 보너스도 쌓이면 꽤 큼','퀄리 속도는 리그 탑급'],
+ lapLead:['랩 리드 {lead}경기 ㄷㄷ 앞에서 끄는 레이스 많았음','보너스만 {bonus}점','앞에서 달리는 시간이 길었던 시즌'],
+ fast12:['인디 500 패스트 12 {f12}위면 차 진짜 빨랐음','인디 500 퀄리 점수도 은근 큼','패스트 12까지 간 게 대단'],
+ roy:['루키 오브 더 이어 ㅊㅊ','신인 중엔 확실히 제일 잘함','첫해 신인왕이면 출발 좋음'],
+ dethrone:['{king}의 {kk}연패를 끊음 ㄷㄷ','{king} 시대 끝났다','드디어 {king|을|를} 넘었다'],
+ loyal:['{team}에서 {years}년째. 이제 팀 얼굴','{years}년 한 팀이면 의리 인정','{team} 하면 이제 이 선수'],
+ engBad:['{engine} PU 언제 고치냐','직선에서 다 뺏기는 거 보면 엔진 문제','드라이버보다 {engine} 엔진이 문제'],
+ engSame:['같은 {engine} 엔진인 {other|은|는} 저 위에 있음. 섀시 문제','엔진은 {other|이랑|랑} 같은데 차이가 왜 이럼'],
+ engBeat:['고객팀이 {works} 이김 ㅋㅋ','{works} 엔진 받아서 {works}보다 위','워크스팀 {works} 체면 구김'],
+ newRegUp:['새 규정 첫해 {team} 확 올라옴','규정 바뀌자마자 치고 나가네','이번 규정은 {team|이|가} 제대로 읽음'],
+ newRegDown:['새 규정 첫해부터 이러면 몇 년 고생함','규정 바뀌고 {team} 확 내려앉음','{engine} 새 PU 망한 듯'],
+ engMove:['{oldeng} 버리고 {engine} 간 거 정답','엔진 바꾼 게 컸다','{engine} 파워 받으니까 다르네']
 };
-
-const FAN_MORE={
- champ:['폼 미쳤다 진짜 이게 재능이지','이번 시즌은 레전드 시즌으로 박제','다른 팀들 내년에 긴장 좀 해야 할 듯','챔피언 확정 순간 중계진 목소리 떨림 ㅋㅋ'],
- wc:['월챔 확정 순간 가족 다 깼다 ㅋㅋㅋ','오늘 같은 날 치킨은 국룰이지','진짜 우리 시대 최고의 드라이버다','시즌 내내 압도적이었음 반박 시 니 말 틀림','이제 다음 목표는 연패다 가즈아'],
- win:['체커기 받고 무전에서 소리 지르는 거 보고 울컥','폴 투 윈 깔끔하다','언더컷 타이밍 완벽했음 전략팀 칭찬해','이 선수 일요일에 진짜 강함','중계 해설이 "오늘의 주인공"이라고 함 ㅋㅋ'],
- firstpod:['포디움 인터뷰 떨리는 목소리 귀여움 ㅋㅋ','샴페인 처음 뿌려보는 티 남 ㅋㅋㅋ','첫 포디움은 평생 기억하겠지'],
- poor:['전략팀 일 안 하냐','타이어 다 녹는 차로 뭘 하라는 거임','드라이버 탓 그만해라 차가 느리다','이번 시즌 폼 왜 이러냐 진짜','팀 옮겨야 산다'],
- dnf:['또 리타이어? 이 정도면 굿이라도 해야 함','신뢰성 문제 언제 고치냐','DNF 장면 보고 리모컨 던질 뻔'],
- mid:['꾸준히 포인트 챙기는 게 은근 대단함','내년엔 한 단계 더 올라갈 듯','스타트는 진짜 잘함','아직 보여줄 게 많다','이 선수 경기는 볼 맛이 있음'],
- junior:['F1 팀 스카우트들 이 선수 보고 있다는 소문 있음','주니어 시절 기록 보니까 미래 월챔 각','이 나이에 이 운영? 재능이다'],
- kor:['한국인 F1 드라이버 시대 오나','국뽕 차오른다 진짜','한국 GP 생기면 무조건 직관 간다'],
- rookie:['루키 시즌에 팀메이트랑 비벼? 대박','신인왕은 확정이지','데뷔전 긴장한 거 티 났는데 금방 적응함'],
- vet:['베테랑 운영 보고 배워야 함','경험은 못 이긴다','아직 은퇴하기엔 너무 아깝다'],
- matelost:['팀메이트한테 퀄리파잉 털리는 거 보기 힘들다','팀이 팀메이트만 밀어주는 거 아님?'],
- matewon:['팀 넘버원 확정이네','팀메이트 멘탈 괜찮냐 ㅋㅋ'],
- star:['굿즈 다 품절됐다던데 ㄷㄷ','이제 F1 밖에서도 다 알아보더라'],
- rivalWin:['라이벌보다 앞섰다!! 이게 맞지','{rival} 팬들 오늘 조용하네 ㅋㅋ','라이벌전은 우리가 이겼다','이번 시즌 라이벌 압살 ㅋㅋㅋ'],
- rivalLose:['{rival}한테 또 졌네… 내년엔 갚아주자','라이벌한테 밀리는 건 좀 자존심 상함','{rival} 폼 무섭다 진짜','라이벌전 패배는 아프다'],
- rivalF1:['둘 다 F1 왔다! 이제 진짜 맞대결이다','카트 시절 라이벌이 F1에서 다시 만남 ㄷㄷ 드라마다'],
- rivalOut:['라이벌이 떠났네… 그래도 좋은 경쟁이었다','{rival} 없으니까 좀 허전함'],
- // new mid-season moments
- start0ok:['스타트 인사이드 파고든 거 미쳤다 ㄷㄷ','첫 코너에서 세 대 제낌 ㅋㅋㅋ'],start0bad:['스타트 욕심부리다 오히려 밀림…'],start0dnf:['첫 코너 사고… 레이스 끝 ㅠㅠ','1랩 리타이어는 진짜 너무하다'],
- start1ok:['스타트 안정적으로 잘 지킴'],start1bad:['스타트에서 너무 소극적이었다'],
- undercut0ok:['언더컷 성공!! 전략 완벽','아웃랩 미쳤다 언더컷 장인'],undercut0bad:['언더컷 실패… 트래픽에 걸렸네'],
- undercut1ok:['오버컷 성공 ㄷㄷ 타이어 관리 클래스'],undercut1bad:['너무 오래 버텼다 타이어 끝났었음'],
- redflag0ok:['적기 후 소프트 재출발 개꿀 ㅋㅋ','리스타트 미쳤다 순위 쭉쭉'],redflag0bad:['소프트 선택은 실수였다…'],
- redflag1ok:['하드로 끝까지 버틴 거 노련하다'],redflag1bad:['하드는 너무 느렸다…'],
- matefight0ok:['팀 오더 무시하고 추월 ㅋㅋㅋ 낭만 있다','팀메이트 제낀 마지막 랩 소름'],matefight0bad:['팀메이트랑 싸우다 순위 날림 팀 분위기 어쩔'],matefight0dnf:['팀메이트끼리 부딪힘… 팀 대표 표정 봤냐 ㅋㅋ','같은 팀끼리 리타이어는 최악이다'],
- matefight1ok:['팀 플레이 인정, 대신 다음엔 네 차례다'],
- fuel0ok:['연료 아끼면서 순위 지킨 거 운영 잘했다'],fuel1ok:['연료 아슬아슬했는데 끝까지 밀어붙임 ㄷㄷ'],fuel1bad:['연료 때문에 막판에 페이스 뚝…'],fuel1dnf:['연료 바닥나서 멈춤 ㅋㅋㅋ ㅠㅠ'],
- limits0ok:['트랙 리밋 조심하면서도 페이스 유지'],limits0bad:['라인 조심하다 너무 느려졌다'],
- limits1ok:['트랙 리밋 아슬아슬하게 피해감 ㅋㅋ'],limits1bad:['5초 페널티… 트랙 리밋 진짜 짜증'],
- heat0ok:['더위 속에서 페이스 조절 현명했다'],heat1ok:['찜통 같은 차 안에서 끝까지 버팀 철인이다'],heat1bad:['더위에 탈진한 거 보였다 ㅠ'],
- pitfail0ok:['피트 실수에도 침착했던 거 프로답다','정비팀 감싸주는 거 멋있다'],pitfail1ok:['무전으로 화내는 거 이해함 ㅋㅋ 나도 화났다'],
- brake0ok:['브레이크 아끼면서 완주한 거 운영 굿'],brake0bad:['브레이크 아끼느라 순위 잃음'],brake1ok:['브레이크 불나는데도 순위 지킴 ㄷㄷ'],brake1bad:['브레이크 과열로 페이스 무너짐'],brake1dnf:['브레이크 터져서 리타이어… 무리했다'],
- vsc0ok:['VSC 피트인 타이밍 완벽 공짜 피트 스톱 개꿀'],vsc0bad:['VSC 피트인 했는데 손해였네'],vsc1ok:['트랙 남은 판단 맞았다'],vsc1bad:['VSC 때 왜 안 들어감…'],
- g_gt3_win:['가명으로 GT3 나간 거 들킴 ㅋㅋㅋ 근데 1등함','GT3 영상 돌고 있음 클래스 다르다'],g_gt3_slump:['GT3 몰래 탄 다음 레이스 컨디션 박살 ㅋㅋ'],
- g_esports_win:['심레이싱 대회에서 프로게이머 이김 ㄷㄷ','방송 켜고 밤샘하는 거 봤음 ㅋㅋ'],g_esports_slump:['밤샘 심레이싱 후유증 레이스에서 보였다'],
- g_rallyx_win:['랠리 영상 미쳤다 차 다루는 감각 클래스','랠리까지 잘하면 반칙 아니냐'],g_rallyx_inj:['랠리는 진짜 위험하다니까… 몸조심해','랠리 사고 소식에 심장 떨어질 뻔'],
- g_cycle_win:['알프스 사이클 인증샷 체력 괴물'],g_cycle_inj:['사이클 타다 다쳤다고? 도로 훈련 그만해 ㅠ'],
- g_surf_win:['서핑 사진 보니까 힐링하고 온 듯 ㅋㅋ'],g_surf_inj:['서핑하다 다쳐서 결장 이건 좀 ㅋㅋ ㅠ'],
- // preseason decisions people noticed
- ev_docu0:['다큐 보고 입덕했다는 사람 주변에 엄청 많음','다큐에서 악역처럼 편집된 거 억울하겠다 ㅋㅋ'],
- ev_tvshow0:['예능 나온 거 봤는데 입담 좋더라 ㅋㅋ','예능 보고 F1 처음 보기 시작함'],
- ev_leaveme0:['"가만히 둬, 알아서 할게" 무전 레전드 ㅋㅋㅋ','무전 밈 돼서 티셔츠까지 나옴'],
- ev_gt3ring0:['가명 쓰고 GT3 나간 거 결국 다 알게 됨 ㅋㅋ'],
- ev_esports0:['심레이싱 방송 동접자 미쳤던데'],
- ev_helmetvote0:['팬 공모 헬멧 진짜 이쁘다 굿즈로 내줘'],
- ev_hate0:['악플러한테 정면으로 맞선 거 속 시원했음','그래도 악플엔 무대응이 답인데…'],
- ev_bosspress0:['팀 대표한테 맞받아친 인터뷰 ㄷㄷ 배짱 있다'],
- ev_starmate0:['스타 팀메이트한테 선전포고 ㅋㅋ 판 커진다'],
- ev_kartschool0:['카트 아카데미 열었다니 진짜 멋있다'],
- ev_rally0:['비시즌에 랠리까지 뛰는 거 낭만 그 자체']
-};
-for(const k in FAN_MORE)FAN[k]=[...(FAN[k]||[]),...FAN_MORE[k]];
-FAN.matewon.push('{mate} 상대로 퀄리파잉 {mqRo} 털었네 ㅋㅋ','퀄리파잉 {mq}면 {mate|은|는} 할 말 없다');FAN.matelost.push('{mate}한테 퀄리파잉 {mq}… 이건 좀 아프다','{mate|이|가} 그렇게 빠른 거임? 퀄리파잉 {mq} 실화냐');
-FAN.firstGood=['첫 시즌에 이 정도면 대박','적응 끝나면 진짜 무서워질 듯','루키가 벌써 이러면 내년엔 어쩌려고','데뷔 시즌부터 존재감 확실함'];
-FAN.firstOk=['첫 시즌은 원래 적응기임','후반에 페이스 올라온 거 봄?','조급해하지 말자 내년부터가 진짜','새 차 적응하는 데 시간 걸리는 건 당연함'];
-FAN.backPts=['하위팀으로 포인트 따온 거 실화냐 ㅋㅋ','이 차로 1점이면 사실상 우승임','팀 공장 오늘 회식 확정','이 1점이 상금 수십억이다 진짜로','팀 보스 표정 봤냐 ㅋㅋ 함박웃음'];
-FAN.homewin=['홈 관중 앞에서 우승이라니, 관중석 난리 났다','홈 GP 우승은 평생 남는다','국가 울려 퍼질 때 소름 돋았다','홈 팬들 앞에서 해냈다!','이번 주말 관중석 분위기 역대급이었음'];
-FAN.youngrec=['최연소 기록 갈아치우는 걸 실시간으로 봤다','이 나이에 이걸 해낸다고?','{name}, 기록 제조기 시작이다','역사책에 이름 올라가는 중'];
-FAN.triple=['트리플 크라운 축하합니다!!','모나코, 르망, 인디 500을 다 이긴 드라이버를 내가 응원했다니','그레이엄 힐 이후 두 번째 트리플 크라운, 이건 역사다','몇십 년 뒤에도 이름이 나올 기록이에요. 축하합니다','{name} 진짜 전설 인정합니다'];
-FAN.crewChamp=['#{no} 크루 전원 챔피언! {crew}도 진짜 고생했다','내구는 셋이 같이 이기는 거라 더 뭉클하다','교대할 때마다 순위 지켜 낸 게 챔피언 비결','{crew|과|와} 같이 든 트로피라 더 멋있다'];
-FAN.crew=['{crew|과|와} 한 차 타는 거 너무 좋다','크루 셋 호흡이 점점 맞아 가는 게 보임','#{no} 크루 응원합니다','내구는 혼자 빨라서 되는 게 아니더라'];
-FAN.makers=['{team} 제조사 타이틀까지 가져왔다','공장 사람들도 오늘은 다 같이 축배 들겠다','제조사 타이틀은 팀 전체가 만든 거라 더 값지다'];
-FAN.hyperpole=['하이퍼폴 {poles}번이면 한 랩 속도는 이미 정상급','폴 잡고 1점씩 챙기는 것도 쌓이면 크다','하이퍼폴 랩 볼 때마다 소름'];
-FAN.lapLead=['랩 리드 보너스를 {lead}경기에서 챙겼네','앞에서 끌고 가는 레이스가 제일 멋있다','보너스 점수만 {bonus}점이면 챔피언 싸움에서 크다'];
-FAN.fast12=['인디 500 패스트 12 진출! 퀄리파잉부터 소름','인디 500 퀄리파잉 {f12}위면 차가 진짜 빨랐다','패스트 12 점수도 시즌 끝엔 크게 남는다'];
-FAN.roy=['루키 오브 더 이어 축하해요!','인디카 첫해에 신인왕이면 출발 좋다','신인 중엔 확실히 1등이었음'];
-FAN.dethrone=['{king}의 {kk}연패를 끊었다!','{king|을|를} 끌어내리고 정상이라니','드디어 {king} 독주가 멈췄다'];
-FAN.crownWin=['{crown} 우승은 진짜 레전드 업적이다','F1 못 간 게 아니라 다른 전설을 쓰는 중','{crown} 트로피 들어 올리는 거 보고 울었다','이거면 트리플 크라운 꿈꿔도 된다'];
-
-// situation comments: who, where, how it compares (filled from V in buildReact)
-Object.assign(FAN,{
- stageGood:['{series} 첫해에 {pos}위면 대박','{series} 루키가 {pos}위? 내년엔 어쩌려고','{series} 오자마자 {pos}위, 적응이 너무 빠른데','{series} 첫 시즌 {pos}위면 할 만큼 했다'],
- stageOk:['{series} 첫해 {pos}위면 나쁘지 않음, 원래 첫해는 적응기','{series} 레벨이 확실히 다르긴 하네. 내년부터 보자','{series} 첫 시즌은 다들 이 정도에서 시작함'],
- oldTeamUp:['{oldteam} 떠난 거 신의 한 수였네','{oldteam} 남았으면 이 순위 못 찍었다','팀 순위 {myrank}위 vs {oldteam} {oldrank}위, 이적 대성공','{oldteam} 팬들 지금 배 아플 듯 ㅋㅋ'],
- oldTeamDown:['{oldteam} 남았으면 어땠을까…','{oldteam} {oldrank}위 하는 거 보니까 좀 아깝다','이적 타이밍이 아쉬웠다. {oldteam} 올해 잘 나감','{oldteam} 버린 거 후회 중이냐 ㅠ'],
- moveUp:['{oldteam}에서 {prevpos}위 → {team}에서 {pos}위, 이적 대성공','팀 바꾸고 날아다니네','{team|이랑|랑} 궁합 좋은 듯'],
- moveDown:['{oldteam} 때가 더 좋았는데…','{team} 차가 안 맞는 듯. 작년 {prevpos}위였잖아','팀 옮기고 고전 중. 시간이 필요하다'],
- bounce:['작년 {prevpos}위 → 올해 {pos}위 실화냐','{prevpos}위에서 {pos}위로, 이게 반등이지','작년에 욕하던 사람들 다 어디 감? ㅋㅋ','한 시즌 만에 {gain}계단 점프 ㄷㄷ'],
- slide:['작년 {prevpos}위 하던 선수가 왜 이래','{prevpos}위 → {pos}위… 무슨 일 있었냐','한 해 쉬어 가는 거라고 믿는다'],
- carOver:['{team} 차로 {pos}위는 말이 안 됨','이 차로 {pos}위면 드라이버가 다 한 거임','{team} 엔지니어들 이 선수한테 절해야 함','차 바꿔 주면 바로 우승 경쟁할 듯'],
- carUnder:['{team} 차 받고 {pos}위는 좀…','차는 우승권인데 순위가 왜 이래','{team} 머신이면 최소 포디움 경쟁은 해야지'],
- closeP2:['챔피언이랑 {gap}점 차… 한 경기만 더 있었어도','{gap}점 차 2위라니 너무 아깝다','{champ|이랑|랑} 마지막까지 싸운 거 진짜 멋있었다','내년엔 그 {gap}점 꼭 뒤집자'],
- p2:['시즌 2위, 내년엔 1위만 남았다','{champ}만 없었으면 챔피언이었다','2위도 대단한 거임. 다음은 정상'],
- repeat:['{streak}연패 ㄷㄷ 이제 시대가 열렸다','{streak}년 연속 챔피언, 막을 사람이 없네','{streak}연패면 이제 왕조라고 불러야 함'],
- firstWin:['{seasons}시즌 만의 첫 승!! 기다린 보람 있다','첫 승까지 {seasons}시즌, 드디어 터졌다','이 첫 승 보려고 {seasons}년 응원했다 ㅠㅠ'],
- loyal:['{team} {years}년째, 이제 팀의 얼굴','{team} 하면 이 선수지','{years}년 의리 ㄷㄷ {team} 레전드 각'],
- youngChamp:['{age}살에 {series} 챔피언? 역대급 페이스','{age}살이 이걸 해낸다고?','이 나이에 {series} 정복이면 F1은 시간 문제'],
- oldWc:['{age}살 월드 챔피언!!! 나이는 숫자일 뿐','{age}살에 월챔이라니 F1 역사가 바뀌었다','40 넘어서 월챔? 이건 영화로 만들어야 함','아저씨 소리 듣던 선수가 세계 정상 ㅠㅠ','{age}살 월챔 보고 우리 아빠가 운동 시작함','젊은 애들 다 제치고 {age}살이 챔피언 ㄷㄷ'],
- oldFirstWc:['{age}살에 첫 월챔, 포기 안 하길 잘했다','이 첫 타이틀 보려고 {seasons}년 기다렸다','늦게 핀 꽃이 제일 예쁘다 진짜'],
- vetWc:['{age}살 챔피언, 경험이 속도를 이겼다','베테랑의 운영이 다 했다','{age}살에도 정상, 클래스는 영원하다'],
- engBad:['{engine} PU 언제 정신 차리냐','드라이버는 잘했다, 엔진이 문제','직선에서 다 뺏기는 거 보면 {engine} 파워가 문제임','{engine} 엔진만 아니었어도…'],
- engSame:['같은 {engine} 엔진 쓰는 {other} 저 위에 있는 거 보면 섀시 문제','엔진은 {other|이랑|랑} 같은데 차이가 왜 이렇게 남?','{other|은|는} 같은 {engine} 엔진으로 날아다님. 공장 반성해라'],
- engBeat:['고객팀이 {works} 이김 ㅋㅋ','{works} 엔진 받아서 {works}보다 위라니','워크스팀 {works} 체면 다 구겼다 ㅋㅋ'],
- newRegUp:['새 규정 첫해 {engine} 엔진 대박','규정 바뀌자마자 {team} 확 올라왔네','이번 규정은 {team|이|가} 제대로 읽었다'],
- newRegDown:['{engine} 새 PU 망한 듯','새 규정 첫해부터 이러면 몇 년 고생할 듯','규정 바뀌고 {team} 확 내려앉았네'],
- engMove:['{oldeng} 버리고 {engine} 엔진 간 거 정답이었네','{engine} 파워 받으니까 다르네','엔진 바꾼 게 정답이었다']
-});
-const REPLY=['ㄹㅇ','ㅇㅈ','222','이건 인정','반박 불가','ㅋㅋㅋㅋ 공감','차빨 아님?','아닌데 드라이버 실력임','나만 그렇게 느낀 거 아니었네','이게 맞다','내년이 더 기대됨','진짜 그 장면 소름이었음'];
+// replies: agree or push back (a real thread rarely agrees all the way)
+const REPLY=['ㄹㅇ','ㅇㅈ','이건 인정','내 말이','동의함','222'];
+const REP_GOOD=['차빨도 좀 있음','ㅇㅈ 올해는 급이 달랐음','이 폼 내년에도 가면 인정','운도 좀 따랐음','이건 인정할 수밖에'];
+const REP_BAD=['차 탓도 있음','팀메이트 보면 차 탓만은 아님','내년엔 나아지겠지','그 소리 작년에도 들음','아직 판단하긴 이름'];
+const REP_OF={wc:REP_GOOD,champ:REP_GOOD,win:REP_GOOD,repeat:REP_GOOD,bounce:REP_GOOD,stageGood:REP_GOOD,
+ poor:REP_BAD,mid:REP_BAD,slide:REP_BAD,carUnder:REP_BAD,dnf:REP_BAD,arcDown:REP_BAD,moveDown:REP_BAD,oldTeamDown:REP_BAD,stageOk:REP_BAD};
+// a comment seen once in this career doesn't come back (kept as short hashes)
+const fanH=t=>{let h=5381;for(let i=0;i<t.length;i++)h=(h*33+t.charCodeAt(i))|0;return(h>>>0).toString(36)};
 function likes(){const v=Math.round(ri(4,40)*(1+S.p.fans/8));return v>=1000?Math.round(v/100)/10+'천':v}
+const likeF=v=>v>=1000?Math.round(v/100)/10+'천':v;
 function buildReact(R,x){
   const p=S.p,H=p.history,prev=H.length>1?H[H.length-2]:null,E=[],C=[];
   const name=p.name,Y=R.why,expP=Y?Math.max(1,Y.r0-Y.drv-Y.car-Y.stam-(Y.adapt||0)):null,diff=expP&&R.pos?expP-R.pos:0;
@@ -3967,8 +3896,8 @@ function buildReact(R,x){
   if(R.titled&&(R.sid==='F1'||ALT_DRV[R.lk]))adv+=BOP(R.lk)?' 다음 시즌엔 BoP 조정으로 차가 묶일 거예요.':' 다음 시즌엔 라이벌 팀들의 견제가 시작돼요.';
   if(R.sid==='ALT'&&R.age<=B.career.alt_return.max_age&&(R.titled||R.pos&&R.pos<=3))adv+=R.titled?` ${R.series} 챔피언이라 F1 팀들의 문이 다시 열려요.`:` ${R.series} ${R.pos}위는 F1 팀들도 눈여겨보는 성적이에요.`;
   E.push(pre+adv);
-  // fans: the season's story first (who, where, compared with what); choices only as a side note
-  const tags=[],side=[],V={name,team:R.team||'',series:R.series,pos:R.pos,age:R.age,wins:R.wins,poles:R.poles||0,crown:R.crown?R.crown.n:'',champ:x.champ||null,gap:x.gap};
+  // fans: the whole season's story (who, where, compared with what); single races and choices are left out (찬우 결정)
+  const tags=[],V={name,team:R.team||'',series:{KART:'카트',F1:'F1',F2:'F2',F3:'F3'}[R.sid]||R.series,pos:R.pos,age:R.age,wins:R.wins,poles:R.poles||0,crown:R.crown?R.crown.n:'',champ:x.champ||null,gap:x.gap,dnf:R.dnf||0,starts:R.starts||0,wetPod:x.wetPod||0};
   const race=R.role==='race'&&R.pos,past=H.slice(0,-1),same=past.filter(h=>h.lk===R.lk&&h.role==='race'&&h.pos);V.seasons=same.length+1;
   const engOf=id=>(K.teams.find(t=>t.id===id)||{}).engine||null,tidOf=h=>h.tid||(K.teams.find(t=>t.name===h.team||t.short===h.team)||{}).id||null;
   // headline: titles, by age and streak
@@ -3988,7 +3917,7 @@ function buildReact(R,x){
   if(R.sid!=='F1'&&R.age>=24&&!p.debutYear)tags.push('giveup');
   if(R.wins&&!R.titled&&same.length&&same.every(h=>!h.wins))tags.push('firstWin');
   // story: new stage, old team, rise and fall, the car
-  if(R.first&&race){const good=R.pos/R.field<=.5;tags.push(good?'stageGood':'stageOk',good?'firstGood':'firstOk')}
+  if(R.first&&race&&!R.titled){const good=R.pos/R.field<=.5;tags.push(good?'stageGood':'stageOk',good?'firstGood':'firstOk')}
   const prev0=past.at(-1),cons=R.sid==='F1'&&S.f1sum&&S.f1sum.year===R.year?S.f1sum.cons:null,rk=id=>cons?cons.findIndex(c=>c.id===id):-1;
   const myId=R.sid==='F1'?R.tid||tidOf(R):null,myR=rk(myId);if(myR>=0)V.myrank=myR+1;
   let engTag=null;
@@ -3999,6 +3928,9 @@ function buildReact(R,x){
       else if(prev0.pos-R.pos>=3)tags.push('moveUp');else if(R.pos-prev0.pos>=3)tags.push('moveDown')}
     else if(prev0.pos-R.pos>=5&&R.pos<=R.field*.5){V.gain=prev0.pos-R.pos;tags.push('bounce')}
     else if(R.pos-prev0.pos>=5&&prev0.pos<=5)tags.push('slide')}
+  // how the season went: first half against second half
+  if(race&&x.h1!=null&&Math.abs(x.h1-x.h2)>=4&&R.pos>1){V.h1=x.h1;V.h2=x.h2;tags.push(x.h2<x.h1?'arcUp':'arcDown')}
+  if(race&&R.pos>1&&R.pos<=3&&R.dnf>=2&&x.gap!=null&&x.gap<=R.dnf*20)tags.push('dnfCost');
   if(race&&Y){if(Y.car<=-3&&R.pos<=R.field*.5)tags.push('carOver');else if(Y.car>=3&&diff<=-3)tags.push('carUnder')}
   if(race&&R.pos===2&&V.champ){tags.push(x.gap!=null&&x.gap<=20?'closeP2':'p2')}
   // engine talk (F1 only, at most one)
@@ -4011,8 +3943,7 @@ function buildReact(R,x){
     else if(Y&&Y.car<=-3&&Math.random()<.5)engTag='engBad'}
   else if(engTag)V.engine=engOf(myId);
   if(engTag)tags.push(engTag);
-  if(x.monacoWin)tags.push('monaco');if(R.homeW)tags.splice(1,0,'homewin');
-  const podBefore=past.reduce((a,h)=>a+(h.podiums||0),0);if(R.podiums&&!podBefore)tags.push('firstpod');
+  const podBefore=past.reduce((a,h)=>a+(h.podiums||0),0);if(R.podiums&&!podBefore&&!R.titled)tags.push('firstpod');
   if(R.wins&&!R.titled)tags.push('win');if(R.poles>=3)tags.push('pole');
   if(x.wetN>=2&&x.wetPod>=2)tags.push('rainstar');
   if(R.h2h){const q=R.h2h.q,tot=q[0]+q[1]||1;V.mate=R.h2h.mate;V.mq=`${q[0]}:${q[1]}`;V.mqRo=joRo(V.mq);if(q[0]/tot<=(R.first?.2:.3))tags.push('matelost');if(q[0]/tot>=.7)tags.push('matewon')}
@@ -4022,32 +3953,34 @@ function buildReact(R,x){
   if(R.lk==='WEC'&&R.poles>=2)tags.push('hyperpole');
   if(R.lk==='INDY'&&R.lead>=4){V.lead=R.lead;V.bonus=R.bonus;tags.push('lapLead')}
   if(R.lk==='INDY'&&R.f12&&!(R.crown&&R.crown.res==='우승')){V.f12=R.f12;tags.push('fast12')}
-  if(R.dnf>=3)tags.push('dnf');if(x.injured)tags.push('injury');
+  if(R.dnf>=3&&!tags.includes('dnfCost'))tags.push('dnf');if(x.injured)tags.push('injury');
   if(R.sid==='F1'&&p.debutYear===R.year)tags.push('rookie');if(ORDER.includes(R.sid)&&R.pos&&R.pos<=5)tags.push('junior');
   if(R.pos&&R.pos/R.field>(R.first?.85:.75)&&!tags.includes('dnf'))tags.push('poor');
-  if(R.age>=33&&!R.titled)tags.push(R.ovrAfter<R.ovrBefore?'decline':'vet');
+  if(R.age>=33&&!R.titled)tags.push(R.ovrAfter<R.ovrBefore||R.pos&&R.pos>R.field*.6?'decline':'vet');
   if(p.morale<40)tags.push('tired');if(p.fans>=60)tags.push('star');
-  // choices made this season: incidents (retirements first), break challenge, preseason events
-  (x.inc||[]).filter(i=>i.done&&i.j!=null).forEach(i=>{const k=i.id+i.j+(i.dnf?'dnf':i.ok?'ok':'bad'),kk=FAN[k]?k:i.id+i.j+(i.ok?'ok':'bad');i.dnf?side.unshift(kk):side.push(kk)});
-  if(x.gacha&&x.gacha.res)side.push(x.gacha.res==='rest'?'g_rest':`g_${x.gacha.id}_${x.gacha.res}`);
-  (S.evSeason||[]).forEach(e=>side.push(`ev_${e.id}${e.j}`));
-  if(R.role==='reserve'){tags.length=0;side.length=0;tags.push(R.starts>0?'reserveSub':'reserve')}
-  if(!tags.length)tags.push('mid');if(p.nat==='KOR')tags.push('kor');
-  const T=[...new Set(tags)].concat(tags.filter(k=>k==='triple').slice(1)).filter(k=>FAN[k]),SD=[...new Set(side)].filter(k=>FAN[k]);
+  if(R.role==='reserve'){tags.length=0;tags.push(R.starts>0?'reserveSub':'reserve')}
+  if(!tags.length||tags.length<2&&race&&!R.titled)tags.push('mid');if(p.nat==='KOR'&&Math.random()<.4)tags.push('kor');
+  const T=[...new Set(tags)].concat(tags.filter(k=>k==='triple').slice(1)).filter(k=>FAN[k]);
   const fill=s=>s.replace(/\{(\w+)(?:\|([^|}]*)\|([^}]*))?\}/g,(m,k,a,b)=>V[k]==null?'':a!=null?jo(V[k],a,b):String(V[k]));
-  const n=R.role==='reserve'?(R.starts>0?3:2):Math.min(7,Math.max(3,T.length>3?4:3)+Math.floor(p.fans/30)),nSide=SD.length?(n>=6?2:1):0,fans=[],used=new Set();
-  const one=tg=>{for(let t=0;t<6;t++){const txt=fill(pick(FAN[tg]));if(!used.has(txt)){used.add(txt);return{nick:Math.random()<.25?ri(10,99)+pick(['lr','kx','ab','jm'])+'****':pick(NICKS),plat:pick(PLAT),txt,likes:likes(),ago:ri(2,59)+'분 전',re:Math.random()<.35?{nick:pick(NICKS),txt:pick(REPLY)}:null}}}return null};
-  for(let i=0;fans.length<n-nSide&&i<40;i++){const f=one(T[i%T.length]);if(f)fans.push(f)}
-  SD.slice(0,nSide).forEach((tg,i)=>{const f=one(tg);if(f)fans.splice(Math.min(fans.length,3+i),0,f)});
-  if(R.titled||R.tc)fans.forEach(f=>f.likes=typeof f.likes==='number'?f.likes*3:f.likes);
+  const n=R.role==='reserve'?(R.starts>0?3:2):Math.min(7,Math.max(3,T.length>3?4:3)+Math.floor(p.fans/30)),fans=[],used=new Set();
+  // a line already seen in this career is skipped while the pool still has fresh ones
+  const seen=new Set(S.fanSeen||[]),nicks=new Set();
+  const nk=()=>{for(let t=0;t<6;t++){const k=fanNick();if(!nicks.has(k)){nicks.add(k);return k}}return fanNick()};
+  const one=(tg,fresh)=>{const pool=FAN[tg].map(fill).filter(t=>!used.has(t)&&(!fresh||!seen.has(fanH(t))));if(!pool.length)return null;const txt=pick(pool);used.add(txt);
+    const RP=REP_OF[tg]||REPLY;return{nick:nk(),plat:pick(PLAT),txt,lk:Math.round(ri(4,40)*(1+p.fans/8)),ago:ri(2,59)+'분 전',re:Math.random()<.4?{nick:nk(),txt:pick(Math.random()<.6?RP:REPLY)}:null}};
+  for(const fresh of[true,false])for(let i=0;fans.length<n&&i<T.length*3;i++){const f=one(T[i%T.length],fresh);if(f)fans.push(f)}
+  if(R.titled||R.tc)fans.forEach(f=>f.lk*=3);
+  // the first one is the best-liked, like a real thread
+  {const L=fans.map(f=>f.lk).sort((a,b)=>b-a);fans.forEach((f,i)=>{f.likes=likeF(L[i]);delete f.lk})}
+  S.fanSeen=[...(S.fanSeen||[]),...fans.map(f=>fanH(f.txt))].slice(-300);
   return{year:R.year,series:R.series,sid:R.lk||R.sid,expert:E,fans,seen:false};
 }
 function reactTransfer(o){if(!S.react)return;const t=o.teamId?teamDef(o.teamId):null;if(!t)return;
   const prev=S.p.series==='F1'&&S.p.team&&S.p.team.id?teamDef(S.p.team.id):null,up=!prev||['bottom','mid','top'].indexOf(t.tier)>=['bottom','mid','top'].indexOf(prev.tier);
-  const txt=up?pick([`드디어 ${t.name} 간다!!`,`${t.name} 유니폼 바로 산다`,`이번 이적 대박이다`]):pick([`왜 굳이 ${t.name}로…?`,`${t.name}이면 좀 아쉬운데`,`그래도 시트 있는 게 어디냐`]);
-  S.react.fans.unshift({nick:pick(NICKS),plat:pick(PLAT),txt,likes:likes(),ago:'방금'});
+  const txt=up?pick([`${t.name} 간다고? 이건 잘했다`,`${jo(t.name,'이면','면')} 차는 확실히 좋아짐`,`이적 타이밍 좋았다`]):pick([`${joRo(t.name)} 가는 건 좀 의외`,`${jo(t.name,'이면','면')} 좀 아쉬운데`,`그래도 시트 있는 게 어디임`]);
+  S.react.fans.unshift({nick:fanNick(),plat:pick(PLAT),txt,likes:likes(),ago:'방금'});
   const W=seatWho(o);if(W){const n=W.n,t2=W.w==='poach'?pick([`${jo(n,'을','를')} 밀어냈다고? 이건 진짜다`,`${n} 빠지는 건 아쉽지만… 실력이면 인정`,`${n} 자리라니 부담 크겠다`]):W.w==='retire'?pick([`${n} 자리를 이어받는구나, 감회가 새롭다`,`${n} 은퇴하고 그 자리에 들어가네`]):pick([`${n} 나간 자리에 들어가는구나`,`${n}보단 잘하겠지?`]);
-    S.react.fans.splice(1,0,{nick:pick(NICKS),plat:pick(PLAT),txt:t2,likes:likes(),ago:'방금'})}
+    S.react.fans.splice(1,0,{nick:fanNick(),plat:pick(PLAT),txt:t2,likes:likes(),ago:'방금'})}
   S.react.seen=false}
 
 /* ---------- view helpers ---------- */
