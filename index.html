@@ -1074,6 +1074,7 @@ const B = {
     "reserve_promote_chance": 0.4,
     "reserve_promote_max_age": 34,
     "reserve_promote_gap": 5,
+    "reserve_scout": {"own": 2, "sub": 4, "per_pt": 1.5, "max": 15, "other_per_pt": 0.5, "other_max": 6, "keep_min": 25},
     "f1_debut_extra": 14,
   "debut_age_penalty_from": 27,
   "alt_return": {"note": "다른 리그 성적으로 F1 문이 다시 열림: max_age세 이하, 직전 시즌 챔피언이면 시트 기준 -champ·나이 벌점 절반·슈퍼라이선스 통과, 3위 안이면 -top3·나이 벌점 0.75배. F1 경험자도 포함", "max_age": 31, "champ": 10, "top3": 5},
@@ -2260,7 +2261,7 @@ function scoutInit(p){const sc={},base=clamp((ovrOf(p.stats)-50)*2,0,60);S.teams
 function scoutUpdate(pos,field,titled,ev){const p=S.p;if(!p.scout)scoutInit(p);
   const perf=pos?Math.min(1,1-(pos-1)/Math.max(1,field-1)+(S.last&&S.last.rec&&S.last.rec.first?.06:0)):.15,W=SC_W[p.series]||.6,ageAdv=clamp((TYP_AGE[p.series]||20)-p.age,-3,3),tal=(p.potential-78)/7;
   const inF1=p.series==='F1'&&p.role==='race',myM=inF1?teamDef(p.team.id).machine:0,myAc=p.academy?K.academies.find(a=>a.id===p.academy):null,LGs=(lgOf(p)||{}).sc||1,LGf=(lgOf(p)||{}).f1||[];
-  p.scoutD={};
+  p.scoutD={};const rsv=p.series==='F1'&&p.role==='reserve'&&p.team,rr=(S.last&&S.last.rec)||{};
   S.teams.forEach(tm=>{if(inF1&&tm.id===p.team.id)return;
     let d;const jrChamp=titled&&(p.series==='F2'?20:p.series==='F3'?8:p.series==='ALT'&&(p.alt==='SF'||p.alt==='FE')&&p.age<=29&&!p.debutYear?22:0);
     if(inF1){const rank=S.teams.filter(x=>x.machine>myM).length,exp=rank*2+1.5,over=pos?(exp-pos)/field:-.3;
@@ -2273,6 +2274,10 @@ function scoutUpdate(pos,field,titled,ev){const p=S.p;if(!p.scout)scoutInit(p);
     if(!inF1&&p.age>=24)d-=(p.age-23)*3;
     if(inF1&&tm.machine<=myM)d=Math.min(d,0);
     if(myAc){if(myAc.teams.includes(tm.id))d=Math.max(d,-2)+2;else d-=1}
+    // F1 reserve: my own team keeps faith, points scored as a stand-in count (own team most)
+    if(rsv){const R=B.career.reserve_scout,pt=rr.points||0;
+      if(tm.id===p.team.id)d=Math.max(d,0)+(rr.starts?R.sub+Math.min(R.max,pt*R.per_pt):R.own);
+      else if(pt>0)d+=Math.min(R.other_max,pt*R.other_per_pt)}
     const v0=p.scout[tm.id]||0,v=clamp(Math.round(v0+d),0,100);p.scout[tm.id]=v;p.scoutD[tm.id]=v-v0;
     const M=p.scoutM[tm.id]||0;
     if(v>=40&&M<40&&!inF1){p.scoutM[tm.id]=40;ev.push(`${jo(tm.name,'이','가')} 당신을 지켜보기 시작했어요 (관심도 ${v})`)}
@@ -3220,7 +3225,8 @@ function makeOffers(pos,field,h2h){
     const ac=p.academy?K.academies.find(a=>a.id===p.academy):null;
     let ids=ac?ac.teams.filter(id=>id!==p.team?.id).slice(0,hasF1?1:2):[];
     if(!ids.length){const hot=S.teams.filter(t=>scv(t.id)>=80).sort((a,b)=>scv(b.id)-scv(a.id)).map(t=>t.id);ids=hot.length?hot:Math.random()<.6?[pick(S.teams.filter(t=>t.tier!=='bottom')).id]:[]}
-    if(p.series==='F1'&&p.role==='reserve'&&!ids.includes(p.team.id)&&Math.random()<.5)ids.push(p.team.id);
+    // my own team's reserve seat stays on the table (first), unless they have lost interest
+    if(p.series==='F1'&&p.role==='reserve'&&p.team&&scv(p.team.id)>=B.career.reserve_scout.keep_min)ids=[p.team.id,...ids.filter(id=>id!==p.team.id)];
     ids.slice(0,2).forEach(id=>{const t=teamDef(id);o.push({kind:'reserve',teamId:id,title:`${t.name} 리저브 드라이버`,sub:'대타 기회를 기다리며 FP1·시뮬레이터 작업 · 레이스가 없어 성장이 조금 느려요',color:t.color,short:t.short,tag:'리저브'})});
   }
   // WEC/IndyCar seat: same rule as F1, a teammate who crushes me gets me a warning (if I still scored) or the sack
@@ -4766,7 +4772,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.6-d1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.6-d2',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
