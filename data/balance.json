@@ -250,6 +250,7 @@
   "driver_weight": 0.4,
   "car_weight": 0.6,
   "noise_sd": 3.0,
+  "f1_quali_carry": 0.3,
   "wet_race_chance": 0.15,
   "wet_noise_sd": 5.0,
   "dnf": {
