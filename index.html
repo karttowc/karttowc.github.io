@@ -4766,7 +4766,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.5',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.6-d1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -5127,7 +5127,10 @@ function deciderInfo(){const Z=S.season,L=Z.races-1;if(Z.races<2)return null;
   const riv=mi===0?st[1]:lead;if(!riv)return null;
   const gap=me.pts-riv.pts;if(mi!==0&&lead.pts-me.pts>P[0])return null;if(mi===0&&gap>P[0])return null;
   const o=Z.orders[L],pos=k=>{const i=o.fin.indexOf(k);return i<0?null:i+1},qpos=k=>{const i=o.q.indexOf(k);return i<0?null:i+1};
-  return{me,riv,gap,fm:pos('me'),fr:pos(riv.key),qm:qpos('me')||10,qr:qpos(riv.key)||10,P,name:Z.ctx.f1||ALTCAL[Z.ctx.sid]?roundName(L).replace(/^R\d+ · /,''):'최종전'}}
+  /* 최종전 보너스 점수(폴·퀄리파잉·랩 리드·패스티스트 랩 등)와 실제 최종 순위 */
+  const fm_=tally(L),fst=standingsOf(Object.values(fm_)),PT=ptsTab(o),fp=k=>{const i=o.fin.indexOf(k);return i>=0&&i<PT.length?Math.round(PT[i]*(o.pm||1)):0},
+    bon=k=>fm_[k]&&m[k]?fm_[k].pts-m[k].pts-fp(k):0,ch=fst[0];
+  return{me,riv,gap,bm:bon('me'),br:bon(riv.key),win:ch&&ch.key==='me',champ:ch,fmPts:fm_.me.pts,fm:pos('me'),fr:pos(riv.key),qm:qpos('me')||10,qr:qpos(riv.key)||10,P,name:Z.ctx.f1||ALTCAL[Z.ctx.sid]?roundName(L).replace(/^R\d+ · /,''):'최종전'}}
 function showDecider(D,done){
   const Z=S.season,col=Z.ctx.teamColor||'#3182F6',rc=D.riv.color||'#9AA0AE',pts=(p_)=>p_&&p_<=D.P.length?D.P[p_-1]:0;
   const car=c=>px(F1_MAP,{...CAR_PAL,R:c},96);
@@ -5143,14 +5146,14 @@ function showDecider(D,done){
   for(let i=0;i<=N;i++){const k=i/N,noise=i>0&&i<N?ri(-2,2):0;
     const pm=i===N?D.fm:Math.max(1,Math.round(D.qm+(((D.fm||D.qm+4))-D.qm)*k)+noise),pr=i===N?D.fr:Math.max(1,Math.round(D.qr+(((D.fr||D.qr+4))-D.qr)*k)-noise);seq.push([pm,pr])}
   let i=0,T=null,fin=false;
-  const status=(pm,pr)=>{const a=D.me.pts+pts(pm),b=D.riv.pts+pts(pr);return a>b||(a===b&&pm&&(!pr||pm<pr))};
+  const status=(pm,pr)=>{if(i===N)return D.win;const a=D.me.pts+D.bm+pts(pm),b=D.riv.pts+D.br+pts(pr);return a>b||(a===b&&pm&&(!pr||pm<pr))};
   const paint=()=>{const [pm,pr]=seq[i],lap=Math.round(1+57*i/N),cm=el.querySelector('.dcar.me'),cr=el.querySelector('.dcar.rv'),xs=p_=>p_?clamp(78-(p_-1)*5,10,78):6;
     const base=20+56*i/N,diff=clamp(((pr||25)-(pm||25))*3,-14,14);cm.style.left=(base+diff/2)+'%';cr.style.left=(base-diff/2)+'%';
     cm.querySelector('em').textContent='나 '+(pm?'P'+pm:'DNF');cr.querySelector('em').textContent=pr?'P'+pr:'DNF';
     el.querySelector('.dlap').textContent=i===N?'CHEQUERED FLAG':i===N-1?'FINAL LAP':`LAP ${lap} / 58`;el.classList.toggle('final',i===N-1);
     const ok=status(pm,pr),s=el.querySelector('.dstat');s.className='dstat '+(ok?'ok':'no');s.textContent=ok?'지금 이대로면 챔피언 ✓':'지금 이대로면 타이틀을 놓쳐요 ✗'};
-  const end=()=>{if(fin)return;fin=true;clearTimeout(T);const ok=status(D.fm,D.fr);i=N;paint();el.classList.add('done',ok?'win':'lose');
-    if(!ok){const a=D.me.pts+pts(D.fm),b=D.riv.pts+pts(D.fr);el.querySelector('.dstat').textContent=`단 ${b-a}점 차로 타이틀을 놓쳤어요`}
+  const end=()=>{if(fin)return;fin=true;clearTimeout(T);i=N;const ok=D.win;paint();el.classList.add('done',ok?'win':'lose');
+    if(!ok){const g=D.champ.pts-D.fmPts;el.querySelector('.dstat').textContent=g>0?`단 ${g}점 차로 타이틀을 놓쳤어요`:'포인트는 같았지만 타이틀을 놓쳤어요'}
     setTimeout(()=>{el.remove();done()},ok?900:1800)};
   const step=()=>{paint();if(i>=N){end();return}i++;T=setTimeout(step,i===N?1300:750)};
   el.addEventListener('click',end);
