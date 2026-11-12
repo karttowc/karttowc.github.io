@@ -514,11 +514,13 @@ html,body{margin:0}
 .thx .thg div.lead{border-color:var(--gold)}
 .thx .thg b{font-family:var(--num);font-size:30px;line-height:1.05;color:#fff;font-variant-numeric:tabular-nums}
 .thx .thg div.lead b{color:var(--gold)}
-.thx .thg b small{font-family:inherit;font-size:13px;margin-left:2px;color:#C9CCD6;font-weight:600}
+.thx .thg small{font-size:12px;color:#C9CCD6;font-weight:600;margin-top:-1px}
+.thx .thg div.lead small{color:#FFE08A}
 .thx .thg>div>span{font-size:12px;color:var(--muted)}
 .thx .threc{margin:2px 0 0;font-size:15px;color:#E6E8EF}.thx .threc b{color:var(--gold)}
 .thx .btn{width:100%}
 .thx .thnote{margin:0;font-size:12px;color:var(--muted)}
+.note .ncard{align-self:flex-start;margin:8px 0 0 18px;background:none;border:0;padding:0;color:var(--gold);font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
 .tban:active{background:rgba(255,196,0,.24)}
 .tban.new{background-image:linear-gradient(100deg,transparent 30%,rgba(255,236,160,.45) 50%,transparent 70%);background-size:250% 100%;animation:tbsh 2.4s ease-in-out infinite;border-color:rgba(255,196,0,.75)}
 @keyframes tbsh{0%{background-position:120% 0}60%,100%{background-position:-20% 0}}
@@ -4813,7 +4815,7 @@ const DEV_NOTE=`      <p>안녕하세요, ‘카트부터 월챔까지’ 개발
 const FUEL_URL='https://qr.kakaopay.com/FR5iI9U5C';
 // 게임 소식 (새 버전을 맨 위에 추가)
 const NOTES=[
- {id:'10d',d:'2026.11.12',hot:true,t:'공개 10일, 고맙습니다',items:['11월 2일 정식 공개 후 10일 동안 17,269명의 드라이버를 카트부터 육성했습니다','그중 9,043명이 F1에 데뷔했고, 3,544명이 F1 월드 챔피언에 올랐습니다','여러분의 드라이버들은 F1에서만 305만 번의 레이스를 치렀습니다','지금까지 최다 월드 챔피언 기록은 13회입니다. 이 기록을 깰 드라이버를 기다립니다','보내 주신 의견은 하나하나 읽고 업데이트에 반영하고 있습니다. 앞으로도 잘 부탁드립니다']},
+ {id:'10d',card:'thx',d:'2026.11.12',hot:true,t:'공개 10일, 고맙습니다',items:['11월 2일 정식 공개 후 10일 동안 17,269명의 드라이버를 카트부터 육성했습니다','그중 9,043명이 F1에 데뷔했고, 3,544명이 F1 월드 챔피언에 올랐습니다','여러분의 드라이버들은 F1에서만 305만 번의 레이스를 치렀습니다','지금까지 최다 월드 챔피언 기록은 13회입니다. 이 기록을 깰 드라이버를 기다립니다','보내 주신 의견은 하나하나 읽고 업데이트에 반영하고 있습니다. 앞으로도 잘 부탁드립니다']},
  {v:'1.7.6',d:'2026.11.12',t:'레드불·페라리 육성 루트, 리저브 개선',items:['보내 주신 의견을 반영했습니다','레드불 주니어는 레이싱불스를 거쳐 F1에 데뷔합니다. 레이싱불스에서 활약하면 레드불로 승격 제안이 옵니다','페라리는 F1 데뷔 전 루키를 뽑지 않습니다. 페라리 아카데미 드라이버는 하스에서 경험을 쌓게 됩니다','F1 리저브는 소속 팀 리저브 유지 제안을 항상 받고, 대타로 딴 포인트가 팀 관심도에 반영됩니다','F1 레이스 결과가 퀄리파잉 순서를 더 따라갑니다. 폴 포지션에서 포디움에 오르는 비율이 실제 F1과 비슷해졌습니다','탈출 조항이 있는 계약이면 팀 떠나기를 선택해도 아무 불이익이 없습니다','레이스 중 상황 창에서 지금 순위를 볼 수 있습니다','다른 무대 타이틀 결정전에서 보너스 점수를 빼고 챔피언 여부를 계산하던 문제를 고쳤습니다']},
  {v:'1.7.4',d:'2026.11.12',t:'인디 NXT, 새 팬 반응, F1 팀 판도 안정',items:['인디 NXT가 들어왔습니다. FRECA 단계에서 고를 수 있고, 3위 안에 들면 인디카로 가는 길이 열립니다. F3·F2에서 갈아탈 수도 있습니다','팬 반응을 새로 썼습니다. 시즌 전체 이야기를 실제 커뮤니티 말투로 보여 주고, 같은 댓글이 덜 반복됩니다','F1 상위 팀이 갑자기 무너지는 일이 줄었습니다. 규정이 바뀌어도 크게 흔들리지 않고, 떨어져도 한 번에 한 단계까지만 내려갑니다','중위·하위 팀이 규정 변경으로 치고 올라오는 일은 그대로 있지만, 전보다 드물게 일어납니다','포인트가 같아 순위가 갈리면 이유를 보여 줍니다. 실제 F1처럼 우승 수, 그다음 높은 순위 횟수로 가립니다','WEC·DTM에서는 50세까지 뛸 수 있습니다. 45세부터는 그 리그 안에서만 팀을 옮깁니다','F2가 실제처럼 더 치열해졌습니다. 챔피언 되기가 전보다 어렵습니다','다른 무대 제안에 슈퍼포뮬러·포뮬러E·DTM도 더 자주 들어옵니다']},
  {v:'1.7.0',d:'2026.11.11',hot:true,t:'대규모 개편: 실제와 같은 성장과 리그 활동',items:['드라이버 성장 곡선을 새로 만들었습니다. 실제 선수들처럼 20대 후반에 전성기를 맞고, 30대에는 천천히 내려갑니다','33세부터는 훈련 프로그램으로 고른 능력치가 절반만 떨어집니다. 노장이 되어도 관리하면 오래 버틸 수 있습니다','F1에 갓 데뷔한 25세 이하 유망주는 재계약 때 지금 실력뿐 아니라 성장 가능성도 함께 봅니다','F4와 FRECA 단계에서 리그를 고를 수 있습니다. F4는 이탈리아·영국·스페인, FRECA급은 포뮬러 리저널 유럽·유로포뮬러 오픈·슈퍼포뮬러 라이츠 중에서 제안이 옵니다','리그마다 특징이 다릅니다. 영국 F4는 비가 잦아 우천 실력이 늘고, 유로포뮬러 오픈은 F3 적응이 빠르며, 리그마다 주목하는 F1 팀이 다릅니다','슈퍼포뮬러 라이츠에서 3위 안에 들면 일본 슈퍼포뮬러로 가는 길이 열립니다','다른 리그에서 챔피언이나 3위 안에 들면 F1 팀들이 다시 주목합니다. F1을 떠났던 드라이버도 돌아올 수 있습니다','이적 시장 제안을 단계와 리그별로 묶어 보여 주고, 리그 로고와 F2·F3 팀 로고를 넣었습니다']},
@@ -4829,12 +4831,12 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.7',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.8-d1',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
 // numbers for the 10-day thank-you card (play logs 11-12, tampered careers excluded)
-const THX=[[17269,'명','카트부터 육성'],[9043,'명','F1 데뷔'],[3544,'명','F1 월드 챔피언'],[305,'만 번','F1 레이스']];
+const THX=[[17269,'','드라이버','카트부터 육성'],[9043,'','드라이버','F1 데뷔'],[3544,'','드라이버','F1 월드 챔피언'],[305,'만','번','F1 레이스']];
 function thxRun(){const els=[...document.querySelectorAll('.thx [data-cnt]')],t0=performance.now(),D=1400;
   const f=now=>{const k=Math.min(1,(now-t0)/D),e=1-Math.pow(1-k,3);els.forEach(el=>{el.textContent=Math.round(+el.dataset.cnt*e).toLocaleString('en-US')});if(k<1)requestAnimationFrame(f)};requestAnimationFrame(f)}
 const banOn=()=>Date.now()<BAN.to;
@@ -5463,13 +5465,13 @@ function sheetView(){
     return`<div class="sheet thxbg" id="sheetBg"><section class="card thx"><div class="cf" aria-hidden="true">${cf}</div>
       <div class="thtop"><span class="chk" aria-hidden="true"></span><img src="${TROPHY.F1}" alt="" class="tr"><span class="chk" aria-hidden="true"></span></div>
       <div class="eyebrow">2026.11.02 – 11.12</div><h3 class="h2">공개 10일, 고맙습니다</h3>
-      <div class="thg">${THX.map(([n,u,l],i)=>`<div${i===2?' class="lead"':''}><b><span data-cnt="${n}">0</span><small>${u}</small></b><span>${l}</span></div>`).join('')}</div>
+      <div class="thg">${THX.map(([n,x,u,l],i)=>`<div${i===2?' class="lead"':''}><b><span data-cnt="${n}">0</span>${x}</b><small>${u}</small><span>${l}</span></div>`).join('')}</div>
       <p class="threc">최다 월드 챔피언 <b>13회</b>, 깨 볼래요?</p>
       <button class="btn" type="button" id="thxGo">${cont?'이어하기':'새 커리어'}</button>
       <p class="thnote">보내 주신 의견은 하나하나 읽고 있어요. 고맙습니다.</p>
       <button class="btn ghost" type="button" id="closeSheet">닫기</button></section></div>`}
   if(sheet==='notes')return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">지금 버전 v${LOG_VER}</div><h3 class="h2">게임 소식</h3>
-      ${NOTES.map(n=>`<details class="note${n.hot?' hot':''}"><summary><span class="nt"><b>${esc(n.t||'v'+n.v)}</b><span class="muted num">${n.v?`v${n.v} · `:''}${n.d}</span></span><i>›</i></summary>${n.dev?`<div class="devnote nbody">${DEV_NOTE}</div>`:`<ul>${n.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`}</details>`).join('')}
+      ${NOTES.map(n=>`<details class="note${n.hot?' hot':''}"><summary><span class="nt"><b>${esc(n.t||'v'+n.v)}</b><span class="muted num">${n.v?`v${n.v} · `:''}${n.d}</span></span><i>›</i></summary>${n.dev?`<div class="devnote nbody">${DEV_NOTE}</div>`:`<ul>${n.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${n.card?`<button type="button" class="dlink ncard" data-sheet="${n.card}">축하 카드 보기 ›</button>`:''}`}</details>`).join('')}
       <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`;
   if(sheet==='fb')return`<div class="sheet" id="sheetBg"><section class="card"><h3 class="h3">의견 보내기</h3>
       <textarea class="field" id="fbText" maxlength="300" rows="5" placeholder="불편한 점, 어려운 구간, 바랐던 기능 등 뭐든 좋아요" style="resize:none">${esc(fbText)}</textarea>
