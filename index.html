@@ -4809,7 +4809,7 @@ const NOTES=[
 const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.7-d1',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // one-time thank-you banner on the title screen (closes for good on tap/X, gone after `to`)
-const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,19,15),t:'공개 10일, 고맙습니다'};
+const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,19,15),t:'🏁 공개 10일, 고맙습니다'};
 const banOn=()=>Date.now()<BAN.to&&!lsGet(BAN.k);
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
