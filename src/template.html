@@ -1138,7 +1138,7 @@ function startSeason(){
     &&!(p.series==='F3'&&p.history.some(h=>LGD[h.lk]&&LGD[h.lk].f3&&h.starts>0));// Euroformula runs F3-class cars
   // no adapting in the very first kart season
   let avgAd=0;if(firstLeague&&p.history.length){const R0=Math.max(2,Math.round(races*.35)),A=B.career.rookie_adapt||3;me.adapt=r=>r<R0?A*(1-r/R0):0;for(let r=0;r<races;r++)avgAd+=me.adapt(r);avgAd/=races}
-  {const mb=(p.morale-60)/15-(p.xfer===S.year||p.altGo===S.year?.6:0);me.q+=mb;me.d+=mb;me.w+=mb;
+  {const mb=(p.morale-60)/15-((p.xfer===S.year||p.altGo===S.year)&&!(p.contract&&p.contract.clause)?.6:0);me.q+=mb;me.d+=mb;me.w+=mb;
    // where would I finish on paper? (same formula the race uses, without luck)
    const dw=B.race.driver_weight,cw=B.race.car_weight,oth=ents.filter(e=>e!==me),n=oth.length||1;
    const avgD=oth.reduce((a,e)=>a+e.d,0)/n,avgC=oth.reduce((a,e)=>a+e.car,0)/n,pvO=oth.map(e=>dw*e.d+cw*e.car);
@@ -3383,7 +3383,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.6-d7',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.6-d8',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -3908,20 +3908,20 @@ function sheetView(){
   if(sheet==='go')return goSheet();
   if(sheet==='leave'){const r=(sh,tt,sub)=>`<button class="trow" type="button" data-sheet="${sh}"><span class="tb"><b>${tt}</b><span>${sub}</span></span><span class="ta">›</span></button>`;
     return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">프리시즌 · 결단</div><h3 class="h2">팀 떠나기</h3>
-    <p class="muted" style="margin:0">어디로 가고 싶은지 알려요. 제안은 시즌이 끝나야 와요. 그때까지는 지금 팀에서 뛰어요.${hasClause()?'<br><b style="color:var(--good)">계약에 탈출 조항이 있어서 평판·인기·관심도 손해 없이 떠날 수 있어요.</b>':''}</p>
+    <p class="muted" style="margin:0">어디로 가고 싶은지 알려요. 제안은 시즌이 끝나야 와요. 그때까지는 지금 팀에서 뛰어요.${hasClause()?'<br><b style="color:var(--good)">계약에 탈출 조항이 있어서 평판·인기·관심도·페이스 손해 없이 떠날 수 있어요.</b>':''}</p>
     <div class="tlist">${r('xfer','이적 요청','F1 다른 팀으로 · 더 좋은 팀이 나를 원하면 제안이 와요')}${r('altgo','다른 리그로 전향','WEC·인디카 등 · 다른 무대 팀들의 제안이 와요')}</div>
     <button class="btn ghost" type="button" id="closeSheet">그만두기</button></section></div>`}
   if(sheet==='altgo')return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">프리시즌 · 결단</div><h3 class="h2">다른 리그로 전향</h3>
     <p class="muted" style="margin:0">F1을 떠나 WEC·인디카 같은 다른 무대로 가고 싶다고 알려요. 시즌이 끝나면 다른 무대 팀들이 제안해요.</p>
     <div class="kv"><div class="row"><span>지금 바로</span>${hasClause()?'<span class="up">탈출 조항 · 손해 없음</span>':'<span class="down">F1 팀 관심도 -10</span>'}</div>
-    <div class="row"><span>시즌 중</span><span class="down">팀 지원이 줄어 페이스 조금 하락</span></div>
+    <div class="row"><span>시즌 중</span>${hasClause()?'<span class="up">페이스 그대로</span>':'<span class="down">팀 지원이 줄어 페이스 조금 하락</span>'}</div>
     <div class="row"><span>시즌 끝</span><span>다른 무대 제안 2개</span></div>
     <div class="row"><span>마음이 바뀌면</span><span>제안을 안 고르고 남을 수 있어요</span></div></div>
     <button class="btn" type="button" id="altgoYes">전향 의사를 밝힌다</button><button class="btn ghost" type="button" data-sheet="leave">뒤로</button></section></div>`;
   if(sheet==='xfer')return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">프리시즌 · 결단</div><h3 class="h2">이적 요청하기</h3>
     <p class="muted" style="margin:0">"다른 팀으로 가고 싶다"고 공개적으로 선언해요. 시즌이 끝나면 지금 팀보다 좋은 팀들이 그 팀의 약한 드라이버와 나를 비교해요. 내가 더 잘하면 빈자리가 없어도 제안이 와요.</p>
     <div class="kv"><div class="row"><span>지금 바로</span>${hasClause()?'<span class="up">탈출 조항 · 손해 없음</span>':effChips({rep:-6})}</div>
-    <div class="row"><span>시즌 중</span><span class="down">팀 지원이 줄어 페이스 조금 하락</span></div>
+    <div class="row"><span>시즌 중</span>${hasClause()?'<span class="up">페이스 그대로</span>':'<span class="down">팀 지원이 줄어 페이스 조금 하락</span>'}</div>
     <div class="row"><span>아무도 안 오면</span>${hasClause()?'<span class="up">손해 없음</span>':effChips({rep:-4,fans:-3})}</div></div>
     <p class="muted" style="margin:0;font-size:12px;text-align:center">선택 사항이에요 · 안 해도 돼요</p>
     <button class="btn" type="button" id="xferYes">이적을 요청한다</button><button class="btn ghost" type="button" id="xferNo">${chain?'요청 안 하고 다음':'뒤로'}</button></section></div>`;
