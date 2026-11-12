@@ -345,6 +345,7 @@
     "reserve_promote_max_age": 34,
     "reserve_promote_gap": 5,
     "reserve_scout": {"own": 2, "sub": 4, "per_pt": 1.5, "max": 15, "other_per_pt": 0.5, "other_max": 6, "keep_min": 25},
+    "rb_route": {"want_gap": 4, "chance": 0.7, "beat_mate": 0.5, "pos": 8, "gap": 2, "thr_off": 3, "max_age": 30},
     "f1_debut_extra": 14,
   "debut_age_penalty_from": 27,
   "alt_return": {"note": "다른 리그 성적으로 F1 문이 다시 열림: max_age세 이하, 직전 시즌 챔피언이면 시트 기준 -champ·나이 벌점 절반·슈퍼라이선스 통과, 3위 안이면 -top3·나이 벌점 0.75배. F1 경험자도 포함", "max_age": 31, "champ": 10, "top3": 5},
