@@ -1775,10 +1775,12 @@ function makeOffers(pos,field,h2h){
       o.unshift({kind:'f1',teamId:rb.id,...tr,poach:weak.id,promo:true,title:`${rb.name} 레이스 시트`,sub:`${tr.termTxt} · ${TIER_LBL[rb.tier]} · 머신 ${rb.machine} · ${weak.name} 대신`,color:rb.color,short:rb.short,tag:'레드불 승격'})}}
   if((slOK||inF1Race)&&(!bound||buyout)){
     const ac=p.academy?K.academies.find(a=>a.id===p.academy):null;
-    const cands=[],lostTo=[];let rbWant=false;
+    const cands=[],lostTo=[];let rbWant=false,feWant=false;
     for(const id of new Set(S.vacancies||[])){const t=teamDef(id);
       if(inF1Race&&t.id===p.team.id)continue;
       if(t.id==='redbull'&&rbRoute){if(ovr>=f1SeatThr(t,{inF1Race,champF2,f2Top,altRet})-B.career.rb_route.want_gap)rbWant=true;continue}
+      // Ferrari takes no F1 rookie; its academy sends one to Haas for experience
+      if(t.id==='ferrari'&&rbRoute){if(p.academy==='ferrari'&&ovr>=f1SeatThr(t,{inF1Race,champF2,f2Top,altRet})-B.career.rb_route.want_gap)feWant=true;continue}
       const mine=ac&&ac.teams.includes(t.id);
       const thr=f1SeatThr(t,{inF1Race,champF2,f2Top,altRet});
       const fameBias=t.tier==='top'?(p.rep-50)/10:0;
@@ -1790,18 +1792,21 @@ function makeOffers(pos,field,h2h){
     if(rbWant&&!cands.some(c=>c.t.id==='racingbulls')&&!(inF1Race&&p.team.id==='racingbulls')){const t=teamDef('racingbulls'),tr=terms(t),free=(S.vacancies||[]).includes('racingbulls'),ds=S.f1.filter(d=>d.team===t.id),weak=!free&&ds.length?ds.reduce((a,b)=>ovrOf(a.stats)<=ovrOf(b.stats)?a:b):null;
       if(free||weak){evs.push(`레드불이 관심을 가져 레이싱불스로 영입하고자 해요.`);
         o.push({kind:'f1',teamId:t.id,...tr,...(weak?{poach:weak.id}:{}),rbRoute:1,title:`${t.name} 레이스 시트`,sub:`${tr.termTxt} · ${TIER_LBL[t.tier]} · 머신 ${t.machine} · 레드불 육성 코스${weak?` · ${weak.name} 대신`:''}`,color:t.color,short:t.short,tag:'레드불 루트'})}}
+    if(feWant&&!cands.some(c=>c.t.id==='haas')&&(S.vacancies||[]).includes('haas')){const t=teamDef('haas'),tr=terms(t);
+      evs.push(`페라리가 경험을 쌓으라며 하스 시트를 마련해 줬어요.`);
+      o.push({kind:'f1',teamId:t.id,...tr,feRoute:1,title:`${t.name} 레이스 시트`,sub:`${tr.termTxt} · ${TIER_LBL[t.tier]} · 머신 ${t.machine} · 페라리 육성 코스`,color:t.color,short:t.short,tag:'페라리 루트'})}
     if(lostTo.length&&!cands.length)evs.push(`${lostTo[0][1]} 시트는 F2의 ${lostTo[0][0]}에게 돌아갔어요.`);
     cands.sort((a,b)=>b.score-a.score).filter(c=>!bound||c.t.machine>teamDef(p.team.id).machine).slice(0,bound?1:3).forEach(c=>{const tr=terms(c.t);o.push({kind:'f1',teamId:c.t.id,...tr,title:`${c.t.name} 레이스 시트`,
       sub:`${tr.termTxt} · ${TIER_LBL[c.t.tier]} · 머신 ${c.t.machine}${ac&&!c.mine?' · 아카데미 계약 해지':''}`,color:c.t.color,short:c.t.short,tag:bound?'바이아웃 제안':altRet?'F1 재도전':scv(c.t.id)>=85&&!c.mine?'스카우트 제안':'F1'})});
     // academy F2 champion with no academy seat open: sometimes the academy drops a driver from its junior team to make room
     if(ac&&champF2&&!inF1Race&&!o.some(x=>x.kind==='f1'&&ac.teams.includes(x.teamId))&&Math.random()<B.career.academy.promote_chance){
-      const t=teamDef([...ac.teams].filter(id=>!(rbRoute&&id==='redbull')).sort((a,b)=>teamDef(a).machine-teamDef(b).machine)[0]),ds=S.f1.filter(d=>d.team===t.id);
+      const t=teamDef([...ac.teams].filter(id=>!(rbRoute&&(id==='redbull'||id==='ferrari'))).sort((a,b)=>teamDef(a).machine-teamDef(b).machine)[0]),ds=S.f1.filter(d=>d.team===t.id);
       if(ds.length&&ovr>=f1SeatThr(t,{inF1Race,champF2,f2Top,altRet})){const weak=ds.reduce((a,b)=>ovrOf(a.stats)<=ovrOf(b.stats)?a:b),tr=terms(t);
         evs.push(`${ac.name}에서 ${weak.name}${josa(weak.name)} 빼고 ${t.name} 시트를 주겠대요.`);
         o.unshift({kind:'f1',teamId:t.id,...tr,poach:weak.id,promo:true,title:`${t.name} 레이스 시트`,sub:`${tr.termTxt} · ${TIER_LBL[t.tier]} · 머신 ${t.machine} · ${weak.name} 대신`,color:t.color,short:t.short,tag:'아카데미 승격'})}}
     // F2 champion with no F1 offer at all: sometimes a bottom team drops its weaker driver to sign them
     if(champF2&&!inF1Race&&!o.some(x=>x.kind==='f1')&&Math.random()<(B.career.f2champ_promote_chance??0)){
-      const el=S.teams.filter(t=>t.tier==='bottom'&&!(rbRoute&&t.id==='redbull')&&S.f1.some(d=>d.team===t.id)&&ovr>=f1SeatThr(t,{inF1Race,champF2,f2Top,altRet})).sort((a,b)=>scv(b.id)-scv(a.id)||b.machine-a.machine);
+      const el=S.teams.filter(t=>t.tier==='bottom'&&!(rbRoute&&(t.id==='redbull'||t.id==='ferrari'))&&S.f1.some(d=>d.team===t.id)&&ovr>=f1SeatThr(t,{inF1Race,champF2,f2Top,altRet})).sort((a,b)=>scv(b.id)-scv(a.id)||b.machine-a.machine);
       if(el.length){const t=el[0],ds=S.f1.filter(d=>d.team===t.id),weak=ds.reduce((a,b)=>ovrOf(a.stats)<=ovrOf(b.stats)?a:b),tr=terms(t);
         evs.push(`${t.name}에서 ${weak.name}${josa(weak.name)} 빼고 시트를 주겠대요.`);
         o.unshift({kind:'f1',teamId:t.id,...tr,poach:weak.id,title:`${t.name} 레이스 시트`,sub:`${tr.termTxt} · ${TIER_LBL[t.tier]} · 머신 ${t.machine} · ${weak.name} 대신`,color:t.color,short:t.short,tag:'F2 챔피언 영입'})}}
@@ -1811,7 +1816,7 @@ function makeOffers(pos,field,h2h){
   if(p.series==='F1'&&p.role==='reserve'&&rsvN>=2&&!o.some(x=>x.kind==='f1')&&Math.random()<(B.career.reserve_promote_chance??0)){
     // judged like a race driver keeping a seat (no debut extra / age penalty): good enough for the tier and close to the weaker race driver
     const wk=t=>S.f1.filter(d=>d.team===t.id).reduce((a,b)=>!a||ovrOf(b.stats)<ovrOf(a.stats)?b:a,null);
-    const el=p.age<=B.career.reserve_promote_max_age?S.teams.filter(t=>{const w=wk(t);return!(rbRoute&&t.id==='redbull')&&(t.id===p.team.id||(p.team.id==='redbull'&&t.id==='racingbulls')||scv(t.id)>=80)&&w&&ovr>=B.career.f1_seat_ovr[t.tier]-repAdj()-3&&ovr>=ovrOf(w.stats)-B.career.reserve_promote_gap}).sort((a,b)=>(b.id===p.team.id)-(a.id===p.team.id)||scv(b.id)-scv(a.id)):[];
+    const el=p.age<=B.career.reserve_promote_max_age?S.teams.filter(t=>{const w=wk(t);return!(rbRoute&&(t.id==='redbull'||t.id==='ferrari'))&&(t.id===p.team.id||(p.team.id==='redbull'&&t.id==='racingbulls')||scv(t.id)>=80)&&w&&ovr>=B.career.f1_seat_ovr[t.tier]-repAdj()-3&&ovr>=ovrOf(w.stats)-B.career.reserve_promote_gap}).sort((a,b)=>(b.id===p.team.id)-(a.id===p.team.id)||scv(b.id)-scv(a.id)):[];
     if(el.length){const t=el[0],weak=wk(t),tr=terms(t);
       evs.push(`${t.name}에서 ${weak.name}${josa(weak.name)} 빼고 레이스 시트를 주겠대요.`);
       o.unshift({kind:'f1',teamId:t.id,...tr,poach:weak.id,promo:true,title:`${t.name} 레이스 시트`,sub:`${tr.termTxt} · ${TIER_LBL[t.tier]} · 머신 ${t.machine} · ${weak.name} 대신`,color:t.color,short:t.short,tag:'리저브 승격'})}}
@@ -2736,8 +2741,8 @@ function offerTerms(x,pre=''){const clean=s=>String(s||'').replace(/ · 머신 [
 function topNews(){const N=S.news;if(!N||!N.heads)return'';const out=[],nm=nextMajorYear();
   const p=S.p,inF1=p.series==='F1'&&p.role==='race';
   // Red Bull's two-team ladder: tell it first
-  const rbo=(S.offers||[]).find(x=>x.rbRoute||x.tag==='레드불 승격');
-  if(rbo)out.push({t:rbo.rbRoute?'레드불이 관심을 가져 레이싱불스로 영입하고자 해요':'레드불이 레이싱불스에서의 활약을 보고 승격을 원해요',c:'tg'});
+  const rbo=(S.offers||[]).find(x=>x.rbRoute||x.feRoute||x.tag==='레드불 승격');
+  if(rbo)out.push({t:rbo.rbRoute?'레드불이 관심을 가져 레이싱불스로 영입하고자 해요':rbo.feRoute?'페라리가 경험을 쌓으라며 하스 시트를 마련해 줬어요':'레드불이 레이싱불스에서의 활약을 보고 승격을 원해요',c:'tg'});
   if(!inF1){// junior / other series: my world first, F1 only when it touches me
     if(nm-S.year===1&&!N.major)out.push({t:`${S.year} 시즌은 지금 규정의 마지막 해 · 대규정 변경은 ${nm}년부터`,c:''});
     (S.vacancies?[...new Set(S.vacancies)]:[]).map(id=>({t:teamDef(id),v:scv(id)})).filter(x=>x.v>=40).sort((a,b)=>b.v-a.v).slice(0,1)
@@ -3375,7 +3380,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.6-d4',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.6-d5',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
