@@ -498,6 +498,27 @@ html,body{margin:0}
 .tnews{position:absolute;top:14px;right:14px;width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.08);color:#D6DAEA;display:grid;place-items:center;cursor:pointer;z-index:3}
 .tban{position:absolute;top:20px;left:50%;transform:translateX(-50%);z-index:3;height:32px;width:max-content;max-width:calc(100% - 140px);padding:0 14px;border-radius:16px;background:rgba(255,196,0,.14);border:1px solid rgba(255,196,0,.4);color:#FFE08A;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
 .ttl.ban .in{padding-top:68px}
+.thxbg{align-items:center;padding:16px}
+.thx{position:relative;overflow:hidden;border-radius:24px!important;max-width:400px!important;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;padding:22px 18px 18px!important;background:radial-gradient(120% 70% at 50% 0%,#3A2A08 0%,#15161C 55%,#0E0F13 100%);border:1px solid rgba(255,196,0,.35)}
+.thx>*:not(.cf){position:relative;z-index:1}
+.thx .cf{position:absolute;inset:0;pointer-events:none;z-index:0}
+.thx .cf i{position:absolute;top:-16px;width:7px;height:11px;opacity:0;animation:thcf linear forwards}
+@keyframes thcf{0%{opacity:1;top:-16px}85%{opacity:1}100%{opacity:0;top:105%;margin-left:30px}}
+.thx .thtop{display:flex;align-items:flex-end;justify-content:center;gap:14px}
+.thx .tr{height:92px;width:auto;filter:drop-shadow(0 6px 18px rgba(255,196,0,.45));animation:thpop .6s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes thpop{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
+.thx .chk{width:30px;height:30px;margin-bottom:8px;background:repeating-conic-gradient(#fff 0 25%,#111 0 50%) 0 0/10px 10px;border-radius:4px;opacity:.85}
+.thx .h2{margin:0;color:var(--gold)}
+.thx .thg{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.thx .thg div{background:rgba(0,0,0,.35);border:1px solid #2A2D35;border-radius:12px;padding:10px 6px 9px;display:flex;flex-direction:column;gap:2px}
+.thx .thg div.lead{border-color:var(--gold)}
+.thx .thg b{font-family:var(--num);font-size:30px;line-height:1.05;color:#fff;font-variant-numeric:tabular-nums}
+.thx .thg div.lead b{color:var(--gold)}
+.thx .thg b small{font-family:inherit;font-size:13px;margin-left:2px;color:#C9CCD6;font-weight:600}
+.thx .thg>div>span{font-size:12px;color:var(--muted)}
+.thx .threc{margin:2px 0 0;font-size:15px;color:#E6E8EF}.thx .threc b{color:var(--gold)}
+.thx .btn{width:100%}
+.thx .thnote{margin:0;font-size:12px;color:var(--muted)}
 .tban:active{background:rgba(255,196,0,.24)}
 .tnews:active{background:rgba(255,255,255,.16)}
 .tnews.dot::after{content:'';position:absolute;top:8px;right:8px;width:10px;height:10px;border-radius:50%;background:#FF8A00;box-shadow:0 0 0 2px #10142A}
@@ -3393,6 +3414,10 @@ const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PH
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // one-time thank-you banner on the title screen (closes for good on tap/X, gone after `to`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,19,15),t:'🏁 공개 10일, 고맙습니다'};
+// numbers for the 10-day thank-you card (play logs 11-12, tampered careers excluded)
+const THX=[[17269,'명','카트부터 육성'],[9043,'명','F1 데뷔'],[3544,'명','F1 월드 챔피언'],[305,'만 번','F1 레이스']];
+function thxRun(){const els=[...document.querySelectorAll('.thx [data-cnt]')],t0=performance.now(),D=1400;
+  const f=now=>{const k=Math.min(1,(now-t0)/D),e=1-Math.pow(1-k,3);els.forEach(el=>{el.textContent=Math.round(+el.dataset.cnt*e).toLocaleString('en-US')});if(k<1)requestAnimationFrame(f)};requestAnimationFrame(f)}
 const banOn=()=>Date.now()<BAN.to&&!lsGet(BAN.k);
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
@@ -3508,7 +3533,7 @@ function titleView(){
   const H=hofLoad();
   return`<section class="ttl${banOn()&&!titleAsk?' ban':''}"><div class="stars">${stars}</div><div class="in">
     <button type="button" class="tnews${lsGet('k2wc-notes-seen')!==noteKey()?' dot':''}" data-sheet="notes" aria-label="게임 소식"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></button>
-    ${banOn()&&!titleAsk?`<button type="button" class="tban" data-sheet="notes">${BAN.t} ›</button>`:''}
+    ${banOn()&&!titleAsk?`<button type="button" class="tban" data-sheet="thx">${BAN.t} ›</button>`:''}
     <div class="eb">F1 DRIVER CAREER</div>
     <img class="logo" src="${TITLE_IMG}" alt="카트부터 월챔까지">
     <div class="sub">FROM KART TO WORLD CHAMPION</div>
@@ -3794,7 +3819,7 @@ const root=document.getElementById('root'),tabsEl=document.getElementById('tabs'
 function render(){
   root.classList.toggle('bare',!!title);
   if(S&&S.p&&S.p.retired)hofAdd();
-  if(title){tabsEl.hidden=true;root.innerHTML=titleView()+(['fb','dev','notes'].includes(sheet)?sheetView():'');return}
+  if(title){tabsEl.hidden=true;root.innerHTML=titleView()+(['fb','dev','notes','thx'].includes(sheet)?sheetView():'');return}
   if(!S){if(!ob)obInit();tabsEl.hidden=true;root.innerHTML=obView();return}
   if(S.p.retired){tabsEl.hidden=true;root.innerHTML=retiredView()+(hofOpen?hofSheet(hofLoad()):'')+(sheet?sheetView():'');
     try{const c=drawCard();cardURL=c.toDataURL('image/png');document.getElementById('cardImg').src=cardURL}catch(e){}
@@ -4015,6 +4040,15 @@ function sheetView(){
       <p>이 게임은 개발자가 Claude(AI)와 함께 만들고 있어요.<br>연료(클로드 이용료)를 넣어 주시면 업데이트가 더 빨라져요.</p>
       <p class="muted" style="font-size:13px">안 넣으셔도 게임은 똑같이 다 즐길 수 있어요. 카카오페이 송금으로 연결돼요.</p>
       <div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" id="closeSheet">닫기</button><button class="btn" type="button" id="fuelGo">연료 넣기</button></div></section></div>`;
+  if(sheet==='thx'){const p=S&&S.p,cont=p&&!p.retired,cf=Array.from({length:40},(_,i)=>`<i style="left:${(i*41+7)%100}%;background:${['#FFC400','#E10600','#fff','#FFE08A'][i%4]};animation-delay:${(i%10)*.12}s;animation-duration:${2.2+(i%5)*.35}s;transform:rotate(${i*37}deg)"></i>`).join('');
+    return`<div class="sheet thxbg" id="sheetBg"><section class="card thx"><div class="cf" aria-hidden="true">${cf}</div>
+      <div class="thtop"><span class="chk" aria-hidden="true"></span><img src="${TROPHY.F1}" alt="" class="tr"><span class="chk" aria-hidden="true"></span></div>
+      <div class="eyebrow">2026.11.02 – 11.12</div><h3 class="h2">공개 10일, 고맙습니다</h3>
+      <div class="thg">${THX.map(([n,u,l],i)=>`<div${i===2?' class="lead"':''}><b><span data-cnt="${n}">0</span><small>${u}</small></b><span>${l}</span></div>`).join('')}</div>
+      <p class="threc">최다 월드 챔피언 <b>13회</b>, 깨 볼래요?</p>
+      <button class="btn" type="button" id="thxGo">${cont?'이어하기':'새 커리어'}</button>
+      <p class="thnote">보내 주신 의견은 하나하나 읽고 있어요. 고맙습니다.</p>
+      <button class="btn ghost" type="button" id="closeSheet">닫기</button></section></div>`}
   if(sheet==='notes')return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">지금 버전 v${LOG_VER}</div><h3 class="h2">게임 소식</h3>
       ${NOTES.map(n=>`<details class="note${n.hot?' hot':''}"><summary><span class="nt"><b>${esc(n.t||'v'+n.v)}</b><span class="muted num">${n.v?`v${n.v} · `:''}${n.d}</span></span><i>›</i></summary>${n.dev?`<div class="devnote nbody">${DEV_NOTE}</div>`:`<ul>${n.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`}</details>`).join('')}
       <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`;
@@ -4101,6 +4135,7 @@ root.addEventListener('click',e=>{
   if(d.pickoffer!=null){sel=+d.pickoffer;sheet=null;render();return}
   if(d.go){tab=d.go;sheet=null;render();window.scrollTo(0,0);return}
   if(d.sheet==='notes'){lsSet('k2wc-notes-seen',noteKey());lsSet(BAN.k,'1')}
+  if(d.sheet==='thx'){lsSet(BAN.k,'1');openSheet('thx');thxRun();return}
   if(d.sheet){openSheet(d.sheet);return}
   if(d.choose){evPick=+d.choose.split(':')[1];render();return}
   if(id==='evNext'&&evPick!=null){const last=chain&&lastPre();pickEvent(+d.i,evPick,last);if(last)goSeason();return}
@@ -4126,6 +4161,7 @@ root.addEventListener('click',e=>{
   if(id==='tYes'){lightsGo(()=>{S=null;try{localStorage.removeItem(KEY)}catch(_){}ob=null;enterGame()});return}
   if(id==='tNo'){titleAsk=false;render();return}
   if(id==='tHof'){rkOpen();render();return}
+  if(id==='thxGo'){sheet=null;const p=S&&S.p;if(p&&!p.retired){lightsGo(enterGame);return}if(p){titleAsk=true;render();return}lightsGo(()=>{S=null;ob=null;enterGame()});return}
   if(d.rk||d.rklg){if(d.rk)rkTab=d.rk;if(d.rklg)rkLg=d.rklg;if(rkOn(rkTab)&&rkNeed(rkKey()))rkLoad(rkKey());render();return}
   if(id==='rkRetry'){rkLoad(rkKey());render();return}
   if(id==='rkInfo'){rkInfo=!rkInfo;render();return}
