@@ -4766,7 +4766,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.4',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.5-d1',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
@@ -4887,7 +4887,7 @@ function titleView(){
     <div class="scene" aria-hidden="true"><div class="glow"></div><div class="roof"></div><div class="stand"></div><div class="kerb k1"></div><div class="track"></div><div class="kerb k2"></div><div class="grass"></div>
       <div class="car kart">${px(KART_MAP,CAR_PAL,72)}</div><div class="car f1">${px(F1_MAP,CAR_PAL,128)}</div><div class="flagrow"></div></div>
     <div class="menu">
-      ${titleAsk?`<div class="ask"><b>지금 커리어가 지워져요. 새로 시작할까요?</b><div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" id="tNo">취소</button><button class="btn" type="button" id="tYes" style="background:var(--bad)">새로 시작</button></div></div>`:`
+      ${titleAsk?`<div class="ask"><b>${p&&p.retired?'은퇴한 커리어 카드가 지워져요. 새로 시작할까요?':'지금 커리어가 지워져요. 새로 시작할까요?'}</b><div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" id="tNo">취소</button><button class="btn" type="button" id="tYes" style="background:var(--bad)">새로 시작</button></div></div>`:`
       ${p?`<button class="btn" type="button" id="tCont">이어하기<small>${cur}</small></button>`:''}
       <button class="btn${p?' ghost':''}" type="button" id="tNew">새 커리어</button>
       <button class="btn ghost" type="button" id="tHof">랭킹</button>`}
@@ -5491,7 +5491,7 @@ root.addEventListener('click',e=>{
   if(id==='tCont'){lightsGo(enterGame);return}
   if(id==='altgoYes'){const p=S.p;p.altGo=S.year;p.xfer=null;for(const k of Object.keys(p.scout||{}))p.scout[k]=Math.max(0,p.scout[k]-10);save();toast('전향 의사를 밝혔어요 · F1 팀 관심도 -10');sheet=null;render();return}
   if(id==='xferYes'){S.p.altGo=null;S.p.xfer=S.year;const m=applyEff({rep:-6});save();toast(`이적 요청을 공개했어요 · ${m}`);if(chain){nextStep();return}sheet=null;render();return}
-  if(id==='tNew'){if(S&&!S.p.retired){titleAsk=true;render();return}lightsGo(()=>{S=null;try{localStorage.removeItem(KEY)}catch(_){}ob=null;enterGame()});return}
+  if(id==='tNew'){if(S&&S.p){titleAsk=true;render();return}lightsGo(()=>{S=null;try{localStorage.removeItem(KEY)}catch(_){}ob=null;enterGame()});return}
   if(id==='tYes'){lightsGo(()=>{S=null;try{localStorage.removeItem(KEY)}catch(_){}ob=null;enterGame()});return}
   if(id==='tNo'){titleAsk=false;render();return}
   if(id==='tHof'){rkOpen();render();return}
