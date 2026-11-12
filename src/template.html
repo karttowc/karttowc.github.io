@@ -713,6 +713,7 @@ button.hc{all:unset;box-sizing:border-box;font-size:12px;font-weight:700;padding
 .kv.st .row{flex-direction:column;align-items:flex-start;gap:3px}.kv.st .row>span:last-child{text-align:left}.kv.st .row>span:first-child{font-size:12px;font-weight:700;color:var(--accent)}.kv.st .row>span.up:first-child{color:var(--good)}.kv.st .row>span.down:first-child{color:#FF8A94}
 .leave.info{background:rgba(49,130,246,.1);border-color:rgba(49,130,246,.3);color:#9CC2FF}
 .leave{background:rgba(240,68,82,.12);border:1px solid rgba(240,68,82,.35);color:#FF9AA2;border-radius:12px;padding:10px 12px;font-size:14px;font-weight:600}
+.incpos{margin:2px 0 10px;font-size:14px;color:var(--muted)}.incpos b{font-size:18px;color:var(--fg);margin-left:4px}
 </style>
 </head>
 <body>
@@ -3243,7 +3244,9 @@ function showIncident(inc){
   const d=INC.find(x=>x.id===inc.id),box=document.getElementById('pInc');if(!box)return;
   document.getElementById('pBar').style.width=((inc.r+1)/S.season.races*100)+'%';
   document.getElementById('pRound').textContent=roundLine(inc.r,S.season.races);
+  const o=S.season.orders[inc.r],ci=o?o.fin.indexOf('me'):-1,cn=S.season.ents.length;
   box.innerHTML=`<div class="sheet"><section class="card"><div class="eyebrow">${roundName(inc.r)} · 레이스 중 상황</div><h3 class="h2">${esc(d.title)}</h3>
+    ${ci>=0?`<div class="incpos">지금 순위 <b class="num">P${ci+1}</b><span class="muted"> / ${cn}</span></div>`:''}
     ${d.choices.map((c,j)=>{const R='font-size:13px',E=e=>e?effChips(e).replace(/^<span class="chips">|<\/span>$/g,''):'';
       const top=c.fixed?'<span class="muted" style="font-size:13px">확정</span>':`<b class="num" style="font-size:22px;color:#8CB8FF">${Math.round(incChance(c)*100)}%</b>`;
       const body=c.fixed?`<span class="chip ${c.fixed.delta>0?'down':''}" style="${R}">${c.fixed.delta>0?c.fixed.delta+'그리드 하락':'순위 유지'}</span>${E(c.fixed.eff)}`
@@ -3357,7 +3360,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.6-d2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.6-d3',KEYL='k2wc-log-v1';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const logOff=()=>lsGet('k2wc-log-off')==='1';
