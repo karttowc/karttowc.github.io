@@ -288,6 +288,8 @@
   },
   "minor_change_per_year": 2,
   "minor_change_top": 1,
+  "home": {"mercedes": "top", "ferrari": "top", "redbull": "top", "mclaren": "top", "astonmartin": "mid", "audi": "mid", "alpine": "mid", "racingbulls": "bottom", "haas": "bottom", "williams": "bottom", "cadillac": "bottom"},
+  "home_pull": 0.2,
   "major_regulation": {
    "first_year": 2026,
    "swing": 8,
@@ -347,7 +349,7 @@
     "reserve_promote_gap": 5,
     "reserve_scout": {"own": 2, "sub": 4, "per_pt": 1.5, "max": 15, "other_per_pt": 0.5, "other_max": 6, "keep_min": 25},
     "rb_route": {"want_gap": 4, "chance": 0.7, "beat_mate": 0.5, "pos": 8, "gap": 2, "thr_off": 3, "max_age": 30},
-    "f1_debut_extra": 14,
+    "f1_debut_extra": 17,
   "debut_age_penalty_from": 27,
   "alt_return": {"note": "다른 리그 성적으로 F1 문이 다시 열림: max_age세 이하, 직전 시즌 챔피언이면 시트 기준 -champ·나이 벌점 절반·슈퍼라이선스 통과, 3위 안이면 -top3·나이 벌점 0.75배. F1 경험자도 포함", "max_age": 31, "champ": 10, "top3": 5},
   "prospect": {"note": "유망주 보정: max_age세 이하 F1 드라이버는 재계약·조기 해지 판정에서 OVR에 (max_age+1-나이) x per_year(최대 max)를 더해 봄", "max_age": 25, "per_year": 1, "max": 4},
@@ -362,6 +364,7 @@
   "old_seat_per_year": 5,
   "rookie_adapt": 3,
   "first_kart_easy": 5,
+  "team_lead": {"from": 2, "base": 0.6, "per_year": 0.2, "max": 1.2},
   "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 1.75, "dev_max": 5.25, "window": 4, "legend_from": 8, "legend_dev": 1, "legend_max": 4},
   "alt_hunt": {"dev": 1.5, "dev_max": 4, "window": 3, "legend_from": 4, "legend_dev": 2, "legend_max": 8}
  },

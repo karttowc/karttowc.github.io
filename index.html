@@ -1047,6 +1047,8 @@ const B = {
   },
   "minor_change_per_year": 2,
   "minor_change_top": 1,
+  "home": {"mercedes": "top", "ferrari": "top", "redbull": "top", "mclaren": "top", "astonmartin": "mid", "audi": "mid", "alpine": "mid", "racingbulls": "bottom", "haas": "bottom", "williams": "bottom", "cadillac": "bottom"},
+  "home_pull": 0.2,
   "major_regulation": {
    "first_year": 2026,
    "swing": 8,
@@ -1106,7 +1108,7 @@ const B = {
     "reserve_promote_gap": 5,
     "reserve_scout": {"own": 2, "sub": 4, "per_pt": 1.5, "max": 15, "other_per_pt": 0.5, "other_max": 6, "keep_min": 25},
     "rb_route": {"want_gap": 4, "chance": 0.7, "beat_mate": 0.5, "pos": 8, "gap": 2, "thr_off": 3, "max_age": 30},
-    "f1_debut_extra": 14,
+    "f1_debut_extra": 17,
   "debut_age_penalty_from": 27,
   "alt_return": {"note": "다른 리그 성적으로 F1 문이 다시 열림: max_age세 이하, 직전 시즌 챔피언이면 시트 기준 -champ·나이 벌점 절반·슈퍼라이선스 통과, 3위 안이면 -top3·나이 벌점 0.75배. F1 경험자도 포함", "max_age": 31, "champ": 10, "top3": 5},
   "prospect": {"note": "유망주 보정: max_age세 이하 F1 드라이버는 재계약·조기 해지 판정에서 OVR에 (max_age+1-나이) x per_year(최대 max)를 더해 봄", "max_age": 25, "per_year": 1, "max": 4},
@@ -1121,6 +1123,7 @@ const B = {
   "old_seat_per_year": 5,
   "rookie_adapt": 3,
   "first_kart_easy": 5,
+  "team_lead": {"from": 2, "base": 0.6, "per_year": 0.2, "max": 1.2},
   "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 1.75, "dev_max": 5.25, "window": 4, "legend_from": 8, "legend_dev": 1, "legend_max": 4},
   "alt_hunt": {"dev": 1.5, "dev_max": 4, "window": 3, "legend_from": 4, "legend_dev": 2, "legend_max": 8}
  },
@@ -2472,7 +2475,11 @@ function updateMachines(ev){
     ev.push(`${S.year} 대규정 변경! 새 규정으로 머신 판도가 흔들렸어요.`);
     // top teams only wobble (top_swing); the full reshuffle (underdog story) is for mid/bottom teams
     S.teams.forEach(t=>{const tp=t.tier==='top'&&MR.top_swing!=null,w=tp?MR.top_swing:MR.swing;t.machine=!tp&&Math.random()<MR.tier_reshuffle_chance?rnd(72,92):t.machine+rnd(-w,w)});
-  }else{const m=B.machine.minor_change_per_year,mt=B.machine.minor_change_top??m;S.teams.forEach(t=>{const w=t.tier==='top'?mt:m;t.machine+=rnd(-w,w)})}
+  }else{const m=B.machine.minor_change_per_year,mt=B.machine.minor_change_top??m,HM=B.machine.home,HP=B.machine.home_pull||0;
+    S.teams.forEach(t=>{const w=t.tier==='top'?mt:m;
+      // every team has a home level (budget, staff): between big rule changes it drifts back toward it
+      const h=HM&&HM[t.id];if(h&&HP){const[a,b]=B.machine.tiers[h];t.machine+=((a+b)/2-t.machine)*HP}
+      t.machine+=rnd(-w,w)})}
   // keep the grid shape: 4 top, 3 mid, rest bottom, values rescaled into each tier band by order
   const ts=[...S.teams].sort((a,b)=>b.machine-a.machine);let i=0;
   // a top team falls one tier at most (top_max_drop 1): swap it up with the slowest mid team that wasn't top
@@ -2733,7 +2740,10 @@ function finishSeason(){
   if(!p.retired){scoutUpdate(pos,fieldN,titled,ev);altScoutUpdate(pos,fieldN,titled,ev)}
   ageF1Grid();altMarket(ev);rivalMove(ev);jrMove();
   S.year++;p.age++;
+  // the champion hunt only holds the car back for that one season (like the real wind-tunnel handicap), it doesn't pile up
+  if(S.huntF1){const t=S.teams.find(x=>x.id===S.huntF1.id);if(t)t.machine=r1(t.machine+S.huntF1.d);S.huntF1=null}
   const prevM={};S.teams.forEach(t=>prevM[t.id]=t.machine);
+  teamLead(rec,ev);
   const tierLines=[];updateMachines(tierLines);ev.push(...tierLines);updateAltMachines(ev);Object.keys(ALT_DRV).forEach(altRoster);
   if(p.series==='F1'&&p.role==='race')p.noSeat=0;else if(p.age>=24)p.noSeat++;
   if(p.series==='F1'&&p.role==='race'&&p.contract)p.contract.left=Math.max(0,p.contract.left-1);
@@ -2849,6 +2859,13 @@ function newcomer(teamId){const c=(S.jr||[]).filter(d=>d.st==='on'&&d.series==='
   return{id:c.id,name:c.name,nationality:c.nationality,birth_year:0,age:c.age,team:teamId,style:c.style,potential:c.potential,stats:{...c.stats},rookie:true,nm2:1}}
 function fillVacancies(){for(const t of S.teams)for(let i=seatsTaken(t.id);i<2;i++){const r=newcomer(t.id);S.f1.push(r);if(r.prodigy)S.p.rivalNote=`${r.name}, ${t.name}에서 데뷔하는 천재 신인`};S.vacancies=[]}
 // the defending F1 champion gets hunted: the strongest AI drivers move into the fastest cars
+// team leader: a race driver who stays (2nd season+) and beats the teammate feeds the development, the car leans a little better
+function teamLead(rec,ev){const L=B.career.team_lead,p=S.p;S.lead=null;if(!L||!rec||p.retired||rec.sid!=='F1'||rec.role!=='race'||!rec.tid||!rec.h2h)return;
+  const H=p.history;let n=0;for(let i=H.length-1;i>=0&&H[i].sid==='F1'&&H[i].role==='race'&&H[i].tid===rec.tid;i--)n++;
+  const w=rec.h2h.q[0]+rec.h2h.r[0],l=rec.h2h.q[1]+rec.h2h.r[1];if(n<L.from||w<l)return;
+  const t=S.teams.find(x=>x.id===rec.tid);if(!t)return;const b=r1(Math.min(L.base+L.per_year*(n-L.from),L.max));
+  t.machine+=b;S.lead={id:t.id,b,n};rec.lead=b;
+  ev.push(`${t.name} ${n}년째, 팀의 중심이 됐어요. ${p.name}의 피드백이 개발에 반영돼요.`)}
 function champHunt(fresh){const H=B.career.champ_hunt,p=S.p;if(!H)return;
   if(fresh){
   const fast=[...S.teams].sort((a,b)=>b.machine-a.machine).slice(0,H.cars).map(t=>t.id);
@@ -2864,7 +2881,7 @@ function champHunt(fresh){const H=B.career.champ_hunt,p=S.p;if(!H)return;
     // legends draw extra fire: from legend_from career titles on, every further title adds to the hunt (only while still winning)
     const T=p.history.filter(h=>h.sid==='F1'&&h.titled).length,lg=n>0&&H.legend_from&&T>=H.legend_from?Math.min((T-H.legend_from+1)*H.legend_dev,H.legend_max):0;
     const t=S.teams.find(x=>x.id===p.team.id),d=Math.min(H.dev*n,H.dev_max||99)+lg;
-    if(t&&d>0){t.machine=r1(t.machine-d);S.hunt={y:S.year,sid:'F1',d:r1(d)};if(S.news&&S.news.heads)S.news.heads.unshift({t:`라이벌 팀들, ${p.name} 타도에 개발 총력… ${t.name} 머신 우위 줄어`,c:''})}}}
+    if(t&&d>0){t.machine=r1(t.machine-d);S.huntF1={id:t.id,d:r1(d)};S.hunt={y:S.year,sid:'F1',d:r1(d)};if(S.news&&S.news.heads)S.news.heads.unshift({t:`라이벌 팀들, ${p.name} 타도에 개발 총력… ${t.name} 머신 우위 줄어`,c:''})}}}
 // WEC / IndyCar: a lighter version of the F1 hunt. The champion's car is held back (WEC: BoP) for every title in that league in the last few seasons
 function altHunt(){const H=B.career.alt_hunt,p=S.p;if(!H||p.series!=='ALT'||!ALT_DRV[p.alt]||!p.team)return;
   const n=p.history.slice(-(H.window||1)).filter(h=>h.lk===p.alt&&h.titled).length,
@@ -2903,6 +2920,7 @@ function buildNotice(){
   if(p.series==='F1'&&N){
     const tm=teamDef(p.team.id),d=N.delta?N.delta[tm.id]:0,rank=[...S.teams].sort((a,b)=>b.machine-a.machine).findIndex(x=>x.id===tm.id)+1;
     if(N.major)L.push(`신규 규정 첫해라 판도를 예측하기 어려워요.`);
+    if(S.lead&&S.lead.id===tm.id)L.push(`퍼스트 드라이버 ${p.name}의 피드백으로 개발 방향이 잡혔어요 (+${S.lead.b}).`);
     L.push(d>=1?`비시즌 개발이 순조로워요. 예상 머신 ${tm.machine} (${rank}번째, +${d})`:d<=-1?`머신 경쟁력이 떨어졌다는 평가예요. 예상 머신 ${tm.machine} (${rank}번째, ${d})`:`머신은 작년과 비슷한 수준이에요. 예상 머신 ${tm.machine} (${rank}번째)`);
     N.lines.filter(x=>x.includes(tm.name)).forEach(x=>L.push(x));
     N.heads.filter(h=>h.t.includes(tm.name)&&!h.t.includes('컨스트럭터')).forEach(h=>L.push(h.t));
@@ -4831,7 +4849,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.9-d1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.9-d2',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
