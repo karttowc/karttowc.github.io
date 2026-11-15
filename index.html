@@ -520,6 +520,12 @@ html,body{margin:0}
 .thx .threc{margin:2px 0 0;font-size:15px;color:#E6E8EF}.thx .threc b{color:var(--gold)}
 .thx .btn{width:100%}
 .thx .thnote{margin:0;font-size:12px;color:var(--muted)}
+.ptab{width:100%;border-collapse:collapse;font-size:14px}
+.ptab th{font-size:12px;color:var(--muted);font-weight:500;text-align:right;padding:4px 6px}
+.ptab td{text-align:right;padding:6px;border-top:1px solid var(--line,rgba(255,255,255,.08))}
+.ptab th:first-child,.ptab td:first-child{text-align:left}
+.ptab tr.sum td{font-weight:700;border-top:1px solid var(--muted)}
+.ptab1{font-size:14px}
 .note .ncard{align-self:flex-start;margin:8px 0 0 18px;background:none;border:0;padding:0;color:var(--gold);font-size:14px;font-weight:600;cursor:pointer;text-decoration:none}
 .tban:active{background:rgba(255,196,0,.24)}
 .tban.new{background-image:linear-gradient(100deg,transparent 30%,rgba(255,236,160,.45) 50%,transparent 70%);background-size:250% 100%;animation:tbsh 2.4s ease-in-out infinite;border-color:rgba(255,196,0,.75)}
@@ -4840,7 +4846,10 @@ const DEV_NOTE=`      <p>안녕하세요, ‘카트부터 월챔까지’ 개발
 // 개발자 연료 넣어주기: 카카오페이 코드송금 링크 (계좌번호 안 들어 있음). 커리어 결산 맨 아래에서만 연다
 const FUEL_URL='https://qr.kakaopay.com/FR5iI9U5C';
 // 게임 소식 (새 버전을 맨 위에 추가)
+// 선택지 확률 정확도 공지 표: [구간, 표시 평균, 실제] (11-15 플레이 기록)
+const PROB=[[10,15.6,15.3],[20,24.4,24.3],[30,34.7,34.8],[40,44.1,43.9],[50,53.9,54.2],[60,62.9,62.8],[70,73.9,73.4],[80,84.0,84.0]].map(r=>[r[0],r[1].toFixed(1),r[2].toFixed(1)]);
 const NOTES=[
+ {id:'prob',card:'prob',cl:'구간별 표 보기',d:'2026.11.15',t:'선택지 확률 정확도 관련 공지',items:['선택지 확률이 표시보다 낮게 느껴진다는 의견을 여러 번 보내 주셨습니다','그래서 실제 플레이 기록으로 다시 확인해 보았습니다','레이스 중 사건: 11월 7일부터 11월 15일까지 16만 3천여 번의 선택을 확인했습니다. 표시된 확률 평균은 65.1%, 실제 성공률은 65.0%입니다','휴식기 도전: 10월 28일부터 11월 15일까지 31만여 번의 도전을 확인했습니다. 예상 성공률은 67.0%, 실제 성공률은 67.2%입니다','확률은 화면에 보이는 숫자 그대로 적용되고 있습니다','실패가 이어질 때 아쉬운 마음이 크다는 것도 알고 있습니다. 더 재밌게 즐기실 수 있도록 계속 살펴보겠습니다. 의견 보내 주셔서 감사합니다']},
  {id:'10d',card:'thx',d:'2026.11.12',hot:true,t:'공개 10일, 고맙습니다',items:['11월 2일 정식 공개 후 10일 동안 17,269명의 드라이버를 카트부터 육성했습니다','그중 9,043명이 F1에 데뷔했고, 3,544명이 F1 월드 챔피언에 올랐습니다','여러분의 드라이버들은 카트부터 F1까지 508만 번의 레이스를 치렀습니다','지금까지 최다 월드 챔피언 기록은 13회입니다. 이 기록을 깰 드라이버를 기다립니다','보내 주신 의견은 하나하나 읽고 업데이트에 반영하고 있습니다. 앞으로도 잘 부탁드립니다']},
  {v:'1.7.6',d:'2026.11.12',t:'레드불·페라리 육성 루트, 리저브 개선',items:['보내 주신 의견을 반영했습니다','레드불 주니어는 레이싱불스를 거쳐 F1에 데뷔합니다. 레이싱불스에서 활약하면 레드불로 승격 제안이 옵니다','페라리는 F1 데뷔 전 루키를 뽑지 않습니다. 페라리 아카데미 드라이버는 하스에서 경험을 쌓게 됩니다','F1 리저브는 소속 팀 리저브 유지 제안을 항상 받고, 대타로 딴 포인트가 팀 관심도에 반영됩니다','F1 레이스 결과가 퀄리파잉 순서를 더 따라갑니다. 폴 포지션에서 포디움에 오르는 비율이 실제 F1과 비슷해졌습니다','탈출 조항이 있는 계약이면 팀 떠나기를 선택해도 아무 불이익이 없습니다','레이스 중 상황 창에서 지금 순위를 볼 수 있습니다','다른 무대 타이틀 결정전에서 보너스 점수를 빼고 챔피언 여부를 계산하던 문제를 고쳤습니다']},
  {v:'1.7.4',d:'2026.11.12',t:'인디 NXT, 새 팬 반응, F1 팀 판도 안정',items:['인디 NXT가 들어왔습니다. FRECA 단계에서 고를 수 있고, 3위 안에 들면 인디카로 가는 길이 열립니다. F3·F2에서 갈아탈 수도 있습니다','팬 반응을 새로 썼습니다. 시즌 전체 이야기를 실제 커뮤니티 말투로 보여 주고, 같은 댓글이 덜 반복됩니다','F1 상위 팀이 갑자기 무너지는 일이 줄었습니다. 규정이 바뀌어도 크게 흔들리지 않고, 떨어져도 한 번에 한 단계까지만 내려갑니다','중위·하위 팀이 규정 변경으로 치고 올라오는 일은 그대로 있지만, 전보다 드물게 일어납니다','포인트가 같아 순위가 갈리면 이유를 보여 줍니다. 실제 F1처럼 우승 수, 그다음 높은 순위 횟수로 가립니다','WEC·DTM에서는 50세까지 뛸 수 있습니다. 45세부터는 그 리그 안에서만 팀을 옮깁니다','F2가 실제처럼 더 치열해졌습니다. 챔피언 되기가 전보다 어렵습니다','다른 무대 제안에 슈퍼포뮬러·포뮬러E·DTM도 더 자주 들어옵니다']},
@@ -4857,7 +4866,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.9-d6',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.9-d7',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -5266,7 +5275,7 @@ const root=document.getElementById('root'),tabsEl=document.getElementById('tabs'
 function render(){
   root.classList.toggle('bare',!!title);
   if(S&&S.p&&S.p.retired)hofAdd();
-  if(title){tabsEl.hidden=true;root.innerHTML=titleView()+(['fb','dev','notes','thx'].includes(sheet)?sheetView():'');return}
+  if(title){tabsEl.hidden=true;root.innerHTML=titleView()+(['fb','dev','notes','thx','prob'].includes(sheet)?sheetView():'');return}
   if(!S){if(!ob)obInit();tabsEl.hidden=true;root.innerHTML=obView();return}
   if(S.p.retired){tabsEl.hidden=true;root.innerHTML=retiredView()+(hofOpen?hofSheet(hofLoad()):'')+(sheet?sheetView():'');
     try{const c=drawCard();cardURL=c.toDataURL('image/png');document.getElementById('cardImg').src=cardURL}catch(e){}
@@ -5496,8 +5505,14 @@ function sheetView(){
       <button class="btn" type="button" id="thxGo">${cont?'이어하기':'새 커리어'}</button>
       <p class="thnote">보내 주신 의견은 하나하나 읽고 있어요. 고맙습니다.</p>
       <button class="btn ghost" type="button" id="closeSheet">닫기</button></section></div>`}
+  if(sheet==='prob')return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><h3 class="h2">선택지 확률 정확도</h3>
+      <div><b>레이스 중 사건</b><div class="muted num" style="font-size:13px">11.7 ~ 11.15 · 163,574번</div></div>
+      <table class="ptab num"><tr><th>구간</th><th>표시 평균</th><th>실제</th></tr>${PROB.map(([a,b,c])=>`<tr><td>${a}%대</td><td>${b}%</td><td>${c}%</td></tr>`).join('')}<tr class="sum"><td>종합</td><td>65.1%</td><td>65.0%</td></tr></table>
+      <div><b>휴식기 도전</b><div class="muted num" style="font-size:13px">10.28 ~ 11.15 · 310,091번</div></div>
+      <div class="ptab1 num">예상 67.0% · 실제 67.2%</div>
+      <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`;
   if(sheet==='notes')return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">지금 버전 v${LOG_VER}</div><h3 class="h2">게임 소식</h3>
-      ${NOTES.map(n=>`<details class="note${n.hot?' hot':''}"><summary><span class="nt"><b>${esc(n.t||'v'+n.v)}</b><span class="muted num">${n.v?`v${n.v} · `:''}${n.d}</span></span><i>›</i></summary>${n.dev?`<div class="devnote nbody">${DEV_NOTE}</div>`:`<ul>${n.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${n.card?`<button type="button" class="dlink ncard" data-sheet="${n.card}">축하 카드 보기 ›</button>`:''}`}</details>`).join('')}
+      ${NOTES.map(n=>`<details class="note${n.hot?' hot':''}"><summary><span class="nt"><b>${esc(n.t||'v'+n.v)}</b><span class="muted num">${n.v?`v${n.v} · `:''}${n.d}</span></span><i>›</i></summary>${n.dev?`<div class="devnote nbody">${DEV_NOTE}</div>`:`<ul>${n.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${n.card?`<button type="button" class="dlink ncard" data-sheet="${n.card}">${n.cl||'축하 카드 보기'} ›</button>`:''}`}</details>`).join('')}
       <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`;
   if(sheet==='fb')return`<div class="sheet" id="sheetBg"><section class="card"><h3 class="h3">의견 보내기</h3>
       <textarea class="field" id="fbText" maxlength="300" rows="5" placeholder="불편한 점, 어려운 구간, 바랐던 기능 등 뭐든 좋아요" style="resize:none">${esc(fbText)}</textarea>
@@ -5582,6 +5597,7 @@ root.addEventListener('click',e=>{
   if(d.pickoffer!=null){sel=+d.pickoffer;sheet=null;render();return}
   if(d.go){tab=d.go;sheet=null;render();window.scrollTo(0,0);return}
   if(d.sheet==='notes')lsSet('k2wc-notes-seen',noteKey());
+  if(d.sheet==='prob'){sheetBack=sheet;sheet='prob';render();return}
   if(d.sheet==='thx'){lsSet(BAN.k,'1');openSheet('thx');thxRun();return}
   if(d.sheet){openSheet(d.sheet);return}
   if(d.choose){evPick=+d.choose.split(':')[1];render();return}
