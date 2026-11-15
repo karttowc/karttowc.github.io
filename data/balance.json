@@ -254,9 +254,9 @@
   "wet_race_chance": 0.15,
   "wet_noise_sd": 5.0,
   "dnf": {
-   "mechanical": 0.04,
-   "crash": 0.02,
-   "crash_reduction_max": 0.5
+   "mechanical": 0.035,
+   "crash": 0.025,
+   "crash_reduction_max": 0.8
   },
   "points": [
    25,
