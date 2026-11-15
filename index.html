@@ -1109,7 +1109,7 @@ const B = {
     "reserve_scout": {"sub": 4, "per_pt": 1.5, "max": 15, "other_per_pt": 0.5, "other_max": 6},
     "reserve_rule": {"note": "리저브 제안은 그 팀 또는 그 팀이 드라이버를 보내는 고객 팀(같은 엔진, 상위 팀 아님)의 F1 시트 기준에서 OVR gap 안쪽이거나 리저브 승격 기준(f1_seat_ovr-평판-3)에서 promo_gap 안쪽일 때만(F1 레이스 경험자는 예외). 관심도 hot 이상 팀·아카데미·내 팀이 후보. 리저브 연속 max_run시즌이면 레이스 시즌을 뛰기 전까지 리저브 제안 없음", "gap": 6, "promo_gap": 3, "hot": 60, "max_run": 3, "works": ["mercedes", "ferrari", "redbull"]},
     "rb_route": {"want_gap": 4, "chance": 0.7, "beat_mate": 0.5, "pos": 8, "gap": 2, "thr_off": 3, "max_age": 30},
-    "f1_debut_extra": 16,
+    "f1_debut_extra": 16.5,
   "debut_age_penalty_from": 27,
   "alt_return": {"note": "다른 리그 성적으로 F1 문이 다시 열림: max_age세 이하, 마지막 F1 레이스 시즌 뒤 다른 리그 최고 성적(계속 남음)이 챔피언이면 시트 기준 -champ·나이 벌점 절반·슈퍼라이선스 통과, 3위 안이면 -top3·나이 벌점 0.75배. F1 경험자도 포함", "max_age": 31, "champ": 10, "top3": 5},
   "prospect": {"note": "유망주 보정: max_age세 이하 F1 드라이버는 재계약·조기 해지 판정에서 OVR에 (max_age+1-나이) x per_year(최대 max)를 더해 봄", "max_age": 25, "per_year": 1, "max": 4},
@@ -4857,7 +4857,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.9-d5',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.9-d6',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
