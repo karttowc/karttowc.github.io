@@ -234,9 +234,11 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .hnum{position:absolute;left:31.6%;top:80.4%;transform:translate(-50%,-50%) matrix(.886,.156,.174,.985,0,0);font-family:"Barlow Condensed",sans-serif;font-weight:700;color:#fff;-webkit-text-stroke:.06em #000;paint-order:stroke;line-height:1;pointer-events:none}
 .helmet svg{display:block;width:86%;height:auto;shape-rendering:crispEdges;image-rendering:pixelated}
 .hed{display:flex;flex-direction:column;gap:14px}
-.htabs{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;padding:4px;background:var(--surface-2);border-radius:12px}
+.htabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;background:var(--surface-2);border-radius:12px}
 .htabs button{border:0;background:none;color:var(--muted);font-size:14px;font-weight:600;padding:8px 0;border-radius:9px}
 .htabs button[aria-selected="true"]{background:var(--surface);color:var(--fg)}
+.hlink{display:block;margin:12px 0 2px;border:1px solid var(--line);background:none;color:var(--muted);font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px}
+.hlink[aria-pressed="true"]{border-color:transparent;background:var(--surface-2);color:var(--fg)}
 .hed .swatches{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;padding:4px 2px 6px;margin-top:6px}
 .hed .swatches::-webkit-scrollbar{display:none}
 .hed .sw{width:100%;height:auto;aspect-ratio:1;box-shadow:inset 0 0 0 1px rgba(128,128,128,.35)}
@@ -2351,8 +2353,8 @@ function suitNum(base,h,num){const fo=typeof document!=='undefined'&&document.fo
   g.drawImage(base.canvas,0,0);const sc=ht/420,n=String(num);g.font=`700 ${SUIT_NUM.fs*sc}px "Barlow Condensed",sans-serif`;g.textAlign='center';g.textBaseline='middle';g.lineJoin='round';
   g.lineWidth=SUIT_NUM.lw*sc;g.strokeStyle=hexHsl(h.sec)[2]<.3?'#F3F3F1':'#000';const x=w/2+(SUIT_NUM.x-89)*sc,y=SUIT_NUM.y*sc;g.strokeText(n,x,y);g.fillStyle=h.sec;g.fillText(n,x,y);
   return{canvas:c,url:c.toDataURL(),w,h:ht,tmp:!fo}}
-function avatarCanvas(i,h,win,num){if(num!=null){h=normHelmet(h);const k=(win?'w':'')+(i|0)+h.base+h.sec+'#'+num;if(AVC[k])return AVC[k];const b=avatarCanvas(i,h,win);if(!b)return null;const c=suitNum(b,h,num);if(!c.tmp)AVC[k]=c;return c}
-  const L=win?AVWIN:AVATAR;i=Math.max(0,Math.min(L.length-1,i|0));h=normHelmet(h);const k=(win?'w':'')+i+h.base+h.sec;if(AVC[k])return AVC[k];
+function avatarCanvas(i,h,win,num){if(num!=null){h=suitOf(h);const k=(win?'w':'')+(i|0)+h.base+h.sec+'#'+num;if(AVC[k])return AVC[k];const b=avatarCanvas(i,h,win);if(!b)return null;const c=suitNum(b,h,num);if(!c.tmp)AVC[k]=c;return c}
+  const L=win?AVWIN:AVATAR;i=Math.max(0,Math.min(L.length-1,i|0));h=suitOf(h);const k=(win?'w':'')+i+h.base+h.sec;if(AVC[k])return AVC[k];
   const im=spriteImg(win?AWIMG:AVIMG,L,i);if(!im||!im.complete||!im.naturalWidth){if(im)spriteWait=true;return null}
   const B=hexHsl(h.base),Sx=hexHsl(h.sec);
   const rc=recolor(win?handTilt(im):im,(hu,s,l)=>s>.35&&hu>.22&&hu<.45?[B,.5]:s>.35&&hu>.78&&hu<.92?[Sx,.5]:null,(hu,s,l)=>s>.1&&hu>.15&&hu<.5?[B,.5]:s>.1&&hu>.68&&hu<.98?[Sx,.5]:null,{t:B,y0:148,y1:182});
@@ -2367,11 +2369,11 @@ function handTilt(im){const w=im.naturalWidth,ht=im.naturalHeight,sc=ht/420,yc=M
   for(let j=3;j<a.length;j+=4)a[j]=a[j]>=128?255:0;g.putImageData(d,0,0);c.naturalWidth=w;c.naturalHeight=ht;return c}
 function avatarSrc(i,h,win,num){const c=avatarCanvas(i,h,win,num),L=win?AVWIN:AVATAR;return c?c.url:L[Math.max(0,Math.min(L.length-1,i|0))]}
 /* src + (if the recoloured sprite isn't ready yet) markers so avFix can repaint it once loaded */
-function avAttr(i,h,win,num){const c=avatarCanvas(i,h,win,num);if(c&&!c.tmp)return`src="${c.url}"`;h=normHelmet(h);
+function avAttr(i,h,win,num){const c=avatarCanvas(i,h,win,num);if(c&&!c.tmp)return`src="${c.url}"`;h=suitOf(h);
   return`src="${c?c.url:avatarSrc(i,h,win)}" data-avp="${i|0}" data-hb="${h.base}" data-hs="${h.sec}"${win?' data-aw="1"':''}${num!=null?` data-an="${esc(num)}"`:''}`}
 /* 헬멧 쓴 전신(v1.4.4 helmet h4): 전신 위쪽(머리)을 지우고 정면 헬멧을 씌움. 번호 없음. 아바타 좌표(178x420) 기준 헬멧 폭 112, 아래 끝 y 154 */
 const WORN={hw:112,bottom:154},AWC={};
-function wornCanvas(i,h){h=normHelmet(h);const k=i+h.base+h.sec+h.vis;if(AWC[k])return AWC[k];const a=avatarCanvas(i,h),hc=helmetCanvas(h);if(!a||!hc)return null;
+function wornCanvas(i,h){h=normHelmet(h);const H=helmOf(h),k=i+h.base+h.sec+H.base+H.sec+h.vis;if(AWC[k])return AWC[k];const a=avatarCanvas(i,h),hc=helmetCanvas(h);if(!a||!hc)return null;
   const c=document.createElement('canvas'),w=c.width=a.w,ht=c.height=a.h,g=c.getContext('2d');g.drawImage(a.canvas,0,0);
   const sc=w/178,cut=Math.round((WORN.bottom-6)*sc);g.clearRect(0,0,w,cut);
   const hw=WORN.hw*sc,hh=hw*hc.h/hc.w;g.drawImage(hc.canvas,(w-hw)/2,WORN.bottom*sc-hh,hw,hh);
@@ -2690,21 +2692,27 @@ const HCOL_OLD={'#111214':'#1E1F23','#2B2D33':'#1E1F23','#4A4F57':'#A7ADB4','#6E
 const TEAM_COL={mercedes:['#1E1F23','#27F4D2'],redbull:['#1C2A4A','#E10600'],ferrari:['#E10600','#FFD000'],mclaren:['#FF8000','#1E1F23'],astonmartin:['#00594F','#C8DC00'],
   alpine:['#0093CC','#FF87BC'],racingbulls:['#F3F3F1','#005AFF'],williams:['#005AFF','#64C4FF'],haas:['#F3F3F1','#E10600'],audi:['#A7ADB4','#E10600'],cadillac:['#1E1F23','#F3F3F1']};
 function teamColors(h){h=normHelmet(h);return`<div class="tcgrid">${K.teams.filter(t=>TEAM_COL[t.id]).map(t=>{const[b,c]=TEAM_COL[t.id];
-  return`<button class="tcopt" type="button" data-tcol="${t.id}" aria-pressed="${h.base===b&&h.sec===c}" aria-label="${esc(t.name)}">${logo(t.id,30)}<span class="tcsw"><i style="background:${b}"></i><i style="background:${c}"></i></span><span class="tcn">${esc(t.name)}</span></button>`}).join('')}</div>`}
+  return`<button class="tcopt" type="button" data-tcol="${t.id}" aria-pressed="${h.base===b&&h.sec===c&&!h.hb}" aria-label="${esc(t.name)}">${logo(t.id,30)}<span class="tcsw"><i style="background:${b}"></i><i style="background:${c}"></i></span><span class="tcn">${esc(t.name)}</span></button>`}).join('')}</div>`}
 function normHelmet(h){if(typeof h==='string')h={base:h,sec:'#EDEAE3',pat:'visor',vis:'dark'};
   if(HPAT_OLD[h.pat])h={...h,pat:HPAT_OLD[h.pat]};
-  const u=c=>HCOL_OLD[String(c).toUpperCase()]||c;if(HCOL_OLD[String(h.base).toUpperCase()]||HCOL_OLD[String(h.sec).toUpperCase()])h={...h,base:u(h.base),sec:u(h.sec)};return h}
+  const u=c=>HCOL_OLD[String(c).toUpperCase()]||c;if(HCOL_OLD[String(h.base).toUpperCase()]||HCOL_OLD[String(h.sec).toUpperCase()])h={...h,base:u(h.base),sec:u(h.sec)};
+  if(h.hb&&(HCOL_OLD[String(h.hb).toUpperCase()]||HCOL_OLD[String(h.hs).toUpperCase()]))h={...h,hb:u(h.hb),hs:u(h.hs)};return h}
+/* 꾸미기 정보(v1.7.9-d2): p.helmet 하나에 슈트·헬멧이 같이 들어 있음. base·sec = 슈트(메인·포인트), hb·hs = 헬멧만의 색(없으면 슈트 색을 따라감), vis = 바이저.
+   헬멧 그림은 전부 helmetCanvas(helmOf)를, 슈트 그림은 avatarCanvas(suitOf)를 거침. 헬멧에 뭔가 더 얹을 땐(도트 칠하기 등) helmOf·helmetCanvas 두 곳만 고치면 모든 화면에 나옴 */
+const helmOf=h=>{h=normHelmet(h);return{base:h.hb||h.base,sec:h.hs||h.sec,vis:h.vis}};
+const suitOf=h=>{h=normHelmet(h);return{base:h.base,sec:h.sec}};
+const helmOwn=h=>!!normHelmet(h).hb
 function shade(hex,f){const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,m=v=>Math.round(f<1?v*f:v+(255-v)*(f-1));return'#'+[m(r),m(g),m(b)].map(v=>v.toString(16).padStart(2,'0')).join('')}
 /* helmet sprites (data/helmets.json, one per pattern): green shell -> base, magenta pattern -> sec, cyan visor -> visor tint */
 const HVIS_COL={dark:'#2A2F3A',smoke:'#566074',gold:'#D9A520',blue:'#2F72D6'};
 const HIMG=[],HC={};
 /* 정면 헬멧(HELMETS[1], v1.4.4)이 기본. side=true면 옛 옆모습(HELMETS[0], 사이트 아이콘용 tools/brand.py) */
-function helmetCanvas(h,side){h=normHelmet(h);const pi=side?0:1,k=h.base+h.sec+h.vis+(side?'s':'');if(HC[k])return HC[k];
+function helmetCanvas(h,side){h=helmOf(h);const pi=side?0:1,k=h.base+h.sec+h.vis+(side?'s':'');if(HC[k])return HC[k];
   const im=spriteImg(HIMG,HELMETS,pi);if(!im||!im.complete||!im.naturalWidth){spriteWait=true;return null}
   const B=hexHsl(h.base),Sx=hexHsl(h.sec),V=h.vis==='iri'?null:hexHsl(HVIS_COL[h.vis]||HVIS_COL.dark);
   return HC[k]=recolor(im,(hu,s,l,x,w)=>s>.2&&hu>.2&&hu<.45?[B,.45]:s>.2&&hu>.75&&hu<.95?[Sx,.45]:s>.2&&hu>=.45&&hu<.6?[V||[(x/w*1.6+.7)%1,.75,.5],.5]:null)}
 function helmetSrc(h){const c=helmetCanvas(h);if(c)return c.url;return HELMETS[1]}
-function helmetImg(h){if(helmetCanvas(h))return`<img class="himg" src="${helmetSrc(h)}" alt="">`;h=normHelmet(h);
+function helmetImg(h){if(helmetCanvas(h))return`<img class="himg" src="${helmetSrc(h)}" alt="">`;h=helmOf(h);
   return`<img class="himg" src="${HELMETS[1]}" data-hb="${h.base}" data-hs="${h.sec}" data-hvi="${h.vis}" alt="">`}
 function helmet(h,num,size=56){return`<div class="helmet" style="width:${size}px;height:${size}px">${helmetImg(h)}${num!=null?`<b class="hnum" style="font-size:${Math.max(7,Math.round(size*.16))}px">${esc(num)}</b>`:''}</div>`}
 /* 번호: 보는 쪽 왼뺨(줄무늬 아래), 반시계로 기울이고 1의 자리가 아래로(곡면에 붙은 느낌). CSS .hnum과 같은 값 */
@@ -2713,10 +2721,12 @@ function drawHelmet(g,h,num,x0,y0,sc){const W0=24*sc,c=helmetCanvas(h);if(!c)ret
   g.drawImage(c.canvas,x0,y0,w,ht);
   g.save();g.translate(x0+w*.278,y0+ht*.83);g.transform(...HNUM_M,0,0);g.font=`700 ${ht*.17}px "Barlow Condensed",sans-serif`;g.textAlign='center';g.textBaseline='middle';
   g.lineWidth=ht*.016;g.lineJoin='round';g.strokeStyle='#000';g.strokeText(String(num),0,0);g.fillStyle='#fff';g.fillText(String(num),0,0);g.restore()}
-let hedTab='col',hcustOpen=false;
-function helmetEditor(h){h=normHelmet(h);const tabs=[['col','색'],['vis','바이저']];
-  const sw=(k,v)=>`<div class="swatches">${HCOL.map(c=>`<button class="sw" type="button" data-${k}="${c}" aria-label="${c}" aria-pressed="${c===v}" style="background:${c}"></button>`).join('')}</div>`;
-  if(hedTab!=='vis')hedTab='col';const body=hedTab==='col'?`<div class="lbl">메인 색${sw('hb',h.base)}</div><div class="lbl">포인트 색 (줄무늬)${sw('hs',h.sec)}</div>`
+let hedTab='helm',hcustOpen=false;
+function helmetEditor(h){h=normHelmet(h);const H=helmOf(h),own=helmOwn(h),tabs=[['helm','헬멧 색'],['col','슈트 색'],['vis','바이저']];
+  const sw=(k,v,on=true)=>`<div class="swatches">${HCOL.map(c=>`<button class="sw" type="button" data-${k}="${c}" aria-label="${c}" aria-pressed="${on&&c===v}" style="background:${c}"></button>`).join('')}</div>`;
+  if(!tabs.some(t=>t[0]===hedTab))hedTab='helm';
+  const body=hedTab==='col'?`<div class="lbl">메인 색${sw('hb',h.base)}</div><div class="lbl">포인트 색 (줄무늬)${sw('hs',h.sec)}</div>`
+    :hedTab==='helm'?`<button class="hlink" type="button" id="hLink" aria-pressed="${!own}">${own?'슈트와 같게':'✓ 슈트와 같은 색'}</button><div class="lbl">메인 색${sw('xb',H.base,own)}</div><div class="lbl">포인트 색 (줄무늬)${sw('xs',H.sec,own)}</div>`
     :`<div class="hgrid">${HVIS.map(([k,l])=>`<button class="hopt" type="button" data-hv="${k}" aria-pressed="${k===h.vis}">${helmetImg({...h,vis:k})}<span>${l}</span></button>`).join('')}</div>`;
   return`<div class="hed"><div class="htabs" role="tablist">${tabs.map(([k,l])=>`<button type="button" role="tab" data-htab="${k}" aria-selected="${k===hedTab}">${l}</button>`).join('')}</div>${body}</div>`}
 function randomHelmet(){return{base:pick(HCOL),sec:pick(HCOL),pat:pick(HPAT)[0],vis:pick(HVIS)[0]}}
@@ -3466,7 +3476,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.9-d9',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.9-d10',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -4163,10 +4173,12 @@ root.addEventListener('click',e=>{
   if(t.id==='sheetBg'&&e.target===t){if(sheetBack){sheet=sheetBack;sheetBack=null;render();return}if(PRE(sheet)||sheet&&(sheet.type==='chres'||sheet.type==='num1'))return;sheet=null;chain=false;evPick=null;render();return}
   const id=t.id,d=t.dataset;
   // onboarding
-  if(id==='obRandom'){if(ob.step===1){ob.helmet=Math.random()<.5?randomHelmet():(([b,c])=>({...normHelmet(ob.helmet),base:b,sec:c}))(pick(Object.values(TEAM_COL)))}else{ob.av=pick(AVATAR.map((_,i)=>i));ob.avPick=true;ob.nat=pick(Object.keys(K.nationalities));ob.name=genName(ob.nat);ob.nameAuto=true;ob.num=ri(2,99)}render();return}
-  if(d.tcol){const tgt=ob||(S&&!S.p.retired?S.p:null);if(!tgt||!TEAM_COL[d.tcol])return;const[b,c]=TEAM_COL[d.tcol];tgt.helmet={...normHelmet(tgt.helmet),base:b,sec:c};if(S&&!ob)save();render();return}
+  if(id==='obRandom'){if(ob.step===1){ob.helmet=Math.random()<.5?randomHelmet():(([b,c])=>{const h={...normHelmet(ob.helmet),base:b,sec:c};delete h.hb;delete h.hs;return h})(pick(Object.values(TEAM_COL)))}else{ob.av=pick(AVATAR.map((_,i)=>i));ob.avPick=true;ob.nat=pick(Object.keys(K.nationalities));ob.name=genName(ob.nat);ob.nameAuto=true;ob.num=ri(2,99)}render();return}
+  if(d.tcol){const tgt=ob||(S&&!S.p.retired?S.p:null);if(!tgt||!TEAM_COL[d.tcol])return;const[b,c]=TEAM_COL[d.tcol],h={...normHelmet(tgt.helmet),base:b,sec:c};delete h.hb;delete h.hs;tgt.helmet=h;if(S&&!ob)save();render();return}
   if(d.htab){hedTab=d.htab;render();return}
   if(d.av!=null&&ob){ob.av=+d.av;ob.avPick=true;render();return}
+  if(d.xb||d.xs||id==='hLink'){const tgt=ob||(S&&!S.p.retired?S.p:null);if(!tgt)return;const h=normHelmet(tgt.helmet),H=helmOf(h);
+    if(id==='hLink'){delete h.hb;delete h.hs}else{h.hb=d.xb||H.base;h.hs=d.xs||H.sec}tgt.helmet={...h};hcustOpen=true;if(S&&!ob)save();render();return}
   if(d.hb||d.hs||d.hp||d.hv){const tgt=ob||(S&&!S.p.retired?S.p:null);if(!tgt)return;const h=normHelmet(tgt.helmet);
     if(d.hb)h.base=d.hb;if(d.hs)h.sec=d.hs;if(d.hp)h.pat=d.hp;if(d.hv)h.vis=d.hv;tgt.helmet=h;hcustOpen=true;if(S)save();render();return}
   if(id==='hRandom'&&S){S.p.helmet=randomHelmet();save();render();return}
