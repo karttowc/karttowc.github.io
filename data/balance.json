@@ -254,9 +254,9 @@
   "wet_race_chance": 0.15,
   "wet_noise_sd": 5.0,
   "dnf": {
-   "mechanical": 0.04,
-   "crash": 0.02,
-   "crash_reduction_max": 0.5
+   "mechanical": 0.035,
+   "crash": 0.025,
+   "crash_reduction_max": 0.8
   },
   "points": [
    25,
@@ -365,7 +365,7 @@
   "rookie_adapt": 3,
   "first_kart_easy": 5,
   "team_lead": {"from": 2, "base": 0.6, "per_year": 0.2, "max": 1.2},
-  "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 1.75, "dev_max": 5.25, "window": 4, "legend_from": 8, "legend_dev": 1, "legend_max": 4},
+  "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 2.25, "dev_max": 6.75, "window": 4, "legend_from": 8, "legend_dev": 1, "legend_max": 4},
   "alt_hunt": {"dev": 1.5, "dev_max": 4, "window": 3, "legend_from": 4, "legend_dev": 2, "legend_max": 8}
  },
  "super_licence": {
