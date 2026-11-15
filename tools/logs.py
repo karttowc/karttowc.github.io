@@ -36,6 +36,10 @@ if key and URL:
         if 'error' in r:sys.exit('sheet error: '+r['error'])
         recs+=parse(r['rows']);cur=r['next']
         if not r['more']:break
+    # sheet file size (new logsheet.gs only): Google stops taking rows at 10M cells
+    if r.get('cells'):
+        c=r['cells'];print(f"sheet cells {c:,} / 10,000,000 ({c/1e5:.0f}%)")
+        if c>=7e6:print('!! 시트 용량 70% 넘음: 새 시트 파일로 바꿀 때예요 (CLAUDE.md 남은 할 일)')
     json.dump({**st0,**cur},open(ST,'w'))
 for f in files:recs+=json.load(open(f))
 if not recs:sys.exit('no records (LOG_KEY env var or log files needed)')

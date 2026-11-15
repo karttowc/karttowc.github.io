@@ -14,6 +14,8 @@ function tab(name) {
   const ss = SpreadsheetApp.getActive();
   let sh = ss.getSheetByName(name);
   if (!sh) { sh = ss.insertSheet(name); sh.appendRow(HEAD); sh.setFrozenRows(1); }
+  // a new tab comes with 26 columns and the 10M-cell file limit counts empty ones too: keep only our 5
+  if (sh.getMaxColumns() > HEAD.length) sh.deleteColumns(HEAD.length + 1, sh.getMaxColumns() - HEAD.length);
   return sh;
 }
 
@@ -97,5 +99,7 @@ function doGet(e) {
     next = { tab: n, row: start + take - 1 };
     if (rows.length >= PAGE) break;
   }
-  return out({ rows, next, more: rows.length >= PAGE });
+  // cells used by the whole file (Google's limit is 10M, empty cells included): tools/logs.py warns from 70%
+  const cells = ss.getSheets().reduce((n, sh) => n + sh.getMaxRows() * sh.getMaxColumns(), 0);
+  return out({ rows, next, more: rows.length >= PAGE, cells });
 }
