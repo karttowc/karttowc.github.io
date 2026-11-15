@@ -550,6 +550,7 @@ html,body{margin:0}
 .hof .rkhow ol{margin:6px 0;padding-left:20px}
 .hof .rkhow span{color:var(--dim)}
 .hof .row2{display:flex;align-items:center;gap:12px;padding:7px 0;border-top:1px solid #23262F}
+.hof .row2.arc{cursor:pointer}.hof .row2.arc:active{background:rgba(255,255,255,.04)}.hof .row2.arc .rkn b::after{content:" ›";color:var(--muted);font-weight:400}
 .hof .rk{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;width:26px;text-align:center;color:var(--dim)}
 .hof .rk.m0,.hof .rk.m1,.hof .rk.m2{font-size:30px;font-style:italic;-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 1px 0 rgba(0,0,0,.6))}
 .hof .rk.m0{background-image:linear-gradient(180deg,#FFF3C4 0%,#F2C14E 45%,#A8741C 55%,#F7D77A 100%)}
@@ -865,9 +866,10 @@ function rookie(team){
 let padLg=null,newsTab='all',newsMore=false,hlMore=false,fanMore=false,chain=false,resMore=false,evPick=null;
 let S=null, tab='home', ob=null, sel=null, DL=null, sheet=null, cardURL=null;
 const KEY='k2wc-save-v1';
+let arcS=null; // 내 기록 다시 보기 중이면 진짜 세이브 {s,title}
 function rngChk(){if(S&&S.p&&!S.p.retired&&S.p.x!==2&&!xOk(S.cid)&&rngBad())S.p.x=2}
 if(typeof window!=='undefined'&&window.setInterval)window.setInterval(()=>{if(S&&S.p&&!S.p.retired&&S.p.x!==2&&!xOk(S.cid)&&rngBad()){rngChk();save()}},2000);
-function save(){try{rngChk();if(S.p&&xOk(S.cid))delete S.p.x;else if(S.p&&!S.p.x&&tampered(S.p))S.p.x=1;if(S.p&&S.p.x&&!S.p.xLog)xLog();localStorage.setItem(KEY,JSON.stringify(S));const p=S.p;localStorage.setItem('k2wc-last',JSON.stringify({name:p.name,num:p.num0||p.num,nat:p.nat,avatar:p.avatar,helmet:p.helmet}))}catch(e){}}
+function save(){if(arcS)return;try{rngChk();if(S.p&&xOk(S.cid))delete S.p.x;else if(S.p&&!S.p.x&&tampered(S.p))S.p.x=1;if(S.p&&S.p.x&&!S.p.xLog)xLog();localStorage.setItem(KEY,JSON.stringify(S));const p=S.p;localStorage.setItem('k2wc-last',JSON.stringify({name:p.name,num:p.num0||p.num,nat:p.nat,avatar:p.avatar,helmet:p.helmet}))}catch(e){}}
 function load(){try{const t=localStorage.getItem(KEY);if(t){const s=JSON.parse(t);if(s&&s.p)return s}}catch(e){}return null}
 
 
@@ -3156,6 +3158,13 @@ function retiredView(){
     ${altT.length?`<div class="tshelf">${altT.map(a=>`<figure><img src="${TROPHY[a.id]}" alt="${esc(a.n)} 챔피언 트로피"><figcaption>${esc(a.n)}<br>${a.y}</figcaption></figure>`).join('')}</div>`:''}
     ${jrT.length?`<div class="tshelf jr">${jrT.map(j=>`<figure>${jrTrophy(j.series,40)}<figcaption>${esc(j.name)}<br>${j.year}</figcaption></figure>`).join('')}</div>`:''}
     ${raceW.length?`<div class="chips">${raceW.map(c=>`<span class="chip silver">${esc(c.name)} 우승 ${c.year}</span>`).join('')}</div>`:''}</section>`:'';
+  if(arcS)return`<header class="top"><h1>커리어 결산</h1><button class="iconbtn" type="button" id="arcBack">닫기</button></header>
+  <section class="card"><div class="row"><span class="muted">${S.startYear}–${p.history.length?p.history.at(-1).year:S.year} · ${p.age}세 은퇴</span><b>${esc(p.name)}</b></div></section>${flagged(p)?`<section class="card"><p style="margin:0;line-height:1.6">${TAMP_MSG}</p></section>`:''}${similarCard(true)}${closestCard()}<section class="card"><div class="row"><span class="muted">통산 수익</span><b class="num" style="font-size:20px">${won(p.earn||0)}</b></div></section>
+  <section class="card"><img class="cardimg" id="cardImg" alt="${esc(p.name)}의 커리어 카드">
+    ${DL?'':'<p class="muted" style="margin:0;font-size:13px">이미지를 길게 눌러 저장할 수도 있어요.</p>'}
+    <div class="grid2" style="grid-template-columns:1fr 1fr">${DL?'<button class="btn ghost" type="button" id="saveImg">이미지 저장</button>':''}<button class="btn ghost" type="button" id="shareBtn"${DL?'':' style="grid-column:1/-1"'}>공유하기</button></div>
+    <button class="btn ghost" type="button" id="replayCer">은퇴식 보기</button>
+  </section>${recordsBody()}`;
   return`<header class="top"><h1>커리어 결산</h1><button class="iconbtn" type="button" id="toTitle">홈으로</button></header>${flagged(p)?`<section class="card"><p style="margin:0;line-height:1.6">${TAMP_MSG}</p>${TAMP_FB}</section>`:''}${similarCard(true)}${closestCard()}<section class="card"><div class="row"><span class="muted">통산 수익</span><b class="num" style="font-size:20px">${won(p.earn||0)}</b></div></section>
   <section class="card"><img class="cardimg" id="cardImg" alt="${esc(p.name)}의 커리어 카드">
     ${DL?'':'<p class="muted" style="margin:0;font-size:13px">이미지를 길게 눌러 저장할 수도 있어요.</p>'}
@@ -3418,6 +3427,16 @@ function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.r
   a.push({cid:S.cid,at:Date.now(),name:p.name,num:p.num,nat:p.nat,helmet:p.helmet,start:S.startYear,end:S.year,age:p.age,titles:T.titles,wins:T.wins,podiums:T.podiums,starts:T.starts,top:bestStage(p),tro:altTrophies(p).length,earn:p.earn||0,
     peak:p.peak,jr:p.jr.length,...(flagged(p)?{x:1}:{}),trs:[...(tripleCrown()?['트리플 크라운']:[]),...altTrophies(p).map(t=>t.n),...p.jr.map(j=>`${j.name} 챔피언`)]});a[a.length-1].ck=hofCk(a[a.length-1]);
   hofSave(rkSort(a));rkPush()}
+// 내 기록 다시 보기: 은퇴한 커리어를 결산 화면에 필요한 것만 남겨 따로 저장(최근 ARC_MAX개). 보는 동안 진짜 세이브는 arcS에 두고 save()는 막음
+const KEYA='k2wc-arc-v1',ARC_MAX=20,ARC_DROP=['jr','altR','altSum','news','fanSeen','f1sum','altM','f1Out','altNews','notice','paddock','season','offers','events','last','recentEv'];
+function arcLoad(){try{const a=JSON.parse(localStorage.getItem(KEYA)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function arcSave(a){while(a.length){try{localStorage.setItem(KEYA,JSON.stringify(a));return}catch(e){a.shift()}}try{localStorage.removeItem(KEYA)}catch(e){}}
+function arcAdd(){if(arcS||!S||!S.p||!S.p.retired||!S.cid)return;const a=arcLoad();if(a.some(x=>x.cid===S.cid))return;
+  const s=JSON.parse(JSON.stringify(S));ARC_DROP.forEach(k=>delete s[k]);s.p.cerDone=true;a.push({cid:S.cid,s});arcSave(a.slice(-ARC_MAX))}
+const arcHas=()=>new Set(arcLoad().map(x=>x.cid));
+function arcOpen(cid){const x=arcLoad().find(y=>y.cid===cid);if(!x)return;if(xOk(cid))delete x.s.p.x;
+  arcS={s:S,title};S=x.s;title=false;hofOpen=false;sheet=null;render();window.scrollTo(0,0)}
+function arcClose(){if(!arcS)return;S=arcS.s;title=arcS.title;arcS=null;hofOpen=true;sheet=null;render();window.scrollTo(0,0)}
 /* ---------- anonymous play log (Google Apps Script -> Sheet) ---------- */
 // 개발자의 말 (찬우가 쓴 글, 고칠 땐 그대로 옮길 것). DEV_NOTE는 개발자의 말 창과 게임 소식에 같이 쓰고, 안내 문구 DEV_DISC는 창에만
 const DEV_NOTE=`      <p>안녕하세요, ‘카트부터 월챔까지’ 개발자입니다.</p>
@@ -3447,7 +3466,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.9-d8',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.9-d9',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -3596,12 +3615,13 @@ function rkTrs(a){const m=new Map();a.forEach(t=>m.set(t,(m.get(t)||0)+1));retur
 // series line for careers without F1: the other stages they won trophies in
 function rkAltSer(h){const t=h.trs||[],o=[['WEC','WEC'],['르망','WEC'],['인디','인디카'],['포뮬러E','포뮬러E'],['슈퍼포뮬러','슈퍼포뮬러'],['DTM','DTM']].filter(([k])=>t.some(x=>x.includes(k)&&!x.includes('트리플'))).map(x=>x[1]);return[...new Set(o)].slice(0,2).join(' · ')}
 function hofSheet(H){
-  const mine=new Set(H.map(h=>h.cid)),all=rkOn(rkTab),wk=rkTab==='week',k=rkKey(),g=RK_LG[rkLg],L=all?rkD[k]&&rkD[k].L:g?rkLgSort([...H],rkLg):H;
+  const mine=new Set(H.map(h=>h.cid)),arc=arcHas(),all=rkOn(rkTab),wk=rkTab==='week',k=rkKey(),g=RK_LG[rkLg],L=all?rkD[k]&&rkD[k].L:g?rkLgSort([...H],rkLg):H;
   const row=(h,i)=>{const gc=g?rkCs(g):[],tr=rkTrs(h.trs||[]).sort((x,y)=>g?gc.includes(y[0])-gc.includes(x[0])||(y[0]===g.r)-(x[0]===g.r):0),ser=h.top==='포뮬러 1'?'F1':rkAltSer(h)||h.top||'',
     side=g&&g.m?(m=>m.length?`<span class="rkwc etc">${m.map(([x,c])=>`<span class="t alt" aria-label="${x.cn} ${c}회"><img src="${TROPHY[x.tro]}" alt=""><b>${c}</b></span>`).join('')}</span>`:'')(g.m.map(x=>[x,rkCnt(h,x.c)]).filter(([,c])=>c))
       :g?((c,r)=>c||r?`<span class="rkwc">${c?`<span class="t alt" aria-label="${g.cn} ${c}회"><img src="${TROPHY[g.tro]}" alt=""><b>${c}</b></span>`:''}${r?`<span class="w">${g.rn} ${r}승</span>`:''}</span>`:'')(rkCnt(h,g.c),rkCnt(h,g.r))
       :h.titles||h.wins?`<span class="rkwc">${h.titles?`<span class="t" aria-label="월드 챔피언 ${h.titles}회"><img src="${TROPHY.F1}" alt=""><b>${h.titles}</b></span>`:''}${h.wins?`<span class="w">우승 ${h.wins}</span>`:''}</span>`:'';
-    return`<div class="row2${i<3?' p'+i:''}${all&&mine.has(h.cid)?' me':''}"><span class="rk${i<3?' m'+i:''}">${i+1}</span>${helmet(h.helmet,h.num,40)}
+    const av=mine.has(h.cid)&&arc.has(h.cid);
+    return`<div class="row2${i<3?' p'+i:''}${all&&mine.has(h.cid)?' me':''}${av?' arc':''}"${av?` data-arc="${esc(h.cid)}" role="button" tabindex="0" aria-label="${esc(h.name)} 커리어 결산 보기"`:''}><span class="rk${i<3?' m'+i:''}">${i+1}</span>${helmet(h.helmet,h.num,40)}
       <span style="flex:1;min-width:0"><span class="rkn"><b>${esc(h.name)}</b>${h.at?`<i>${rkAgo(h.at)}</i>`:''}</span>
       <span class="muted rkmeta">${esc(ser)}${h.top==='포뮬러 1'||h.podiums?` · 포디움 ${h.podiums}`:''}${h.peak?` · OVR ${h.peak}`:''} · ${h.age}세</span>
       ${tr.length||g&&h.titles?`<div class="chips rkch">${g&&h.titles?`<span class="chip f1">F1 월챔${h.titles>1?` ×${h.titles}`:''}</span>`:''}${tr.map(([t,n])=>`<span class="chip ${t==='트리플 크라운'?'gold':'silver'}">${esc(rkShort(t))}${n>1?` ×${n}`:''}</span>`).join('')}</div>`:''}</span>${side}</div>`};
@@ -3614,7 +3634,7 @@ function hofSheet(H){
   return`<div class="sheet" id="hofBg"><section class="card hof" style="max-height:85vh;overflow:auto"><div class="rkhd"><h3 class="h2">랭킹</h3><button type="button" class="ibtn" id="rkInfo" aria-label="순위 정하는 법" aria-expanded="${rkInfo}">${ISVG}</button>${rkInfo?`<div class="rkhow" role="tooltip"><b>순위 정하는 법</b><ol>${g?`<li>${g.cn} 횟수</li>${g.rn?`<li>${g.rn} 우승 수</li>`:''}<li>최고 OVR</li>`:`<li>F1 월드 챔피언 횟수</li><li>F1 우승 수</li><li>다른 무대 트로피(르망·인디 500 등)</li><li>포디움 수</li><li>주니어 챔피언 수</li><li>최고 OVR</li>`}</ol><span>앞 기준이 같을 때만 다음 기준으로 비교해요.</span></div>`:''}</div>
     <div class="segs"><button type="button" data-rk="week" aria-pressed="${wk}">이번 주</button><button type="button" data-rk="all" aria-pressed="${rkTab==='all'}">전체</button><button type="button" data-rk="mine" aria-pressed="${!all}">내 기록</button></div>
     <div class="segs lgsegs">${[...LGS.filter(([x])=>x==='f1'||RK_LG[x]),['ETC','','기타']].map(([x,lo,n,o])=>`<button type="button" data-rklg="${x}" aria-pressed="${rkLg===x}" aria-label="${x==='ETC'?'기타 리그':n}">${lgBtn([x,lo,n,o])}</button>`).join('')}</div>
-    ${wk&&rkNet()?`<p class="muted" style="margin:0 0 8px;font-size:13px">매주 월요일 0시(한국 시간)에 새로 시작해요.</p>`:''}${body}
+    ${wk&&rkNet()?`<p class="muted" style="margin:0 0 8px;font-size:13px">매주 월요일 0시(한국 시간)에 새로 시작해요.</p>`:''}${!all&&H.some(h=>arc.has(h.cid))?`<p class="muted" style="margin:0 0 8px;font-size:13px">내 커리어를 누르면 커리어 결산을 다시 볼 수 있어요.</p>`:''}${body}
     <div class="stick"><button class="btn" type="button" id="hofClose">닫기</button></div></section></div>`}
 let lightsT=[];
 function lightsGo(cb){
@@ -3855,12 +3875,12 @@ function enterGame(){title=false;titleAsk=false;render();window.scrollTo(0,0)}
 const root=document.getElementById('root'),tabsEl=document.getElementById('tabs');
 function render(){
   root.classList.toggle('bare',!!title);
-  if(S&&S.p&&S.p.retired)hofAdd();
+  if(S&&S.p&&S.p.retired&&!arcS){hofAdd();arcAdd()}
   if(title){tabsEl.hidden=true;root.innerHTML=titleView()+(['fb','dev','notes','thx','prob'].includes(sheet)?sheetView():'');return}
   if(!S){if(!ob)obInit();tabsEl.hidden=true;root.innerHTML=obView();return}
   if(S.p.retired){tabsEl.hidden=true;root.innerHTML=retiredView()+(hofOpen?hofSheet(hofLoad()):'')+(sheet?sheetView():'');
     try{const c=drawCard();cardURL=c.toDataURL('image/png');document.getElementById('cardImg').src=cardURL}catch(e){}
-    if(!S.p.cerDone&&!document.getElementById('cer'))startCeremony();
+    if(!arcS&&!S.p.cerDone&&!document.getElementById('cer'))startCeremony();
     return}
   if(S.phase==='progress'){tabsEl.hidden=true;root.innerHTML=progressView();startProgress();return}
   tabsEl.hidden=false;
@@ -4137,7 +4157,8 @@ root.addEventListener('change',e=>{if(e.target.id==='obNat'){ob.nat=e.target.val
 root.addEventListener('click',e=>{
   {const ib=e.target.closest('span.ibtn[data-sheet]');if(ib){openSheet(ib.dataset.sheet);return}}
   if(rkInfo&&!e.target.closest('#rkInfo')){rkInfo=false;render();return}
-  const t=e.target.closest('button,#sheetBg,#hofBg');if(!t)return;
+  const t=e.target.closest('button,[data-arc],#sheetBg,#hofBg');if(!t)return;
+  if(t.dataset&&t.dataset.arc){arcOpen(t.dataset.arc);return}
   if(t.id==='hofBg'){if(e.target===t){hofOpen=false;render()}return}
   if(t.id==='sheetBg'&&e.target===t){if(sheetBack){sheet=sheetBack;sheetBack=null;render();return}if(PRE(sheet)||sheet&&(sheet.type==='chres'||sheet.type==='num1'))return;sheet=null;chain=false;evPick=null;render();return}
   const id=t.id,d=t.dataset;
@@ -4216,6 +4237,7 @@ root.addEventListener('click',e=>{
   if(id==='fbSend'){fbSend();return}
   if(id==='fuelGo'){window.open(FUEL_URL,'_blank','noopener');return}
   if(id==='logToggle'){if(logOff())lsSet('k2wc-log-off','0');else{lsSet('k2wc-log-off','1');lsSet(KEYL,'[]')}render();return}
+  if(id==='arcBack'){arcClose();return}
   if(id==='toTitle'){sheet=null;title=true;render();window.scrollTo(0,0);return}
   if(id==='closeSheet'){if(sheetBack){sheet=sheetBack;sheetBack=null;render();return}sheet=null;chain=false;evPick=null;render();return}
   if(id==='askNew'){sheet='confirm';render();return}
