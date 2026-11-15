@@ -4100,11 +4100,11 @@ function reactTransfer(o){if(!S.react)return;const t=o.teamId?teamDef(o.teamId):
 const HPAT=[['none','단색'],['visor','바이저 라인'],['swoosh','스윕'],['two','투톤'],['center','센터 스트라이프'],['grad','그라데이션'],['dots','도트 페이드'],['crown','크라운 밴드']];
 const HPAT_OLD={stripe:'visor',double:'center',cap:'two',diag:'swoosh',checker:'dots',stars:'dots',ring:'crown'};
 const HVIS=[['dark','다크'],['smoke','스모크'],['gold','골드 미러'],['blue','블루 미러'],['iri','오로라']];
-/* F1 팀 색 팔레트(v1.4.4): 8개씩 2줄. 블랙·실버·화이트·페라리 레드·파파야·옐로·샴페인 골드·라임 / 레이싱 그린·페트로나스 틸·라이트 블루·알핀 블루·윌리엄스 블루·네이비·딥 퍼플·BWT 핑크. 골드·퍼플은 팀 색 아님(나만의 헬멧용) */
-const HCOL=['#1E1F23','#A7ADB4','#F3F3F1','#E10600','#FF8000','#FFD000','#D4AF6A','#C8DC00',
-  '#00594F','#27F4D2','#64C4FF','#0093CC','#005AFF','#1C2A4A','#4B2E6F','#FF87BC',
-  /* 셋째 줄(v1.7.9-d11): 실제 헬멧에 자주 보이는데 팀 색엔 없는 색. 형광 노랑·형광 초록·브라질 그린·시안·마룬·주황빨강·라벤더·건메탈 */
-  '#E8FF2E','#39FF6A','#009B3A','#00C8E8','#7B1E3A','#FF4D1A','#B79CFF','#50565E'];
+/* 헬멧·슈트 색 24개(8개씩 3줄, 무지개 순): 마룬·페라리 레드·주황빨강·파파야·샴페인 골드·옐로·형광 노랑·라임 / 형광 초록·브라질 그린·레이싱 그린·페트로나스 틸·시안·라이트 블루·알핀 블루·윌리엄스 블루 / 네이비·딥 퍼플·라벤더·BWT 핑크·화이트·실버·건메탈·블랙. 팀 색은 v1.4.4, 형광 노랑~건메탈 8개는 v1.7.9-d11(실제 헬멧에 자주 보이는 색) */
+const HCOL=[
+  '#7B1E3A','#E10600','#FF4D1A','#FF8000','#D4AF6A','#FFD000','#E8FF2E','#C8DC00',
+  '#39FF6A','#009B3A','#00594F','#27F4D2','#00C8E8','#64C4FF','#0093CC','#005AFF',
+  '#1C2A4A','#4B2E6F','#B79CFF','#FF87BC','#F3F3F1','#A7ADB4','#50565E','#1E1F23'];
 /* 옛 팔레트(v0.31·v0.32·v1.4.4-d3) → 지금 팔레트(옛 세이브·AI 헬멧) */
 const HCOL_OLD={'#111214':'#1E1F23','#2B2D33':'#1E1F23','#4A4F57':'#A7ADB4','#6E1A2B':'#E10600','#C8102E':'#E10600','#6692FF':'#64C4FF',
   '#F28C28':'#FF8000','#1E5A3F':'#00594F','#5FC9B5':'#27F4D2','#6FA8DC':'#64C4FF','#E8747C':'#FF87BC','#EDEAE3':'#F3F3F1',
@@ -4896,7 +4896,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.9-d11',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.9-d12',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
