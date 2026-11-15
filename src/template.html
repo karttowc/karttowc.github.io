@@ -237,8 +237,6 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .htabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;background:var(--surface-2);border-radius:12px}
 .htabs button{border:0;background:none;color:var(--muted);font-size:14px;font-weight:600;padding:8px 0;border-radius:9px}
 .htabs button[aria-selected="true"]{background:var(--surface);color:var(--fg)}
-.hlink{display:block;margin:12px 0 2px;border:1px solid var(--line);background:none;color:var(--muted);font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px}
-.hlink[aria-pressed="true"]{border-color:transparent;background:var(--surface-2);color:var(--fg)}
 .hed .swatches{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;padding:4px 2px 6px;margin-top:6px}
 .hed .swatches::-webkit-scrollbar{display:none}
 .hed .sw{width:100%;height:auto;aspect-ratio:1;box-shadow:inset 0 0 0 1px rgba(128,128,128,.35)}
@@ -2683,7 +2681,9 @@ const HPAT_OLD={stripe:'visor',double:'center',cap:'two',diag:'swoosh',checker:'
 const HVIS=[['dark','다크'],['smoke','스모크'],['gold','골드 미러'],['blue','블루 미러'],['iri','오로라']];
 /* F1 팀 색 팔레트(v1.4.4): 8개씩 2줄. 블랙·실버·화이트·페라리 레드·파파야·옐로·샴페인 골드·라임 / 레이싱 그린·페트로나스 틸·라이트 블루·알핀 블루·윌리엄스 블루·네이비·딥 퍼플·BWT 핑크. 골드·퍼플은 팀 색 아님(나만의 헬멧용) */
 const HCOL=['#1E1F23','#A7ADB4','#F3F3F1','#E10600','#FF8000','#FFD000','#D4AF6A','#C8DC00',
-  '#00594F','#27F4D2','#64C4FF','#0093CC','#005AFF','#1C2A4A','#4B2E6F','#FF87BC'];
+  '#00594F','#27F4D2','#64C4FF','#0093CC','#005AFF','#1C2A4A','#4B2E6F','#FF87BC',
+  /* 셋째 줄(v1.7.9-d11): 실제 헬멧에 자주 보이는데 팀 색엔 없는 색. 형광 노랑·형광 초록·브라질 그린·시안·마룬·주황빨강·라벤더·건메탈 */
+  '#E8FF2E','#39FF6A','#009B3A','#00C8E8','#7B1E3A','#FF4D1A','#B79CFF','#50565E'];
 /* 옛 팔레트(v0.31·v0.32·v1.4.4-d3) → 지금 팔레트(옛 세이브·AI 헬멧) */
 const HCOL_OLD={'#111214':'#1E1F23','#2B2D33':'#1E1F23','#4A4F57':'#A7ADB4','#6E1A2B':'#E10600','#C8102E':'#E10600','#6692FF':'#64C4FF',
   '#F28C28':'#FF8000','#1E5A3F':'#00594F','#5FC9B5':'#27F4D2','#6FA8DC':'#64C4FF','#E8747C':'#FF87BC','#EDEAE3':'#F3F3F1',
@@ -2701,7 +2701,6 @@ function normHelmet(h){if(typeof h==='string')h={base:h,sec:'#EDEAE3',pat:'visor
    헬멧 그림은 전부 helmetCanvas(helmOf)를, 슈트 그림은 avatarCanvas(suitOf)를 거침. 헬멧에 뭔가 더 얹을 땐(도트 칠하기 등) helmOf·helmetCanvas 두 곳만 고치면 모든 화면에 나옴 */
 const helmOf=h=>{h=normHelmet(h);return{base:h.hb||h.base,sec:h.hs||h.sec,vis:h.vis}};
 const suitOf=h=>{h=normHelmet(h);return{base:h.base,sec:h.sec}};
-const helmOwn=h=>!!normHelmet(h).hb
 function shade(hex,f){const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,m=v=>Math.round(f<1?v*f:v+(255-v)*(f-1));return'#'+[m(r),m(g),m(b)].map(v=>v.toString(16).padStart(2,'0')).join('')}
 /* helmet sprites (data/helmets.json, one per pattern): green shell -> base, magenta pattern -> sec, cyan visor -> visor tint */
 const HVIS_COL={dark:'#2A2F3A',smoke:'#566074',gold:'#D9A520',blue:'#2F72D6'};
@@ -2722,11 +2721,11 @@ function drawHelmet(g,h,num,x0,y0,sc){const W0=24*sc,c=helmetCanvas(h);if(!c)ret
   g.save();g.translate(x0+w*.278,y0+ht*.83);g.transform(...HNUM_M,0,0);g.font=`700 ${ht*.17}px "Barlow Condensed",sans-serif`;g.textAlign='center';g.textBaseline='middle';
   g.lineWidth=ht*.016;g.lineJoin='round';g.strokeStyle='#000';g.strokeText(String(num),0,0);g.fillStyle='#fff';g.fillText(String(num),0,0);g.restore()}
 let hedTab='helm',hcustOpen=false;
-function helmetEditor(h){h=normHelmet(h);const H=helmOf(h),own=helmOwn(h),tabs=[['helm','헬멧 색'],['col','슈트 색'],['vis','바이저']];
-  const sw=(k,v,on=true)=>`<div class="swatches">${HCOL.map(c=>`<button class="sw" type="button" data-${k}="${c}" aria-label="${c}" aria-pressed="${on&&c===v}" style="background:${c}"></button>`).join('')}</div>`;
+function helmetEditor(h){h=normHelmet(h);const H=helmOf(h),tabs=[['helm','헬멧 색'],['col','슈트 색'],['vis','바이저']];
+  const sw=(k,v)=>`<div class="swatches">${HCOL.map(c=>`<button class="sw" type="button" data-${k}="${c}" aria-label="${c}" aria-pressed="${c===v}" style="background:${c}"></button>`).join('')}</div>`;
   if(!tabs.some(t=>t[0]===hedTab))hedTab='helm';
   const body=hedTab==='col'?`<div class="lbl">메인 색${sw('hb',h.base)}</div><div class="lbl">포인트 색 (줄무늬)${sw('hs',h.sec)}</div>`
-    :hedTab==='helm'?`<button class="hlink" type="button" id="hLink" aria-pressed="${!own}">${own?'슈트와 같게':'✓ 슈트와 같은 색'}</button><div class="lbl">메인 색${sw('xb',H.base,own)}</div><div class="lbl">포인트 색 (줄무늬)${sw('xs',H.sec,own)}</div>`
+    :hedTab==='helm'?`<div class="lbl">메인 색${sw('xb',H.base)}</div><div class="lbl">포인트 색 (줄무늬)${sw('xs',H.sec)}</div>`
     :`<div class="hgrid">${HVIS.map(([k,l])=>`<button class="hopt" type="button" data-hv="${k}" aria-pressed="${k===h.vis}">${helmetImg({...h,vis:k})}<span>${l}</span></button>`).join('')}</div>`;
   return`<div class="hed"><div class="htabs" role="tablist">${tabs.map(([k,l])=>`<button type="button" role="tab" data-htab="${k}" aria-selected="${k===hedTab}">${l}</button>`).join('')}</div>${body}</div>`}
 function randomHelmet(){return{base:pick(HCOL),sec:pick(HCOL),pat:pick(HPAT)[0],vis:pick(HVIS)[0]}}
@@ -3476,7 +3475,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.9-d10',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.9-d11',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -4177,8 +4176,8 @@ root.addEventListener('click',e=>{
   if(d.tcol){const tgt=ob||(S&&!S.p.retired?S.p:null);if(!tgt||!TEAM_COL[d.tcol])return;const[b,c]=TEAM_COL[d.tcol],h={...normHelmet(tgt.helmet),base:b,sec:c};delete h.hb;delete h.hs;tgt.helmet=h;if(S&&!ob)save();render();return}
   if(d.htab){hedTab=d.htab;render();return}
   if(d.av!=null&&ob){ob.av=+d.av;ob.avPick=true;render();return}
-  if(d.xb||d.xs||id==='hLink'){const tgt=ob||(S&&!S.p.retired?S.p:null);if(!tgt)return;const h=normHelmet(tgt.helmet),H=helmOf(h);
-    if(id==='hLink'){delete h.hb;delete h.hs}else{h.hb=d.xb||H.base;h.hs=d.xs||H.sec}tgt.helmet={...h};hcustOpen=true;if(S&&!ob)save();render();return}
+  if(d.xb||d.xs){const tgt=ob||(S&&!S.p.retired?S.p:null);if(!tgt)return;const h=normHelmet(tgt.helmet),H=helmOf(h);
+    h.hb=d.xb||H.base;h.hs=d.xs||H.sec;tgt.helmet={...h};hcustOpen=true;if(S&&!ob)save();render();return}
   if(d.hb||d.hs||d.hp||d.hv){const tgt=ob||(S&&!S.p.retired?S.p:null);if(!tgt)return;const h=normHelmet(tgt.helmet);
     if(d.hb)h.base=d.hb;if(d.hs)h.sec=d.hs;if(d.hp)h.pat=d.hp;if(d.hv)h.vis=d.hv;tgt.helmet=h;hcustOpen=true;if(S)save();render();return}
   if(id==='hRandom'&&S){S.p.helmet=randomHelmet();save();render();return}
