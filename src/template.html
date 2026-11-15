@@ -3394,6 +3394,8 @@ const KEYH='k2wc-hof-v1';
 function hofLoad(){try{const a=JSON.parse(localStorage.getItem(KEYH)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
 function bestStage(p){if(p.debutYear)return'포뮬러 1';const L=['KART','F4','FRECA','F3','F2'];let b=null,bi=-1;
   (p.history||[]).forEach(h=>{const i=L.indexOf(h.sid);if(i>bi){bi=i;b=h.series}});return b||'카트'}
+// check value on each ranking entry: an entry typed into localStorage by hand has none, so it isn't sent
+function hofCk(h){let k=11;for(const c of [h.cid,h.name,h.age,h.titles,h.wins,h.podiums,h.starts,h.peak,h.tro,h.jr,h.end,'k2wc-h'].join('|'))k=(k*33+c.charCodeAt(0))>>>0;return k.toString(36)}
 function hofSave(a){try{localStorage.setItem(KEYH,JSON.stringify(a.slice(0,50)))}catch(e){}}
 // ranking order: F1 titles > F1 wins > other-stage trophies > F1 podiums > junior titles > peak OVR
 function rkSort(a){return a.sort((x,y)=>y.titles-x.titles||y.wins-x.wins||(y.tro||0)-(x.tro||0)||y.podiums-x.podiums||(y.jr||0)-(x.jr||0)||(y.peak||0)-(x.peak||0))}
@@ -3414,7 +3416,7 @@ const TAMP_MSG=`<b style="font-size:17px">비정상적인 플레이가 감지되
 function tampI(){const x=document.getElementById('tampInfo');if(x)x.hidden=!x.hidden}
 function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.random().toString(36).slice(2,8);const a=hofLoad();if(a.some(x=>x.cid===S.cid))return;const p=S.p,T=p.tot;
   a.push({cid:S.cid,at:Date.now(),name:p.name,num:p.num,nat:p.nat,helmet:p.helmet,start:S.startYear,end:S.year,age:p.age,titles:T.titles,wins:T.wins,podiums:T.podiums,starts:T.starts,top:bestStage(p),tro:altTrophies(p).length,earn:p.earn||0,
-    peak:p.peak,jr:p.jr.length,...(flagged(p)?{x:1}:{}),trs:[...(tripleCrown()?['트리플 크라운']:[]),...altTrophies(p).map(t=>t.n),...p.jr.map(j=>`${j.name} 챔피언`)]});
+    peak:p.peak,jr:p.jr.length,...(flagged(p)?{x:1}:{}),trs:[...(tripleCrown()?['트리플 크라운']:[]),...altTrophies(p).map(t=>t.n),...p.jr.map(j=>`${j.name} 챔피언`)]});a[a.length-1].ck=hofCk(a[a.length-1]);
   hofSave(rkSort(a));rkPush()}
 /* ---------- anonymous play log (Google Apps Script -> Sheet) ---------- */
 // 개발자의 말 (찬우가 쓴 글, 고칠 땐 그대로 옮길 것). DEV_NOTE는 개발자의 말 창과 게임 소식에 같이 쓰고, 안내 문구 DEV_DISC는 창에만
@@ -3445,7 +3447,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.9-d7',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.9-d8',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -3526,7 +3528,7 @@ if(rkNet()&&typeof document!=='undefined'){
   let verHid=0;document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')verHid=Date.now();else if(verHid&&Date.now()-verHid>1800000){verHid=0;verChk(false)}})}
 function rkPush(){if(!rkNet())return;
   {const a=hofLoad();if(a.some(h=>h.x&&xOk(h.cid))){a.forEach(h=>{if(h.x&&xOk(h.cid))delete h.x});hofSave(a)}}
-  hofLoad().filter(h=>!h.sent&&!h.x&&!badName(h.name)).forEach(h=>{
+  hofLoad().filter(h=>!h.sent&&!h.x&&h.ck===hofCk(h)&&!badName(h.name)).forEach(h=>{
     fetch(SB_URL,{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
       body:JSON.stringify({cid:h.cid,name:h.name,num:h.num,nat:h.nat,helmet:h.helmet,start_year:h.start,end_year:h.end,age:h.age,titles:h.titles,wins:h.wins,podiums:h.podiums,starts:h.starts,
         peak:h.peak??null,top:h.top,tro:h.tro||0,jr:h.jr||0,trophies:h.trs||[],earn:h.earn||0,ver:RK_VER})})
