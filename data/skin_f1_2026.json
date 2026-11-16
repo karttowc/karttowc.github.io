@@ -827,15 +827,13 @@
    "id": "WEC",
    "name": "WEC 하이퍼카",
    "races": 8,
-   "field": 36,
-   "note": "F1 탈락 후 대표 루트"
+   "field": 36
   },
   {
    "id": "INDY",
    "name": "인디카",
    "races": 18,
-   "field": 27,
-   "note": "인디 500 포함"
+   "field": 27
   },
   {
    "id": "FE",
@@ -847,8 +845,7 @@
    "id": "SF",
    "name": "일본 슈퍼포뮬러",
    "races": 12,
-   "field": 24,
-   "note": "F1 대기실"
+   "field": 24
   },
   {
    "id": "GT3",

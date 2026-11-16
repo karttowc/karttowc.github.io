@@ -12,7 +12,7 @@ import os,sys,json,urllib.request,urllib.parse,collections
 URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec'  # v2 sheet (tools/logsheet.gs)
 OLD_URL='https://script.google.com/macros/s/AKfycbwQLNST9m47Rbh9GRou9a2Yrl0L0cYt8ImopVt-ZC0TKSZcxVAWrTCNkuFCChwJuKIE/exec'
 DB,ST='play_logs.json','play_logs_state.json'
-PATCH='1.7.6'  # latest balance patch: update this whenever a balance change goes public (CLAUDE.md)
+PATCH='1.7.9'  # latest balance patch: update this whenever a balance change goes public (CLAUDE.md)
 key=os.environ.get('LOG_KEY');args=sys.argv[1:];old='--old' in args
 if '--since' in args:i=args.index('--since');PATCH=args[i+1];del args[i:i+2]
 FBN=0
@@ -36,6 +36,10 @@ if key and URL:
         if 'error' in r:sys.exit('sheet error: '+r['error'])
         recs+=parse(r['rows']);cur=r['next']
         if not r['more']:break
+    # sheet file size (new logsheet.gs only): Google stops taking rows at 10M cells
+    if r.get('cells'):
+        c=r['cells'];print(f"sheet cells {c:,} / 10,000,000 ({c/1e5:.0f}%)")
+        if c>=7e6:print('!! 시트 용량 70% 넘음: 새 시트 파일로 바꿀 때예요 (CLAUDE.md 남은 할 일)')
     json.dump({**st0,**cur},open(ST,'w'))
 for f in files:recs+=json.load(open(f))
 if not recs:sys.exit('no records (LOG_KEY env var or log files needed)')

@@ -254,9 +254,9 @@
   "wet_race_chance": 0.15,
   "wet_noise_sd": 5.0,
   "dnf": {
-   "mechanical": 0.04,
-   "crash": 0.02,
-   "crash_reduction_max": 0.5
+   "mechanical": 0.035,
+   "crash": 0.025,
+   "crash_reduction_max": 0.8
   },
   "points": [
    25,
@@ -288,6 +288,8 @@
   },
   "minor_change_per_year": 2,
   "minor_change_top": 1,
+  "home": {"mercedes": "top", "ferrari": "top", "redbull": "top", "mclaren": "top", "astonmartin": "mid", "audi": "mid", "alpine": "mid", "racingbulls": "bottom", "haas": "bottom", "williams": "bottom", "cadillac": "bottom"},
+  "home_pull": 0.2,
   "major_regulation": {
    "first_year": 2026,
    "swing": 8,
@@ -345,11 +347,12 @@
     "reserve_promote_chance": 0.4,
     "reserve_promote_max_age": 34,
     "reserve_promote_gap": 5,
-    "reserve_scout": {"own": 2, "sub": 4, "per_pt": 1.5, "max": 15, "other_per_pt": 0.5, "other_max": 6, "keep_min": 25},
+    "reserve_scout": {"sub": 4, "per_pt": 1.5, "max": 15, "other_per_pt": 0.5, "other_max": 6},
+    "reserve_rule": {"note": "리저브 제안은 그 팀 또는 그 팀이 드라이버를 보내는 고객 팀(같은 엔진, 상위 팀 아님)의 F1 시트 기준에서 OVR gap 안쪽이거나 리저브 승격 기준(f1_seat_ovr-평판-3)에서 promo_gap 안쪽일 때만(F1 레이스 경험자는 예외). 관심도 hot 이상 팀·아카데미·내 팀이 후보. 리저브 연속 max_run시즌이면 레이스 시즌을 뛰기 전까지 리저브 제안 없음", "gap": 6, "promo_gap": 3, "hot": 60, "max_run": 3, "works": ["mercedes", "ferrari", "redbull"]},
     "rb_route": {"want_gap": 4, "chance": 0.7, "beat_mate": 0.5, "pos": 8, "gap": 2, "thr_off": 3, "max_age": 30},
-    "f1_debut_extra": 14,
+    "f1_debut_extra": 16.5,
   "debut_age_penalty_from": 27,
-  "alt_return": {"note": "다른 리그 성적으로 F1 문이 다시 열림: max_age세 이하, 직전 시즌 챔피언이면 시트 기준 -champ·나이 벌점 절반·슈퍼라이선스 통과, 3위 안이면 -top3·나이 벌점 0.75배. F1 경험자도 포함", "max_age": 31, "champ": 10, "top3": 5},
+  "alt_return": {"note": "다른 리그 성적으로 F1 문이 다시 열림: max_age세 이하, 마지막 F1 레이스 시즌 뒤 다른 리그 최고 성적(계속 남음)이 챔피언이면 시트 기준 -champ·나이 벌점 절반·슈퍼라이선스 통과, 3위 안이면 -top3·나이 벌점 0.75배. F1 경험자도 포함", "max_age": 31, "champ": 10, "top3": 5},
   "prospect": {"note": "유망주 보정: max_age세 이하 F1 드라이버는 재계약·조기 해지 판정에서 OVR에 (max_age+1-나이) x per_year(최대 max)를 더해 봄", "max_age": 25, "per_year": 1, "max": 4},
   "debut_age_penalty_per_year": 2,
   "player_max_age": 45,
@@ -362,7 +365,8 @@
   "old_seat_per_year": 5,
   "rookie_adapt": 3,
   "first_kart_easy": 5,
-  "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 1.75, "dev_max": 5.25, "window": 4, "legend_from": 8, "legend_dev": 1, "legend_max": 4},
+  "team_lead": {"from": 2, "base": 0.6, "per_year": 0.2, "max": 1.2},
+  "champ_hunt": {"cars": 2, "chance": 0.5, "dev": 2.25, "dev_max": 6.75, "window": 4, "legend_from": 8, "legend_dev": 1, "legend_max": 4},
   "alt_hunt": {"dev": 1.5, "dev_max": 4, "window": 3, "legend_from": 4, "legend_dev": 2, "legend_max": 8}
  },
  "super_licence": {

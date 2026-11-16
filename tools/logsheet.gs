@@ -14,6 +14,8 @@ function tab(name) {
   const ss = SpreadsheetApp.getActive();
   let sh = ss.getSheetByName(name);
   if (!sh) { sh = ss.insertSheet(name); sh.appendRow(HEAD); sh.setFrozenRows(1); }
+  // a new tab comes with 26 columns and the 10M-cell file limit counts empty ones too: keep only our 5
+  if (sh.getMaxColumns() > HEAD.length) sh.deleteColumns(HEAD.length + 1, sh.getMaxColumns() - HEAD.length);
   return sh;
 }
 
@@ -47,7 +49,7 @@ function doPost(e) {
       if (!f) { f = ss.insertSheet('의견', 0); f.appendRow(['시간', '내용', '무대', '시즌 수', '버전', '기기']); f.setFrozenRows(1); f.setColumnWidth(2, 400); }
       f.getRange(f.getLastRow() + 1, 1, fb.length, 6).setValues(fb);
     }
-    // anti-cheat: a line when a career gets flagged, and feedback sent from a flagged career, in a "부정 플레이" tab
+    // anti-cheat: a line when a career gets flagged, feedback sent from a flagged career, and careers that dodged the game's check, in a "부정 플레이" tab
     // (stats all 99 = real cheat; ordinary stats = maybe wrongly caught → put its cid in X_OK in the game)
     const ST = ['quali', 'race', 'tyre', 'wet', 'consistency', 'mental'];
     const xs = a.filter(d => d.kind === 'flag' || (d.kind === 'fb' && d.x && d.text)).map(d => d.kind === 'flag' ? [
@@ -56,6 +58,18 @@ function doPost(e) {
       String(d.v || ''), String(d.cid || '')] : [
       Utilities.formatDate(new Date(now), 'Asia/Seoul', 'yyyy-MM-dd HH:mm'), '의견', String(d.text).slice(0, 300), '', String(d.lk || d.phase || ''), '',
       '', '', '', '', String(d.v || ''), String(d.cid || '')]);
+    // careers the game didn't flag (its check was dodged, e.g. 11-12 '삐릿': all 99 at 15): numbers no real career reaches,
+    // same lines as the game (young OVR cap 70+8×(age-14) up to 17, potential over 101). One line per career, never twice
+    const P = PropertiesService.getScriptProperties(), cap = g => g <= 17 ? 70 + 8 * (g - 14) : 99;
+    a.forEach(d => { if (d.kind === 'flag' && d.cid) P.setProperty('x' + d.cid, '1'); });
+    a.forEach(d => {
+      if (d.kind !== 'season' || !d.cid || P.getProperty('x' + d.cid)) return;
+      const o = Math.max(+d.ovr0 || 0, +d.ovr1 || 0), why = o > cap(+d.age) ? `${d.age}세 OVR ${o} (상한 ${cap(+d.age)})` : (+d.pot > 101 ? `잠재력 ${d.pot}` : '');
+      if (!why) return;
+      P.setProperty('x' + d.cid, '1');
+      xs.push([Utilities.formatDate(new Date(now), 'Asia/Seoul', 'yyyy-MM-dd HH:mm'), '감지 피함', why, d.age || '', String(d.lk || ''), d.ovr1 || '',
+        ST.map(k => (d.stats || {})[k] ?? '-').join('·'), '?→' + (d.pot ?? '?'), '', (d.wins || 0) + '/' + (d.starts || 0) + ' (그 시즌)', String(d.v || ''), String(d.cid || '')]);
+    });
     if (xs.length) {
       const ss = SpreadsheetApp.getActive();
       let x = ss.getSheetByName('부정 플레이');
@@ -85,5 +99,7 @@ function doGet(e) {
     next = { tab: n, row: start + take - 1 };
     if (rows.length >= PAGE) break;
   }
-  return out({ rows, next, more: rows.length >= PAGE });
+  // cells used by the whole file (Google's limit is 10M, empty cells included): tools/logs.py warns from 70%
+  const cells = ss.getSheets().reduce((n, sh) => n + sh.getMaxRows() * sh.getMaxColumns(), 0);
+  return out({ rows, next, more: rows.length >= PAGE, cells });
 }
