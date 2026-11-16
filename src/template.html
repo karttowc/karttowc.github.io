@@ -69,7 +69,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{background:var(--surface-2);border-radius:10px;padding:5px 10px;font-size:13px;color:var(--fg)}
 .chip.blue{background:var(--accent-soft);color:#8CB8FF}
-.chip.gold{background:#3A3018;color:var(--gold)}.chip.legb{font-size:10px;font-weight:700;padding:2px 7px;margin-left:6px;vertical-align:3px;white-space:nowrap}.chip.silver{background:#2A2F3A;color:#C9D1DE}.chip.f1{background:#3A1519;color:#FF8A8A;font-weight:700}
+.chip.gold{background:#3A3018;color:var(--gold)}.arts{display:flex;flex-direction:column;gap:12px}.art{display:flex;flex-direction:column;gap:3px}.art+.art{border-top:1px solid var(--line,rgba(255,255,255,.08));padding-top:12px}.art span{font-size:11px;color:var(--dim)}.art b{font-size:15px;line-height:1.4;word-break:keep-all}.art p{margin:0;font-size:13px;line-height:1.5;color:var(--muted,#9aa3b2);word-break:keep-all}.chip.legb{font-size:10px;font-weight:700;padding:2px 7px;margin-left:6px;vertical-align:3px;white-space:nowrap}.chip.silver{background:#2A2F3A;color:#C9D1DE}.chip.f1{background:#3A1519;color:#FF8A8A;font-weight:700}
 .cx{position:fixed;inset:0;z-index:140;background:#07090F;display:flex;align-items:center;justify-content:center;animation:cxin .25s ease-out}
 .cx.bye{opacity:0;transition:opacity .2s}@keyframes cxin{from{opacity:0}}
 .cxst{position:relative;width:100%;height:100%;height:100dvh;max-width:480px;overflow:hidden;color:#fff}
@@ -2617,7 +2617,6 @@ function buildReact(R,x){
   else if(expP&&diff>=3)v=pick([`예상 ${expP}위 전력으로 ${R.pos}위, 기대 이상의 시즌이에요.`,`전력만 보면 ${expP}위였는데 ${R.pos}위까지 끌어올렸어요.`,`차와 실력 이상을 해낸 ${R.pos}위예요 (예상 ${expP}위).`]);
   else if(expP&&diff<=-3)v=pick([`예상 ${expP}위 전력이었는데 ${R.pos}위, 아쉬움이 남는 시즌이에요.`,`가진 전력(예상 ${expP}위)보다 조금 덜 나온 ${R.pos}위예요.`,`${R.pos}위. 더 위에 설 수 있었던 시즌이라 아까워요 (예상 ${expP}위).`]);
   else v=pick([`${R.pos}위, 가진 전력만큼 해낸 시즌이에요.`,`예상과 비슷한 ${R.pos}위. 제 몫을 했어요.`,`${R.field}명 중 ${R.pos}위, 계산대로 나온 시즌이에요.`]);
-  if(R.pos&&prev&&prev.sid===R.sid&&prev.lk===R.lk&&prev.pos){const d=prev.pos-R.pos;if(d)v+=` 작년 ${prev.pos}위에서 ${Math.abs(d)}계단 ${d>0?'올라섰어요':'내려왔어요'}.`}
   if(R.titled&&R.lk==='WEC'&&R.crew)v=pick([`#${R.no} 크루 ${jo(R.crew,'과','와')} 함께 WEC 챔피언! 셋이 같이 든 타이틀이에요.`,`WEC 챔피언! 24시간을 나눠 달린 #${R.no} 크루 전원이 챔피언이에요.`])+(R.mk?` ${jo(R.team,'은','는')} 제조사 타이틀까지 가져갔어요.`:'');
   else if(R.mk&&R.pos)v+=` 팀은 제조사 타이틀을 따냈어요.`;
   if(R.king)v+=` ${R.kingK}연패 중이던 ${R.king}의 시대를 끝낸 우승이에요.`;
@@ -2634,7 +2633,6 @@ function buildReact(R,x){
     else if(qs<=.2&&rs<=.3&&!R.first)t=`퀄리파잉 ${q[0]}:${q[1]}, 레이스 ${r[0]}:${r[1]}${pct}. ${m}에게 전부 밀린 건 뼈아파요.`;
     else if(!ahead)t=pick([`${jo(m,'이','가')} 퀄리파잉 ${q[1]}:${q[0]}, 레이스 ${r[1]}:${joRo(r[0])} 한발 앞섰어요. 아직 따라잡을 수 있는 차이예요.`,`팀 안 경쟁은 ${m} 쪽으로 기울었어요${ps!=null?` (내 포인트 비중 ${Math.round(ps*100)}%)`:''}.`]);
     else t=ahead?pick([`${jo(m,'을','를')} 근소하게 앞섰어요 (퀄리파잉 ${q[0]}:${q[1]}, 레이스 ${r[0]}:${r[1]}${pct}).`,`팀 안 경쟁은 내 쪽이 조금 앞섰어요 (퀄리파잉 ${q[0]}:${q[1]}, 레이스 ${r[0]}:${r[1]}).`]):`${jo(m,'과','와')} 팀 안 경쟁은 팽팽했어요 (퀄리파잉 ${q[0]}:${q[1]}, 레이스 ${r[0]}:${r[1]}).`;
-    const tq=teamQuote(R,diff);if(tq)t+='\n'+tq;
     E.push(t)}
   else if(R.pos&&R.sid!=='F1'&&p.team&&p.team.tier){const tr=p.team.tier;
     if(tr==='bottom'&&R.pos<=R.field/2)E.push(pick(['하위팀 머신으로 이 순위면 드라이버 몫이 컸다는 뜻이에요.','약한 팀에서 거둔 성적이라 더 값져요.']));
@@ -2644,17 +2642,8 @@ function buildReact(R,x){
   const mom=(x.inc||[]).filter(i=>i.done&&KM[i.id]&&i.j!=null)[0];let f=null;
   if(R.dnf>=3)f=pick([`리타이어 ${R.dnf}번이 가장 컸어요.${x.dnfAvg?` 완주한 경기 평균은 ${x.dnfAvg}위로 페이스는 나쁘지 않았어요.`:''}`,`${R.dnf}번의 리타이어가 시즌을 흔들었어요. 완주만 했어도 더 위였어요.`]);
   else if(x.injured)f='부상 결장이 시즌 흐름을 끊었어요.';
-  else if(Y&&R.role!=='reserve'){const F=(Math.abs(diff)>=3?[['luck',Y.luck],['dnf',Y.dnf]]:[['adapt',Y.adapt||0],['car',Y.car],['drv',Y.drv],['stam',Y.stam]]).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]))[0],n=Math.abs(F[1]);
-    if(n>=2)f=F[0]==='car'?(F[1]>0?pick([`머신 덕을 크게 봤어요. 차가 순위를 ${n}계단 끌어올렸어요.`,`빠른 차가 ${n}계단을 거저 줬어요.`]):pick([`머신이 발목을 잡았어요. 차 때문에 ${n}계단 손해였어요.`,`차만 평균이었어도 ${n}계단은 더 위였어요.`])):
-      F[0]==='drv'?(F[1]>0?pick([`순수 실력으로 ${n}계단을 만들어 냈어요.`,`드라이버 실력이 리그 평균보다 ${n}계단 값을 했어요.`]):(R.first?`아직 리그 적응 중이라 실력에서 ${n}계단 밀렸어요.`:pick([`실력이 리그 평균보다 조금 모자라 ${n}계단 밀렸어요. 성장하면 따라잡을 수 있어요.`,`리그 수준이 한 단계 높았어요. ${n}계단은 실력 차였어요.`]))):
-      F[0]==='adapt'?`새 리그 적응에 ${n}계단을 썼어요. 시즌 초반만 지나면 괜찮아요.`:
-      F[0]==='dnf'?`리타이어로 ${n}계단을 잃었어요. 완주만 했어도 ${Y.pos-n}위였어요.`:
-      F[0]==='luck'?(F[1]>0?pick([`운이 따랐어요. 예상보다 ${n}계단 위에서 끝났어요.`,`레이스 변수가 ${n}계단을 도와줬어요.`]):pick([`운이 없었어요. 예상보다 ${n}계단 아래였어요.`,`레이스 변수에 ${n}계단을 잃었어요.`])):
-      (F[1]>0?`좋은 컨디션이 ${n}계단을 더했어요.`:`지친 몸 때문에 ${n}계단을 잃었어요.`)}
   if(!f&&mom)f=`R${mom.r+1}에서 ${KM[mom.id][mom.j]} ${mom.dnf?'리타이어로 이어진 게 시즌의 아쉬운 장면이에요.':mom.ok?'시즌 최고의 장면이었어요.':'통하지 않은 게 아쉬웠어요.'}`;
   if(!f&&x.wetN>=2&&x.wetPod>=2)f=`빗속 레이스 ${x.wetN}번 중 ${x.wetPod}번 포디움, 우천 능력은 이미 무기예요.`;
-  if(!f&&R.wins>=3)f=`${R.wins}승을 거두며 우승 경쟁력을 증명했어요.`;
-  if(!f&&R.pos)f=pick(['큰 변수 없이 실력대로 나온 시즌이었어요.','눈에 띄는 변수 없이 꾸준히 달렸어요.']);
   if(R.lk==='INDY'&&R.pos){if(R.lead>=3)f=(f?f+' ':'')+`${R.lead}경기에서 랩 리드${R.most?`, 최다 리드 ${R.most}번으로`:'로'} 보너스 ${R.bonus}점을 쌓았어요.`;else if(R.f12)f=(f?f+' ':'')+`인디 500 퀄리파잉은 패스트 12(${R.f12}위)에 들어 ${13-R.f12}점을 챙겼어요.`}
   if(R.lk==='FE'&&R.pos&&(R.poles||0)*3+(R.fl||0)>=6)f=(f?f+' ':'')+`${[R.poles?`폴 ${R.poles}번`:'',R.fl?`패스티스트 랩 ${R.fl}번`:''].filter(Boolean).join('·')}으로 보너스 ${(R.poles||0)*3+(R.fl||0)}점을 더했어요.`;
   if((R.lk==='SF'||R.lk==='GT3')&&R.qpt>=6&&R.pos)f=(f?f+' ':'')+`퀄리파잉 포인트로 ${R.qpt}점을 더했어요.`;
@@ -2663,21 +2652,14 @@ function buildReact(R,x){
   if(R.tie&&R.tie.pos<=2&&R.tie.won===(R.tie.pos===1))f=(f?f+' ':'')+(R.tie.won?`${jo(R.tie.n,'과','와')} 포인트는 같았지만 ${R.tie.k}에서 앞서 타이틀을 가져왔어요.`:`${jo(R.tie.n,'과','와')} 포인트는 같았지만 ${R.tie.k}에서 밀려 타이틀을 놓쳤어요.`);
   if(f)E.push(f);
   // 4) what next
-  const st=p.stats,rs0=recStats()[0]||{k:STATS.reduce((a,b)=>st[a]<=st[b]?a:b)},weak=rs0.k,dO=R.ovrAfter-R.ovrBefore,trTxt=S.train!=='rest'&&p.focus.includes(weak)?'지금 훈련 방향이 맞아요.':`${LBL[weak]}${josa3(LBL[weak])} 든 훈련 프로그램을 골라 보세요${trOpen()?'':` (${S.progYear+PROG_LOCK}년에 변경 가능)`}.`;
-  let adv,pre='';
-  if(dO<0)pre=R.slump&&R.slump!=='random'&&R.age<33?`OVR이 ${dO} 떨어졌어요. ${R.slump==='tired'?'체력이 바닥난 탓':R.slump==='norace'?'실전 감각이 떨어진 탓':'부진이 자신감을 흔든 탓'}이라 일시적이에요. `:R.age>=33?`OVR이 ${dO} 떨어졌어요. 나이에 따른 하락이 시작됐어요. `:`OVR이 ${dO} 떨어졌지만 일시적인 부진이에요. `;
-  else if(dO>=4)pre=`OVR이 +${dO} 오르며 한 단계 성장했어요. `;
-  if(p.morale<45)adv=`체력이 ${p.morale}까지 떨어졌어요. 다음 시즌은 휴식과 회복을 먼저 챙기세요.`;
-  else if(R.titled&&!ORDER.includes(R.sid)&&R.sid!=='F1')adv=pick([`이제 이 무대의 주인이에요. ${LBL[weak]}(${st[weak]})까지 다듬어서 타이틀을 지켜 보세요.`,`챔피언도 과제는 있어요. ${LBL[weak]}(${st[weak]})만 더 올리면 왕조를 세울 수 있어요.`]);
-  else if(ORDER.includes(R.sid)&&R.age>=24&&!p.debutYear)adv='냉정하게 말하면 F1 문이 좁아지고 있어요. 다른 리그에서 이름을 알리는 것도 방법이에요.';
-  else if(p.series==='F1'&&p.role==='race'&&p.contract&&p.contract.left===1)adv=`계약이 1년 남았어요. 다음 시즌 성적이 재계약을 좌우해요. ${LBL[weak]}(${st[weak]})부터 챙기세요.`;
-  else if(R.titled&&R.sid==='F1')adv=pick([`이제 타이틀을 지키는 싸움이에요. ${LBL[weak]}(${st[weak]})까지 다듬으면 빈틈이 없어요.`,`챔피언에게도 과제는 있어요. ${LBL[weak]}(${st[weak]})만 더 올리면 왕조를 노려볼 만해요.`]);
-  else if(R.titled)adv=pick([`다음 무대에선 상대가 훨씬 세져요. ${LBL[weak]}(${st[weak]})부터 준비하세요.`,`챔피언 타이틀을 들고 올라가요. ${LBL[weak]}(${st[weak]})이 다음 무대의 열쇠예요.`]);
-  else if(R.age>=33&&st.tyre>=st.quali)adv=pick(['퀄리파잉 속도는 줄어도 타이어 관리와 멘탈은 여전히 무기예요. 경험으로 버티는 시즌이 될 거예요.',`베테랑의 운영이 빛날 때예요. ${LBL[weak]}(${st[weak]})만 지켜 내면 돼요.`]);
-  else adv=pick([`다음 시즌 과제는 ${LBL[weak]}${ieyo(LBL[weak])} (지금 ${st[weak]}). ${trTxt}`,`${LBL[weak]}(${st[weak]})만 끌어올리면 한 단계 더 올라설 수 있어요. ${trTxt}`,`다음 시즌엔 ${LBL[weak]}${josa(LBL[weak])} 키워 보세요 (지금 ${st[weak]}). ${rs0.why}.`]);
-  if(R.titled&&(R.sid==='F1'||ALT_DRV[R.lk]))adv+=BOP(R.lk)?' 다음 시즌엔 BoP 조정으로 차가 묶일 거예요.':' 다음 시즌엔 라이벌 팀들의 견제가 시작돼요.';
-  if(R.sid==='ALT'&&R.age<=B.career.alt_return.max_age&&(R.titled||R.pos&&R.pos<=3))adv+=R.titled?` ${R.series} 챔피언이라 F1 팀들의 문이 다시 열려요.`:` ${R.series} ${R.pos}위는 F1 팀들도 눈여겨보는 성적이에요.`;
-  E.push(pre+adv);
+  // 4) only what matters for next season (training advice lives in the training plan)
+  const adv=[];
+  if(p.morale<45)adv.push(`체력이 ${p.morale}까지 떨어졌어요. 다음 시즌은 휴식과 회복을 먼저 챙기세요.`);
+  if(ORDER.includes(R.sid)&&R.age>=24&&!p.debutYear)adv.push('냉정하게 말하면 F1 문이 좁아지고 있어요. 다른 리그에서 이름을 알리는 것도 방법이에요.');
+  else if(p.series==='F1'&&p.role==='race'&&p.contract&&p.contract.left===1&&!R.titled)adv.push('계약이 1년 남았어요. 다음 시즌 성적이 재계약을 좌우해요.');
+  if(R.titled&&(R.sid==='F1'||ALT_DRV[R.lk]))adv.push(BOP(R.lk)?'다음 시즌엔 BoP 조정으로 차가 묶일 거예요.':'다음 시즌엔 라이벌 팀들의 견제가 시작돼요.');
+  if(R.sid==='ALT'&&R.age<=B.career.alt_return.max_age&&(R.titled||R.pos&&R.pos<=3))adv.push(R.titled?`${R.series} 챔피언이라 F1 팀들의 문이 다시 열려요.`:`${R.series} ${R.pos}위는 F1 팀들도 눈여겨보는 성적이에요.`);
+  if(adv.length)E.push(adv.join(' '));
   // fans: the whole season's story (who, where, compared with what); single races and choices are left out (찬우 결정)
   const tags=[],V={name,team:R.team||'',series:{KART:'카트',F1:'F1',F2:'F2',F3:'F3'}[R.sid]||R.series,pos:R.pos,age:R.age,wins:R.wins,poles:R.poles||0,crown:R.crown?R.crown.n:'',champ:x.champ||null,gap:x.gap,dnf:R.dnf||0,starts:R.starts||0,wetPod:x.wetPod||0,pts:R.points,pods:R.podiums||0,field:R.field};
   const race=R.role==='race'&&R.pos,past=H.slice(0,-1),same=past.filter(h=>h.lk===R.lk&&h.role==='race'&&h.pos);V.seasons=same.length+1;
@@ -2763,7 +2745,7 @@ function buildReact(R,x){
   // the first one is the best-liked, like a real thread
   {const L=fans.map(f=>f.lk).sort((a,b)=>b-a);fans.forEach((f,i)=>{f.likes=likeF(L[i]);delete f.lk})}
   S.fanSeen=[...(S.fanSeen||[]),...fans.map(f=>fanH(f.txt))].slice(-500);
-  return{year:R.year,series:R.series,sid:R.lk||R.sid,expert:E,fans,seen:false};
+  return{year:R.year,series:R.series,sid:R.lk||R.sid,expert:E,news:buildArticles(R,diff),fans,seen:false};
 }
 function reactTransfer(o){if(!S.react)return;const t=o.teamId?teamDef(o.teamId):null;if(!t)return;
   const prev=S.p.series==='F1'&&S.p.team&&S.p.team.id?teamDef(S.p.team.id):null,up=!prev||['bottom','mid','top'].indexOf(t.tier)>=['bottom','mid','top'].indexOf(prev.tier);
@@ -3019,6 +3001,7 @@ function reactTab(){
   const X=S.react;if(X)X.seen=true;
   const N=S.news&&S.news.heads?S.news:null;
   return`<header class="top"><h1>반응</h1></header>
+  ${X&&X.news&&X.news.length?`<section class="card"><h3 class="h3">기사</h3><div class="arts">${X.news.map(a=>`<div class="art"><span>${esc(a.src)}</span><b>${withLogos(esc(a.t))}</b><p>${esc(a.b)}</p></div>`).join('')}</div></section>`:''}
   ${X?`<section class="card"><div class="eyebrow">${X.year} ${sLogo(X.sid)}${esc(X.series)} · 패독 분석가 J</div><h3 class="h3">전문가 분석</h3>
     <div class="newslist">${X.expert.map((l,i)=>`<div${i===X.expert.length-1?' style="border-left:3px solid var(--accent)"':''}>${withLogos(esc(l)).replace(/\n/g,'<br>')}</div>`).join('')}</div>${whyCard()}</section>
   <section class="card"><h3 class="h3">팬 반응</h3><div class="list">${(fanMore?X.fans:X.fans.slice(0,3)).map(f=>`<div class="item" style="cursor:default;align-items:flex-start"><span class="dot g" style="border-radius:50%;width:40px;height:40px">${esc(f.nick[0])}</span>
@@ -3580,7 +3563,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.10-d5',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.10-d6',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -3837,7 +3820,29 @@ function teamQuote(R,diff){const p=S.p,id=R.tid;if(R.sid!=='F1'||R.role!=='race'
   else if(R.wins>=3||R.wins&&p.tot.wins===R.wins)L=[`${R.wins}승은 팀에 큰 힘이 됐습니다. ${n}에게 고맙습니다`,`우승을 가져다주는 드라이버입니다. 계속 함께 싸우고 싶습니다`];
   else if(resign&&Math.random()<.3)L=leg?[`${nW} 다음 장도 함께 쓰고 싶습니다`,`${n} 없는 팀은 상상하기 어렵습니다. 계약은 어렵지 않을 겁니다`]:[`${nW} 다음 장을 함께 쓰고 싶습니다`,`좋은 시즌이었습니다. 재계약 이야기를 나눌 생각입니다`];
   else if(leg&&Math.random()<.15)L=[`${ts}시즌째 함께하고 있습니다. ${nN} 팀의 기둥입니다`,`늘 팀을 먼저 생각해 주는 드라이버입니다. 고마울 뿐입니다`];
-  return L?`${TP_KO[id]}, "${pick(L)}"`:null}
+  return L?{id,q:pick(L)}:null}
+const TP_SH={mercedes:'볼프',redbull:'메키스',ferrari:'바쇠르',mclaren:'스텔라',astonmartin:'뉴이',alpine:'브리아토레',racingbulls:'퍼메인',williams:'볼스',haas:'코마츠',audi:'휘틀리',cadillac:'라우던'};
+const NEWS_SRC=['F1 데일리','패독 인사이드','그리드 리포트','피트레인 뉴스','레이스 위크'];
+// the season in the press: one news story, plus the team principal's interview when there is something to say (made-up outlets)
+function buildArticles(R,diff){const p=S.p,n=p.name,nN=jo(n,'은','는'),nG=jo(n,'이','가'),A=[],src=[...NEWS_SRC].sort(()=>Math.random()-.5);
+  const tg=R.sid==='KART'?'카트':['F1','F2','F3','F4'].includes(R.sid)?R.sid:R.series,hd=`[${tg}] `,team=R.team||'',ST=S.last&&S.last.standings||[];
+  const rec=`${R.field}명 중 ${R.pos}위${R.wins?`, ${R.wins}승`:''}${R.podiums?`·포디움 ${R.podiums}회`:''}`;
+  let t,b;
+  if(R.role==='reserve'){t=R.starts?`${team} 리저브 ${n}, 대타로 ${R.starts}경기 출전`:`${team} 리저브 ${n}, 레이스 시트를 기다린다`;
+    b=`${nN} 올해 ${team}의 리저브 드라이버로 ${R.starts?`대타 기회를 얻어 ${R.starts}경기에 나섰다.`:'금요일 연습 주행과 시뮬레이터 작업을 맡았다.'} 다음 시즌 레이스 시트를 노린다.`}
+  else if(!R.pos){t=`${n}, 레이스 없이 보낸 한 해`;b=`${nN} 올 시즌 레이스에 나서지 못했다.`}
+  else if(R.titled){const g=ST[1]?ST[0].pts-ST[1].pts:0;t=pick([`${n}, ${R.year} ${R.series} 챔피언 등극`,`${n}, ${R.wins}승으로 ${R.series} 정상에`]);
+    b=`${team}의 ${nN} ${R.points}점으로 ${R.year} 시즌 챔피언에 올랐다.${ST[1]?g?` 2위 ${jo(ST[1].name,'과는','와는')} ${g}점 차다.`:` 2위 ${jo(ST[1].name,'과','와')} 포인트는 같았다.`:''}`}
+  else if(R.crown&&R.crown.res==='우승'){t=`${n}, ${R.crown.n} 우승`;b=`${team}의 ${nN} ${R.crown.n}에서 정상에 올랐다. 시즌은 ${rec}로 마쳤다.`}
+  else if(R.sid==='F1'&&R.wins&&p.tot.wins===R.wins){t=`${n}, 생애 첫 F1 우승`;b=`${team}의 ${nN} 올 시즌 첫 그랑프리 우승을 따냈다. 시즌 성적은 ${rec}.`}
+  else if(R.pos<=3){const c=ST[0],g=c&&!c.me?c.pts-R.points:0;t=`${n}, 시즌 ${R.pos}위… 정상까지 ${g}점`;b=`${team}의 ${nN} ${rec}로 시즌을 마쳤다.${c&&!c.me?` 챔피언은 ${c.name}(${c.pts}점).`:''}`}
+  else if(R.pos/R.field>.75){t=pick([`${n}, ${R.pos}위로 아쉬운 시즌`,`${n}, 험난했던 ${R.year} 시즌`]);b=`${team}의 ${nN} ${R.field}명 중 ${R.pos}위에 그쳤다.${R.dnf>=2?` 리타이어가 ${R.dnf}번 나왔다.`:''}`}
+  else{t=pick([`${n}, 시즌 ${R.pos}위로 마무리`,`${team} ${n}, ${R.year} 시즌 ${R.pos}위`]);b=`${team}의 ${nN} ${rec}로 시즌을 마쳤다.`}
+  if(R.h2h&&R.pos){const q=R.h2h.q,m=R.h2h.mate;b+=` 팀메이트 ${jo(m,'과','와')}의 퀄리파잉 맞대결은 ${q[0]}:${q[1]}${q[0]>q[1]?'로 앞섰다':q[0]<q[1]?'로 밀렸다':'로 팽팽했다'}.`}
+  A.push({src:src[0],t:hd+t,b});
+  const tq=teamQuote(R,diff);
+  if(tq){const tm=teamDef(tq.id),[q0,...qr]=tq.q.split('. ');A.push({src:src[1],t:`${hd}${TP_SH[tq.id]} "${q0}"`,b:`${tm.name} ${TP_KO[tq.id]} 대표가 시즌 결산 인터뷰에서 ${jo(n,'을','를')} 두고 입을 열었다.${qr.length?` "${qr.join('. ')}"`:''}`})}
+  return A}
 const NAME_EN={'KR 모터스포츠':'KR Motorsport','토니 카트 레이싱':'Tony Kart Racing','버드 카트':'Bird Kart','파크 레이싱':'Park Racing','로컬 카트 클럽':'Local Kart Club','프레마':'Prema Racing','반 아메르스포르트':'Van Amersfoort','US 레이싱':'US Racing','제타 모터스포츠':'Zeta Motorsport','ART 그랑프리':'ART Grand Prix','KIC 모터스포츠':'KIC Motorsport','AIX 레이싱':'AIX Racing','인빅타':'Invicta Racing','캄포스':'Campos Racing','트라이던트':'Trident','하이테크':'Hitech',
  'A.J. 포이트 레이싱':'A.J. Foyt Racing','B-Max 레이싱':'B-Max Racing','BMW 팀 WRT':'BMW Team WRT','DS 펜스키':'DS Penske','HRT (포드)':'HRT','그라서 (람보르기니)':'Grasser Racing','나카지마 레이싱':'Nakajima Racing','닛산 포뮬러E 팀':'Nissan Formula E','데일 코인 레이싱':'Dale Coyne Racing','도코모 팀 단델라이언':'Team Dandelion','되르 (맥라렌)':'Dörr Motorsport','란트 (포르쉐)':'Land Motorsport','란트그라프 (메르세데스-AMG)':'Landgraf Motorsport','레이할 레터맨 래니건':'Rahal Letterman Lanigan','로라 야마하 ABT':'Lola Yamaha ABT','마힌드라 레이싱':'Mahindra Racing','만타이 (포르쉐)':'Manthey Racing','메이어 생크 레이싱':'Meyer Shank Racing','세루모·인깅':'Cerumo INGING','슈베르트 (BMW)':'Schubert Motorsport','시트로엥 레이싱':'Citroën Racing','아프트 (람보르기니)':'Abt Sportsline','안드레티 글로벌':'Andretti Global','안드레티 포뮬러E':'Andretti Formula E','알핀 인듀어런스 팀':'Alpine Endurance','애로우 맥라렌':'Arrow McLaren','애스턴마틴 THOR 팀':'Aston Martin THOR','에밀 프라이 (페라리)':'Emil Frey Racing','엔비전 레이싱':'Envision Racing','윈워드 (메르세데스-AMG)':'Winward Racing','재규어 TCS 레이싱':'Jaguar TCS Racing','정코스 홀린저 레이싱':'Juncos Hollinger','제네시스 마그마 레이싱':'Genesis Magma Racing','칩 가나시 레이싱':'Chip Ganassi Racing','캐딜락 팀 JOTA':'Cadillac Hertz JOTA','컴투유 (애스턴마틴)':'Comtoyou Racing','콘도 레이싱':'Kondo Racing','쿠프라 키로':'Cupra Kiro','토요타 가주 레이싱':'Toyota Gazoo Racing','팀 고':'Team Goh','팀 무겐':'Team Mugen','팀 임풀':'Team Impul','팀 펜스키':'Team Penske','페라리 AF 코르세':'Ferrari AF Corse','포르쉐 포뮬러E 팀':'Porsche Formula E','푸조 토탈에너지':'Peugeot TotalEnergies'};
 function teamSigName(o,I){if(o.kind==='f1'||o.kind==='reserve')return TEAM_TP[o.teamId]||TEAM_EN[o.teamId]||I.name;
