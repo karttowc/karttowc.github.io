@@ -34,6 +34,7 @@ for(let i=0;i<300;i++){smart=i%2===0;
   let guard=0;
   while(!S.p.retired&&guard++<40){quickSeason();
     if(process.env.LGR)S.offers.sort(()=>Math.random()-.5);// LGR=1: pick F4/FRECA leagues at random (ties in priority)
+    for(const x of S.offers)if(/승격|루트/.test(x.tag||''))(res.tg=res.tg||{})[x.tag]=(res.tg[x.tag]||0)+1;
     const o=S.offers.map(offerOf);const pr=x=>x.dual?6:({f1:0,resign:1,junior:x.tag==='인디 루트'?7:x.tag==='월반'?2:x.tag==='아카데미'?2.5:x.tag==='승격'?3:5,reserve:6,alt:7,retire:9}[x.kind]);
     const best=BOT||BOFF?botOffer(o,pr):[...o].sort((a,b)=>{if(a.kind==='f1'&&b.kind==='f1')return teamDef(b.teamId).machine-teamDef(a.teamId).machine;return pr(a)-pr(b)})[0];
     if(best.kind==='retire'&&S.p.age<38&&o.length>1){applyOffer(o.find(x=>x.kind!=='retire'))}else applyOffer(best);}
@@ -50,6 +51,7 @@ for(let i=0;i<300;i++){smart=i%2===0;
 if(process.env.DUMP)fs.writeFileSync(process.env.DUMP,JSON.stringify(res.dump));
 const avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
 const q=(a,p)=>[...a].sort((x,y)=>x-y)[Math.floor(a.length*p)];console.log('peak p10/50/90',q(res.pk,.1),q(res.pk,.5),q(res.pk,.9),'pot med',q(res.pot,.5),'wins med/p90',q(res.w,.5),q(res.w,.9));console.log('reserve->race',res.rr+'/'+res.rs,'age<=30',res.yr+'/'+res.ys);console.log('dual seasons',res.ds||0,'dual->F1 race',res.dr||0);console.log('champ8+/12+ count',res.ch8||0,res.ch12||0);console.log('champ10+',(res.ch10||0)/res.n,'max titles',res.tmax,'retire age avg',avg(res.rage).toFixed(1));{const AG=[16,18,20,22,24,26,28,30,32,34,36,38,40];console.log('pot   n  debut | OVR med @'+AG.join('/'));for(const b of ['<70','70-74','75-79','80+']){const g=(res.pb||{})[b];if(!g)continue;console.log(b.padEnd(6),String(g.n).padStart(3),(g.f1/g.n*100).toFixed(0).padStart(4)+'% |',AG.map(a=>g.ov[a]&&g.ov[a].length>=5?q(g.ov[a],.5):'-').join('/'))}}
+if(res.tg)console.log('route/promo offers',JSON.stringify(res.tg));
 if(res.lgs)console.log('league (n debut champ1+)',Object.entries(res.lgs).map(([k,g])=>k+' '+g.n+' '+(g.f1/g.n*100).toFixed(0)+'% '+(g.c/g.n*100).toFixed(0)+'%').join(' | '));
 if(res.f2c)console.log('F2 careers',res.f2c,'champ',(res.f2w/res.f2c*100).toFixed(0)+'%','season title',(res.f2t/res.f2s*100).toFixed(1)+'%','debut champ/not',(res.f2wd/res.f2w*100).toFixed(0)+'%',((res.f2nd||0)/(res.f2c-res.f2w)*100).toFixed(0)+'%');
 console.log('F1 debut',res.f1/res.n,'champ1+',res.ch1/res.n,'champ5+',res.ch5/res.n,'debut age avg',avg(res.debut).toFixed(1));

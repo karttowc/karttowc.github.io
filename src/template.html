@@ -1854,11 +1854,14 @@ function makeOffers(pos,field,h2h){
   const contracted=()=>o.some(x=>['resign','stay','option'].includes(x.kind));
   // Red Bull signs F1 rookies only through Racing Bulls; a good Racing Bulls season earns the call-up (contract or not)
   const rbRoute=!p.debutYear&&!inF1Race;
-  if(inF1Race&&p.team.id==='racingbulls'&&!p.retired){const RB=B.career.rb_route,rb=teamDef('redbull'),ds=S.f1.filter(d=>d.team==='redbull'),weak=ds.length?ds.reduce((a,b)=>ovrOf(a.stats)<=ovrOf(b.stats)?a:b):null,
+  // the same for Ferrari: its academy driver who did well at Haas (Leclerc at Sauber, Bearman at Haas) is promoted
+  const promo=(from,toId,RB,tag,msg)=>{if(!(inF1Race&&p.team.id===from&&!p.retired))return;const rb=teamDef(toId),ds=S.f1.filter(d=>d.team===toId),weak=ds.length?ds.reduce((a,b)=>ovrOf(a.stats)<=ovrOf(b.stats)?a:b):null,
       hh=h2h?(h2h.q[0]+h2h.r[0])/Math.max(1,h2h.q[0]+h2h.q[1]+h2h.r[0]+h2h.r[1]):.5;
     if(weak&&p.age<=RB.max_age&&(hh>=RB.beat_mate||(pos&&pos<=RB.pos))&&ovr>=ovrOf(weak.stats)-RB.gap&&ovr>=B.career.f1_seat_ovr[rb.tier]-repAdj()-RB.thr_off&&Math.random()<RB.chance){const tr=terms(rb);
-      evs.push(`레드불이 ${weak.name}${josa(weak.name)} 내리고 당신을 올리고 싶어 해요.`);
-      o.unshift({kind:'f1',teamId:rb.id,...tr,poach:weak.id,promo:true,title:`${rb.name} 레이스 시트`,sub:`${tr.termTxt} · ${TIER_LBL[rb.tier]} · 머신 ${rb.machine} · ${weak.name} 대신`,color:rb.color,short:rb.short,tag:'레드불 승격'})}}
+      evs.push(msg(weak));
+      o.unshift({kind:'f1',teamId:rb.id,...tr,poach:weak.id,promo:true,title:`${rb.name} 레이스 시트`,sub:`${tr.termTxt} · ${TIER_LBL[rb.tier]} · 머신 ${rb.machine} · ${weak.name} 대신`,color:rb.color,short:rb.short,tag})}};
+  promo('racingbulls','redbull',B.career.rb_route,'레드불 승격',w=>`레드불이 ${w.name}${josa(w.name)} 내리고 당신을 올리고 싶어 해요.`);
+  if(p.feJr)promo('haas','ferrari',B.career.fe_promo,'페라리 승격',w=>`페라리가 하스에서의 활약을 보고 ${w.name}${josa(w.name)} 대신 당신을 원해요.`);
   if((slOK||inF1Race)&&(!bound||buyout)){
     const ac=p.academy?K.academies.find(a=>a.id===p.academy):null;
     const cands=[],lostTo=[];let rbWant=false,feWant=false;
@@ -2022,6 +2025,7 @@ function applyOffer(o){
     if(o.poach){const d=S.f1.find(x=>x.id===o.poach);if(d){const tn=teamDef(o.teamId).name;
       if(leavingF1Seat&&oldTeam){d.team=oldTeam}else S.f1=S.f1.filter(x=>x!==d);
       if(S.news&&S.news.heads)S.news.heads.unshift({t:o.promo?`${p.name}, ${tn} 승격 확정! ${d.name}, 시트를 잃어`:`${p.name}, ${tn} 이적 확정! ${leavingF1Seat?jo(d.name,'과','와')+' 자리 맞교환':jo(d.name,'은','는')+' 시트를 잃어'}`,c:'gold'})}}
+    if(p.academy==='ferrari'||o.feRoute)p.feJr=1;
     p.series='F1';p.role='race';p.team={id:o.teamId};p.seriesSeasons=1;if(!p.debutYear)p.debutYear=S.year;p.academy=null;p.contract={left:o.years,option:o.option,clause:o.clause,sal:o.sal};
     if(leavingF1Seat)fillSeat(oldTeam);
   }else if(o.kind==='reserve'){p.contract=null;p.series='F1';p.role='reserve';p.team={id:o.teamId};if(leavingF1Seat)fillSeat(oldTeam)}
@@ -2905,8 +2909,8 @@ function offerTerms(x,pre=''){const clean=s=>String(s||'').replace(/ · 머신 [
 function topNews(){const N=S.news;if(!N||!N.heads)return'';const out=[],nm=nextMajorYear();
   const p=S.p,inF1=p.series==='F1'&&p.role==='race';
   // Red Bull's two-team ladder: tell it first
-  const rbo=offAll().find(x=>x.rbRoute||x.feRoute||x.tag==='레드불 승격');
-  if(rbo)out.push({t:rbo.rbRoute?'레드불이 관심을 가져 레이싱불스로 영입하고자 해요':rbo.feRoute?'페라리가 경험을 쌓으라며 하스 시트를 마련해 줬어요':'레드불이 레이싱불스에서의 활약을 보고 승격을 원해요',c:'tg'});
+  const rbo=offAll().find(x=>x.rbRoute||x.feRoute||x.tag==='레드불 승격'||x.tag==='페라리 승격');
+  if(rbo)out.push({t:rbo.rbRoute?'레드불이 관심을 가져 레이싱불스로 영입하고자 해요':rbo.feRoute?'페라리가 경험을 쌓으라며 하스 시트를 마련해 줬어요':rbo.tag==='페라리 승격'?'페라리가 하스에서의 활약을 보고 승격을 원해요':'레드불이 레이싱불스에서의 활약을 보고 승격을 원해요',c:'tg'});
   if(!inF1){// junior / other series: my world first, F1 only when it touches me
     if(nm-S.year===1&&!N.major)out.push({t:`${S.year} 시즌은 지금 규정의 마지막 해 · 대규정 변경은 ${nm}년부터`,c:''});
     (S.vacancies?[...new Set(S.vacancies)]:[]).map(id=>({t:teamDef(id),v:scv(id)})).filter(x=>x.v>=40).sort((a,b)=>b.v-a.v).slice(0,1)
@@ -3577,7 +3581,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.10-d10',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.10-d11',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
