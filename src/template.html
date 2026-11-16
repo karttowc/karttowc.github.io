@@ -3563,7 +3563,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.10-d6',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.10-d7',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -3823,7 +3823,7 @@ function teamQuote(R,diff){const p=S.p,id=R.tid;if(R.sid!=='F1'||R.role!=='race'
   return L?{id,q:pick(L)}:null}
 const TP_SH={mercedes:'볼프',redbull:'메키스',ferrari:'바쇠르',mclaren:'스텔라',astonmartin:'뉴이',alpine:'브리아토레',racingbulls:'퍼메인',williams:'볼스',haas:'코마츠',audi:'휘틀리',cadillac:'라우던'};
 const NEWS_SRC=['F1 데일리','패독 인사이드','그리드 리포트','피트레인 뉴스','레이스 위크'];
-// the season in the press: one news story, plus the team principal's interview when there is something to say (made-up outlets)
+// the season in the press: one story (made-up outlets)
 function buildArticles(R,diff){const p=S.p,n=p.name,nN=jo(n,'은','는'),nG=jo(n,'이','가'),A=[],src=[...NEWS_SRC].sort(()=>Math.random()-.5);
   const tg=R.sid==='KART'?'카트':['F1','F2','F3','F4'].includes(R.sid)?R.sid:R.series,hd=`[${tg}] `,team=R.team||'',ST=S.last&&S.last.standings||[];
   const rec=`${R.field}명 중 ${R.pos}위${R.wins?`, ${R.wins}승`:''}${R.podiums?`·포디움 ${R.podiums}회`:''}`;
@@ -3838,11 +3838,13 @@ function buildArticles(R,diff){const p=S.p,n=p.name,nN=jo(n,'은','는'),nG=jo(n
   else if(R.pos<=3){const c=ST[0],g=c&&!c.me?c.pts-R.points:0;t=`${n}, 시즌 ${R.pos}위… 정상까지 ${g}점`;b=`${team}의 ${nN} ${rec}로 시즌을 마쳤다.${c&&!c.me?` 챔피언은 ${c.name}(${c.pts}점).`:''}`}
   else if(R.pos/R.field>.75){t=pick([`${n}, ${R.pos}위로 아쉬운 시즌`,`${n}, 험난했던 ${R.year} 시즌`]);b=`${team}의 ${nN} ${R.field}명 중 ${R.pos}위에 그쳤다.${R.dnf>=2?` 리타이어가 ${R.dnf}번 나왔다.`:''}`}
   else{t=pick([`${n}, 시즌 ${R.pos}위로 마무리`,`${team} ${n}, ${R.year} 시즌 ${R.pos}위`]);b=`${team}의 ${nN} ${rec}로 시즌을 마쳤다.`}
-  if(R.h2h&&R.pos){const q=R.h2h.q,m=R.h2h.mate;b+=` 팀메이트 ${jo(m,'과','와')}의 퀄리파잉 맞대결은 ${q[0]}:${q[1]}${q[0]>q[1]?'로 앞섰다':q[0]<q[1]?'로 밀렸다':'로 팽팽했다'}.`}
-  A.push({src:src[0],t:hd+t,b});
   const tq=teamQuote(R,diff);
-  if(tq){const tm=teamDef(tq.id),[q0,...qr]=tq.q.split('. ');A.push({src:src[1],t:`${hd}${TP_SH[tq.id]} "${q0}"`,b:`${tm.name} ${TP_KO[tq.id]} 대표가 시즌 결산 인터뷰에서 ${jo(n,'을','를')} 두고 입을 열었다.${qr.length?` "${qr.join('. ')}"`:''}`})}
-  return A}
+  // one story a season: the team principal's interview takes the headline (a title keeps its own headline)
+  if(tq){const tm=teamDef(tq.id),[q0,...qr]=tq.q.split('. '),who=`${TP_KO[tq.id]} 팀 대표는`;
+    if(R.titled)return[{src:src[0],t:hd+t,b:`${b} ${who} "${tq.q}"라고 말했다.`}];
+    return[{src:src[0],t:`${hd}${TP_SH[tq.id]} "${q0}"`,b:`${b} ${who} 시즌 결산 인터뷰에서 ${qr.length?`"${qr.join('. ')}"라고 덧붙였다`:`${n}에 대해 입을 열었다`}.`}]}
+  if(R.h2h&&R.pos){const q=R.h2h.q,m=R.h2h.mate;b+=` 팀메이트 ${jo(m,'과','와')}의 퀄리파잉 맞대결은 ${q[0]}:${q[1]}${q[0]>q[1]?'로 앞섰다':q[0]<q[1]?'로 밀렸다':'로 팽팽했다'}.`}
+  return[{src:src[0],t:hd+t,b}]}
 const NAME_EN={'KR 모터스포츠':'KR Motorsport','토니 카트 레이싱':'Tony Kart Racing','버드 카트':'Bird Kart','파크 레이싱':'Park Racing','로컬 카트 클럽':'Local Kart Club','프레마':'Prema Racing','반 아메르스포르트':'Van Amersfoort','US 레이싱':'US Racing','제타 모터스포츠':'Zeta Motorsport','ART 그랑프리':'ART Grand Prix','KIC 모터스포츠':'KIC Motorsport','AIX 레이싱':'AIX Racing','인빅타':'Invicta Racing','캄포스':'Campos Racing','트라이던트':'Trident','하이테크':'Hitech',
  'A.J. 포이트 레이싱':'A.J. Foyt Racing','B-Max 레이싱':'B-Max Racing','BMW 팀 WRT':'BMW Team WRT','DS 펜스키':'DS Penske','HRT (포드)':'HRT','그라서 (람보르기니)':'Grasser Racing','나카지마 레이싱':'Nakajima Racing','닛산 포뮬러E 팀':'Nissan Formula E','데일 코인 레이싱':'Dale Coyne Racing','도코모 팀 단델라이언':'Team Dandelion','되르 (맥라렌)':'Dörr Motorsport','란트 (포르쉐)':'Land Motorsport','란트그라프 (메르세데스-AMG)':'Landgraf Motorsport','레이할 레터맨 래니건':'Rahal Letterman Lanigan','로라 야마하 ABT':'Lola Yamaha ABT','마힌드라 레이싱':'Mahindra Racing','만타이 (포르쉐)':'Manthey Racing','메이어 생크 레이싱':'Meyer Shank Racing','세루모·인깅':'Cerumo INGING','슈베르트 (BMW)':'Schubert Motorsport','시트로엥 레이싱':'Citroën Racing','아프트 (람보르기니)':'Abt Sportsline','안드레티 글로벌':'Andretti Global','안드레티 포뮬러E':'Andretti Formula E','알핀 인듀어런스 팀':'Alpine Endurance','애로우 맥라렌':'Arrow McLaren','애스턴마틴 THOR 팀':'Aston Martin THOR','에밀 프라이 (페라리)':'Emil Frey Racing','엔비전 레이싱':'Envision Racing','윈워드 (메르세데스-AMG)':'Winward Racing','재규어 TCS 레이싱':'Jaguar TCS Racing','정코스 홀린저 레이싱':'Juncos Hollinger','제네시스 마그마 레이싱':'Genesis Magma Racing','칩 가나시 레이싱':'Chip Ganassi Racing','캐딜락 팀 JOTA':'Cadillac Hertz JOTA','컴투유 (애스턴마틴)':'Comtoyou Racing','콘도 레이싱':'Kondo Racing','쿠프라 키로':'Cupra Kiro','토요타 가주 레이싱':'Toyota Gazoo Racing','팀 고':'Team Goh','팀 무겐':'Team Mugen','팀 임풀':'Team Impul','팀 펜스키':'Team Penske','페라리 AF 코르세':'Ferrari AF Corse','포르쉐 포뮬러E 팀':'Porsche Formula E','푸조 토탈에너지':'Peugeot TotalEnergies'};
 function teamSigName(o,I){if(o.kind==='f1'||o.kind==='reserve')return TEAM_TP[o.teamId]||TEAM_EN[o.teamId]||I.name;
