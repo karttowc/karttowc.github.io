@@ -11,9 +11,6 @@ body{font-family:var(--body);font-size:16px;line-height:1.75;-webkit-font-smooth
 .skip{position:absolute;left:-9999px}
 .skip:focus{left:16px;top:8px;background:var(--accent);color:#fff;padding:8px 12px;border-radius:10px;z-index:9}
 main{max-width:680px;margin:0 auto;padding:20px 16px 64px;display:flex;flex-direction:column;gap:16px}
-nav.crumb{font-size:14px;color:var(--muted)}
-nav.crumb a{color:var(--muted);text-decoration:none}
-nav.crumb a:hover{color:var(--fg)}
 header{padding:4px 4px 0}
 .eyebrow{font-family:var(--num);color:var(--accent);font-size:15px;letter-spacing:.08em;font-weight:700}
 .meta{color:var(--muted);font-size:14px;margin-top:4px}
@@ -54,3 +51,9 @@ h1 .h1p{display:block;font-size:17px;font-weight:500;color:var(--muted);margin-t
 .list b small{font-size:14px;font-weight:500;color:var(--muted)}
 a.more{display:inline-block;margin-top:4px;font-size:14px;font-weight:700;text-decoration:none}
 section[id]{scroll-margin-top:12px}
+nav.top{display:flex;flex-direction:column;align-items:flex-start;gap:14px}
+a.home{display:block;line-height:0}
+a.home img{width:77px;height:auto;image-rendering:pixelated;image-rendering:crisp-edges}
+a.back{display:inline-block;background:var(--surface);color:var(--fg);text-decoration:none;font-size:15px;font-weight:700;padding:9px 14px;border-radius:12px}
+a.back:hover{background:var(--surface-2)}
+a.back.wide{display:block;text-align:center;padding:14px}
