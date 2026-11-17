@@ -355,8 +355,8 @@
    "chance": 0.7, "beat_mate": 0.5, "pos": 8, "gap": 2, "thr_off": 3, "max_age": 30
   },
   "team_route": {
-   "note": "팀별 데뷔 루트(루키만). mw_*: 메르세데스 주니어가 메르세데스 시트를 못 받으면 윌리엄스 시트 기준을 mw_gap 낮추고(윌리엄스 연결로 이미 -3), 빈자리가 없으면 mw_poach 확률로 약한 쪽을 빼 줌. mc_cut: F2 3위 안 루키의 맥라렌 기준 낮춤(노리스·피아스트리). au_cut: F2 챔피언의 아우디 기준 낮춤, 빈자리 없으면 au_poach(보르톨레토)",
-   "mw_gap": 0, "mw_poach": 0.3, "mc_cut": 12, "au_cut": 12, "au_poach": 0.4
+   "note": "팀별 데뷔 루트(루키만). mw_*: 메르세데스 주니어가 메르세데스 시트를 못 받으면 윌리엄스 시트 기준을 mw_gap 낮추고(윌리엄스 연결로 이미 -3), 빈자리가 없으면 mw_poach 확률로 약한 쪽을 빼 줌. mc_cut: F2 3위 안 루키의 맥라렌 기준 낮춤(노리스·피아스트리). au_cut: F2 챔피언의 아우디 기준 낮춤(빈자리 있을 때 au_chance 확률), 빈자리 없으면 au_poach(보르톨레토)",
+   "mw_gap": 0, "mw_poach": 0.3, "mc_cut": 12, "au_cut": 12, "au_poach": 0.2, "au_chance": 1
   },
   "fe_promo": {"note": "페라리 아카데미 출신(p.feJr) 하스 레이스 드라이버가 팀메이트를 이기거나 pos위 안이면 chance로 페라리 승격", "chance": 0.7, "beat_mate": 0.5, "pos": 8, "gap": 2, "thr_off": 3, "max_age": 30},
     "f1_debut_extra": 16.5,
