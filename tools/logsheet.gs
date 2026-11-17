@@ -18,6 +18,8 @@ const SH = ['날짜', '플레이', '처음 온 사람', '돌아온 사람', '누
 const HH = ['날짜', ...Array.from({ length: 24 }, (_, i) => i + '시')];
 const DH = ['기기', '처음', '마지막', '그날 시간'];
 const fit = (sh, n) => { if (sh.getMaxColumns() > n) sh.deleteColumns(n + 1, sh.getMaxColumns() - n); };
+// header row: written again whenever it isn't ours (e.g. the tab already existed, made by hand)
+const head = (sh, H) => { const r = sh.getRange(1, 1, 1, H.length); if (r.getDisplayValues()[0].join('|') !== H.join('|')) r.setValues([H]).setFontWeight('bold'); };
 const rowsFor = (sh, n) => { if (sh.getMaxRows() < n + 1) sh.insertRowsAfter(sh.getMaxRows(), n + 1 - sh.getMaxRows()); };
 
 // '시간별': hours shaded by how many came, 0 shown blank (rule re-applied when a day row is added, since inserting rows shifts ranges)
@@ -38,6 +40,7 @@ function hourTab() {
     h.getRange('A:A').setNumberFormat('@'); h.setColumnWidth(1, 90); h.setColumnWidths(2, 24, 36);
     heat(h);
   }
+  head(h, HH);
   return h;
 }
 function statTab() {
@@ -47,12 +50,13 @@ function statTab() {
     s = ss.insertSheet('통계', 0); fit(s, SH.length);
     s.getRange(1, 1, 1, SH.length).setValues([SH]).setFontWeight('bold');
     s.setFrozenRows(1); s.getRange('A:A').setNumberFormat('@'); s.setColumnWidth(1, 90);
-  } else if (s.getMaxColumns() > SH.length && s.getRange(1, 8).getDisplayValue() === '0시') {
-    // first version had the hours in this tab too: move them to '시간별'
+  } else if (s.getMaxColumns() > SH.length && s.getLastColumn() > SH.length && ['0시', ''].includes(s.getRange(1, 8).getDisplayValue())) {
+    // first version had the hours in this tab too (header 0시, or no header when the tab already existed): move them to '시간별'
     const h = hourTab(), last = s.getLastRow();
     if (last >= 2) { const v = s.getRange(2, 1, last - 1, 31).getValues().map(r => [r[0], ...r.slice(7)]); rowsFor(h, v.length); h.getRange(2, 1, v.length, HH.length).setValues(v); }
     s.setConditionalFormatRules([]); s.setFrozenColumns(0); fit(s, SH.length); heat(h);
   }
+  head(s, SH); s.setFrozenRows(1); s.getRange('A:A').setNumberFormat('@');
   return s;
 }
 function devTab() {
@@ -63,6 +67,7 @@ function devTab() {
     d.getRange(1, 1, 1, DH.length).setValues([DH]); d.setFrozenRows(1);
     d.getRange('A:C').setNumberFormat('@'); d.hideSheet();
   }
+  head(d, DH);
   return d;
 }
 // today's row (row 2, newest on top) of a tab, added if missing
