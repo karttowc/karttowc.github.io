@@ -28,16 +28,18 @@ function botOffer(o,pr){const myM=S.p.series==='F1'&&S.p.role==='race'?teamDef(S
 let res={n:0,f1:0,ch1:0,ch5:0,debut:[],seasons:0,rs:0,rr:0,ys:0,yr:0};
 if(process.env.RPC!=null)B.career.reserve_promote_chance=+process.env.RPC;
 if(process.env.TOPX)B.career.f1_top_extra=+process.env.TOPX;// TOPX=6: try another top-team seat extra
+if(process.env.SKB!=null)B.driver.skip_growth.bonus=+process.env.SKB;// SKB=0: 월반 growth bonus off
 if(process.env.F2AI)AI_MEAN.F2=+process.env.F2AI;// F2AI=73: try another F2 AI mean
 for(let i=0;i<300;i++){smart=i%2===0;
   const st=styleStats(45,'racer');newGame({name:'T',num:7,nat:'KOR',helmet:'#fff',style:'racer',stats:st,focus:['race','quali']});
   if(process.env.ACAD){S.p.academy=process.env.ACAD;S.p.academyBad=0}// ACAD=mercedes: every career starts in that academy (route check)
-  let guard=0;
+  let guard=0,skOff=0,skNo=process.env.SKIP50?Math.random()<.5:false;// SKIP50=1: half the careers decline 월반 (compare took vs declined)
   while(!S.p.retired&&guard++<40){quickSeason();
     {const L=S.last&&S.last.rec;if(L&&L.sid==='F2'&&L.pos<=3&&!S.p.debutYear){const k=L.titled?'f2champ':'f2top3';(res.tg=res.tg||{})[k]=(res.tg[k]||0)+1}}
     if(process.env.LGR)S.offers.sort(()=>Math.random()-.5);// LGR=1: pick F4/FRECA leagues at random (ties in priority)
     for(const x of S.offers)if(/승격|루트/.test(x.tag||''))(res.tg=res.tg||{})[x.tag]=(res.tg[x.tag]||0)+1;
-    const o=S.offers.map(offerOf);const pr=x=>x.dual?6:({f1:0,resign:1,junior:x.tag==='인디 루트'?7:x.tag==='월반'?2:x.tag==='아카데미'?2.5:x.tag==='승격'?3:5,reserve:6,alt:7,retire:9}[x.kind]);
+    if(S.offers.some(x=>x.tag==='월반'))skOff=1;
+    const o=S.offers.map(offerOf);const pr=x=>x.dual?6:({f1:0,resign:1,junior:x.tag==='인디 루트'?7:x.tag==='월반'?(skNo?8:2):x.tag==='아카데미'?2.5:x.tag==='승격'?3:5,reserve:6,alt:7,retire:9}[x.kind]);
     const best=BOT||BOFF?botOffer(o,pr):[...o].sort((a,b)=>{if(a.kind==='f1'&&b.kind==='f1')return teamDef(b.teamId).machine-teamDef(a.teamId).machine;return pr(a)-pr(b)})[0];
     if(best.kind==='retire'&&S.p.age<38&&o.length>1){applyOffer(o.find(x=>x.kind!=='retire'))}else applyOffer(best);}
   res.n++;(res.pk=res.pk||[]).push(S.p.peak);(res.pot=res.pot||[]).push(S.p.potential);(res.w=res.w||[]).push(S.p.tot.wins);if(S.p.debutYear){res.f1++;res.debut.push(S.p.debutYear-S.startYear+14)}
@@ -45,6 +47,7 @@ for(let i=0;i<300;i++){smart=i%2===0;
   {const H=S.p.history;for(let j=0;j+1<H.length;j++)if(H[j].role==='reserve'&&H[j].lk==='F1'){res.rs++;if(H[j+1].role==='race'&&H[j+1].lk==='F1')res.rr++;if(H[j].age<=30){res.ys++;if(H[j+1].role==='race'&&H[j+1].lk==='F1')res.yr++}}}
   {const F=S.p.history.filter(h=>h.lk==='F2');if(F.length){res.f2c=(res.f2c||0)+1;res.f2s=(res.f2s||0)+F.length;const t=F.filter(h=>h.titled).length;res.f2t=(res.f2t||0)+t;if(t){res.f2w=(res.f2w||0)+1;if(S.p.debutYear)res.f2wd=(res.f2wd||0)+1}else if(S.p.debutYear)res.f2nd=(res.f2nd||0)+1}}
   if(S.p.acFrom)(res.af=res.af||{})[S.p.acFrom]=(res.af[S.p.acFrom]||0)+1;if(S.p.debutYear){const t=S.p.history.find(h=>h.sid==='F1'&&h.role==='race');if(t)(res.dt=res.dt||{})[t.tid]=(res.dt[t.tid]||0)+1}
+  if(skOff){const k=skNo?'declined':'took',g=(res.sk=res.sk||{})[k]=res.sk[k]||{n:0,f1:0,c1:0,c5:0,pk:0};g.n++;if(S.p.debutYear)g.f1++;if(S.p.tot.titles>=1)g.c1++;if(S.p.tot.titles>=5)g.c5++;g.pk+=S.p.peak}
   if(S.p.tot.titles>=1)res.ch1++;if(S.p.tot.titles>=5)res.ch5++;if(S.p.tot.titles>=10)res.ch10=(res.ch10||0)+1;if(S.p.tot.titles>=8)res.ch8=(res.ch8||0)+1;if(S.p.tot.titles>=12)res.ch12=(res.ch12||0)+1;res.tmax=Math.max(res.tmax||0,S.p.tot.titles);(res.rage=res.rage||[]).push(S.p.age);
   if(process.env.DUMP)(res.dump=res.dump||[]).push({pot:S.p.pot0??S.p.potential,t:S.p.tot.titles,h:S.p.history.map(h=>[h.age,h.sid==='F1'?(h.role==='race'?'F':'R'):h.sid==='ALT'?'A':'J',h.pos||0,h.ovrAfter,h.titled?1:0,h.wins||0])});
   {const G=res.lgs=res.lgs||{};new Set(S.p.history.map(h=>h.lk).filter(k=>['F4','F4UK','F4ES','FRECA','EFO','SFL','NXT'].includes(k))).forEach(k=>{const g=G[k]=G[k]||{n:0,f1:0,c:0};g.n++;if(S.p.debutYear)g.f1++;if(S.p.tot.titles)g.c++})}
@@ -54,6 +57,7 @@ for(let i=0;i<300;i++){smart=i%2===0;
 if(process.env.DUMP)fs.writeFileSync(process.env.DUMP,JSON.stringify(res.dump));
 const avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
 const q=(a,p)=>[...a].sort((x,y)=>x-y)[Math.floor(a.length*p)];console.log('peak p10/50/90',q(res.pk,.1),q(res.pk,.5),q(res.pk,.9),'pot med',q(res.pot,.5),'wins med/p90',q(res.w,.5),q(res.w,.9));console.log('reserve->race',res.rr+'/'+res.rs,'age<=30',res.yr+'/'+res.ys);console.log('dual seasons',res.ds||0,'dual->F1 race',res.dr||0);console.log('champ8+/12+ count',res.ch8||0,res.ch12||0);console.log('champ10+',(res.ch10||0)/res.n,'max titles',res.tmax,'retire age avg',avg(res.rage).toFixed(1));{const AG=[16,18,20,22,24,26,28,30,32,34,36,38,40];console.log('pot   n  debut | OVR med @'+AG.join('/'));for(const b of ['<70','70-74','75-79','80+']){const g=(res.pb||{})[b];if(!g)continue;console.log(b.padEnd(6),String(g.n).padStart(3),(g.f1/g.n*100).toFixed(0).padStart(4)+'% |',AG.map(a=>g.ov[a]&&g.ov[a].length>=5?q(g.ov[a],.5):'-').join('/'))}}
+if(res.sk)console.log('skip (n debut champ1+ 5+ peak)',Object.entries(res.sk).map(([k,g])=>k+' '+g.n+' '+(g.f1/g.n*100).toFixed(0)+'% '+(g.c1/g.n*100).toFixed(0)+'% '+(g.c5/g.n*100).toFixed(0)+'% '+(g.pk/g.n).toFixed(1)).join(' · '));
 if(res.tg)console.log('route/promo offers',JSON.stringify(res.tg));
 if(res.dt)console.log('debut team',JSON.stringify(res.dt),'academy origin',JSON.stringify(res.af||{}));
 if(res.lgs)console.log('league (n debut champ1+)',Object.entries(res.lgs).map(([k,g])=>k+' '+g.n+' '+(g.f1/g.n*100).toFixed(0)+'% '+(g.c/g.n*100).toFixed(0)+'%').join(' | '));

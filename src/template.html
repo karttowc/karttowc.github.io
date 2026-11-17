@@ -1321,6 +1321,7 @@ function finishSeason(){
   // growth
   const LGg=lgOf(p),played=me.starts>0,slump=grow(p,played,pos&&fieldN&&pos/fieldN>B.driver.slump.poor_ratio);
   if(LGg&&LGg.grow&&played)for(const k in LGg.grow)p.stats[k]=clamp(p.stats[k]+LGg.grow[k],1,99);// British F4: a rainy season teaches wet driving
+  if(p.skipGrow){delete p.skipGrow;ev.push('월반 효과: 강한 상대와 뛰며 더 빨리 성장했어요.')}
   if(slump)ev.push({tired:'슬럼프: 체력이 바닥나 몸이 무거웠어요. 능력치 일부가 떨어졌어요.',norace:'슬럼프: 실전 감각이 떨어져 능력치 일부가 내려갔어요.',poor:'슬럼프: 부진이 자신감까지 흔들었어요. 능력치 일부가 떨어졌어요.',random:'슬럼프: 이유 모를 부진에 능력치 일부가 떨어졌어요.'}[slump]);
   const ovrAfter=ovrOf(p.stats);p.peak=Math.max(p.peak,ovrAfter);
   if(!p.limitSeen&&atLimit()){p.limitSeen=1;ev.push('성장이 더뎌지기 시작했어요. 큰 무대에서 증명하면 한계를 넘을 수 있어요.')}
@@ -1384,15 +1385,17 @@ function grow(p,played,poor){
   const GC=B.driver.growth_curve,gc=GC&&GC.by_age.find(b=>p.age>=b.from&&p.age<=b.to);
   const rsv=p.series==='F1'&&p.role==='reserve',base=gc?Math.min(gc.cap,gc.rate*Math.max(0,p.potential+GC.target_over-ovrOf(p.stats)))*rnd(...GC.jitter):rnd(band.min,band.max),mult=played?1:rsv?.85:B.driver.no_race_multiplier,ovr=ovrOf(p.stats);
   const rest=S.train==='rest';
+  const SK=p.skipG>0&&played&&p.role==='race'?1+B.driver.skip_growth.bonus:1;if(p.skipG>0)p.skipG--;
   const AD=B.driver.age_decline_by_stat||{};
   const GS=B.driver.growth_spread||[.6,1.4];
   const FS=B.driver.focus_spread||GS;// focused stats swing less so the focus always shows
   const VT=B.driver.veteran,vg=VT&&p.age>=VT.from&&p.age<=VT.to?{...VT.gain,...(VT.style_gain[p.style]||{})}:null;
   STATS.forEach(k=>{if(vg&&vg[k]){p.stats[k]=clamp(p.stats[k]+ri(...vg[k]),1,99);return}// experience stats keep growing for veterans
     const sp=base>0&&!rest&&p.focus.includes(k)?FS:GS;let g=base*rnd(sp[0],sp[1]);if(g<0){g*=AD[k]??1;if(!rest&&p.focus.includes(k))g*=B.driver.focus_decline_multiplier??1}// training holds off decline
-    if(g>0){g*=mult;if(rest)g*=B.driver.rest_multiplier;else if(p.focus.includes(k))g*=B.driver.focus_multiplier;
+    if(g>0){g*=mult*SK;if(rest)g*=B.driver.rest_multiplier;else if(p.focus.includes(k))g*=B.driver.focus_multiplier;
       if(!gc){const OP=B.driver.over_potential;if(ovr>=p.potential+OP.max)g=0;else if(ovr>=p.potential)g*=OP.multiplier;else if(ovr>=p.potential-B.driver.near_potential.distance)g*=B.driver.near_potential.multiplier}}// growth_curve already slows near the ceiling
     p.stats[k]=clamp(p.stats[k]+sround(g),1,99)});
+  if(SK>1)p.skipGrow=1;
   // slump: bad seasons can cost a little even when young
   const SL=B.driver.slump;if(!SL||p.age>=33)return null;
   const ch=SL.base+(p.morale<SL.tired_below?SL.tired:0)+(!played&&!rsv?SL.no_race:0)+(poor?SL.poor:0);
@@ -2035,6 +2038,7 @@ function applyOffer(o){
   if(o.kind==='retire'){p.retired=true;logRetire();if(leavingF1Seat)fillSeat(oldTeam);S.phase='retired';save();return}
   if(o.kind==='junior'){
     if(o.academy){p.academy=o.academy;p.academyBad=0}
+    if(ORDER.includes(p.series)&&ORDER.indexOf(o.series)-ORDER.indexOf(p.series)>=2)p.skipG=B.driver.skip_growth.seasons;// skipping a step: learning fast against stronger drivers
     p.seriesSeasons=p.series===o.series?p.seriesSeasons+1:1;if(o.series==='F2')p.f2Seasons++;
     p.series=o.series;p.team=o.team;p.role='race';p.lg=LG_OF[o.series]?o.lg||LG_OF[o.series][0]:null;
   }else if(o.kind==='resign'){p.seriesSeasons++;p.contract={left:o.years,option:o.option,clause:o.clause,sal:o.sal}}
@@ -3609,7 +3613,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.12-d5',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.12-d6',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -4156,7 +4160,7 @@ function sheetView(){
     return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">진로 설명</div><h3 class="h2">월반</h3>
     <p style="margin:0">한 단계를 건너뛰고 ${joRo(esc(seriesDef(s).name))} 바로 가요. 상위팀 시트가 보장돼요.</p>
     <div class="kv"><div class="row"><span>상대 평균 OVR</span><span class="num">${m}</span></div><div class="row"><span>내 OVR</span><span class="num" style="color:${ok?'var(--good)':'var(--bad)'}">${o}</span></div></div>
-    <div class="kv nw"><div class="row"><span class="up">좋은 점</span><span>상위팀 · 1년 단축 · 어린 나이 보너스</span></div><div class="row"><span class="down">위험</span><span>강한 상대 · 첫 시즌 적응 · 하위권이면 슬럼프</span></div></div>
+    <div class="kv nw"><div class="row"><span class="up">좋은 점</span><span>상위팀 · 1년 단축 · 2시즌 성장 +${Math.round(B.driver.skip_growth.bonus*100)}%</span></div><div class="row"><span class="down">위험</span><span>강한 상대 · 첫 시즌 적응 · 하위권이면 슬럼프</span></div></div>
     <p style="margin:0;font-weight:700">${ok?'충분히 해볼 만해요.':'아직은 한 단계씩 올라가는 게 안전해요.'}</p>
     <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`}
   if(typeof sheet==='string'&&sheet.startsWith('acad_')){const a=K.academies.find(x=>x.id===sheet.slice(5)),tn=a?a.teams.map(id=>teamDef(id).name).join('·'):'소속 팀';
