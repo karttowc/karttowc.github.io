@@ -2754,13 +2754,13 @@ function finishSeason(){
   // growth
   const LGg=lgOf(p),played=me.starts>0,slump=grow(p,played,pos&&fieldN&&pos/fieldN>B.driver.slump.poor_ratio);
   if(LGg&&LGg.grow&&played)for(const k in LGg.grow)p.stats[k]=clamp(p.stats[k]+LGg.grow[k],1,99);// British F4: a rainy season teaches wet driving
-  if(p.skipGrow){delete p.skipGrow;ev.push('월반 효과: 강한 상대와 뛰며 더 빨리 성장했어요.')}
+  const skipR=p.skipGrow?{left:p.skipG||0}:null;if(p.skipGrow){delete p.skipGrow;ev.push('월반 효과: 강한 상대와 뛰며 더 빨리 성장했어요.')}
   if(slump)ev.push({tired:'슬럼프: 체력이 바닥나 몸이 무거웠어요. 능력치 일부가 떨어졌어요.',norace:'슬럼프: 실전 감각이 떨어져 능력치 일부가 내려갔어요.',poor:'슬럼프: 부진이 자신감까지 흔들었어요. 능력치 일부가 떨어졌어요.',random:'슬럼프: 이유 모를 부진에 능력치 일부가 떨어졌어요.'}[slump]);
   const ovrAfter=ovrOf(p.stats);p.peak=Math.max(p.peak,ovrAfter);
   if(!p.limitSeen&&atLimit()){p.limitSeen=1;ev.push('성장이 더뎌지기 시작했어요. 큰 무대에서 증명하면 한계를 넘을 수 있어요.')}
   const deltas=STATS.map(k=>({k,v:p.stats[k],d:p.stats[k]-statsBefore[k]})).filter(x=>x.d!==0);
   const rec={...(p.dual&&p.series==='ALT'?{dual:p.dual.team}:{}),lk:lgKey(p),year:S.year,age:p.age,series:serName(p),sid:p.series,team:teamName,color:teamColor,role:p.role,tid:p.team&&p.team.id||null,
-    pos,field:fieldN,train:trName(),points:me.pts,wins:me.wins,podiums:me.pod,poles:me.poles,dnf:me.dnf,starts:me.starts,ovrBefore,ovrAfter,h2h,titled,crown,first:!!C.firstLeague,slump:slump||null};if(tie)rec.tie=tie;
+    pos,field:fieldN,train:trName(),points:me.pts,wins:me.wins,podiums:me.pod,poles:me.poles,dnf:me.dnf,starts:me.starts,ovrBefore,ovrAfter,h2h,titled,crown,first:!!C.firstLeague,slump:slump||null};if(tie)rec.tie=tie;if(skipR)rec.skip=skipR;
   if(p.series==='ALT'&&ALT_DRV[p.alt]&&p.role==='race'){const sid=p.alt,A=S.altSum&&S.altSum[sid];if(me.no)rec.no=me.no;if(me.crew)rec.crew=me.crew;
     if(sid==='INDY'){let ld=0,mo=0,bo=0;Z.orders.forEach(o=>{if(o.bl&&o.bl.includes('me'))ld++;if(o.bm==='me')mo++;if(o.bp&&o.bp.me)bo+=o.bp.me});if(ld)rec.lead=ld;if(mo)rec.most=mo;if(bo)rec.bonus=bo;
       const io=Z.orders[ALT_CROWN.INDY.r],qi=io?io.q.indexOf('me'):-1;if(qi>=0&&qi<12)rec.f12=qi+1;if(A&&A.roy&&A.roy.me)rec.roy=1}
@@ -4092,6 +4092,7 @@ function buildReact(R,x){
   if(!R.pos||R.role==='reserve')v=R.role==='reserve'?(R.starts?pick(['리저브였지만 대타 출전으로 존재감을 보였어요.','리저브로 기다리다 잡은 기회, 그 자체로 의미가 있었어요.']):pick(['리저브로 패독을 지킨 시즌이었어요. 시뮬레이터 작업으로 차곡차곡 쌓았어요.','레이스는 없었지만 팀 안에서 신뢰를 쌓은 시즌이에요.'])):'출전 기회가 없던 시즌이었어요.';
   else if(R.titled&&R.sid==='F1'&&R.age>=40)v=pick([`${R.age}세 월드 챔피언! 나이를 경험으로 바꾼, F1 역사에 남을 시즌이에요.`,`${R.age}세에 정상에 섰어요. 젊은 드라이버들을 운영과 노련함으로 이겨 냈어요.`])+(H.slice(0,-1).some(h=>h.sid==='F1'&&h.titled)?'':' 오래 기다린 첫 타이틀이라 더 값져요.');
   else if(R.titled)v=R.sid==='F1'?pick([`월드 챔피언! 시즌 내내 흔들림 없이 타이틀을 지켜냈어요.`,`${R.wins}승으로 증명한 완벽한 시즌, 월드 챔피언이에요.`,`모두가 인정할 수밖에 없는 시즌이었어요. 챔피언 축하해요.`]):pick([`${R.series} 챔피언! 이 무대에서는 더 보여줄 게 없어요.`,`${R.wins}승으로 ${jo(R.series,'을','를')} 평정했어요.`,`챔피언다운 시즌이었어요. 다음 무대가 기다려요.`]);
+  else if(R.first&&R.skip&&R.skip.left>0)v=R.pos/R.field<=.3?pick([`월반하자마자 ${R.field}명 중 ${R.pos}위! 한 단계 건너뛴 게 정답이었어요.`,`한 단계를 건너뛰고도 ${R.pos}위. 이 무대도 이미 좁아 보여요.`]):pick([`한 단계 건너뛴 첫 시즌, ${R.field}명 중 ${R.pos}위. 강한 상대 사이에서 이 정도면 충분히 버텼어요.`,`월반 첫 시즌 ${R.pos}위. 나이도 경험도 한참 위인 상대들과 부딪히며 배우는 중이에요.`,`${R.pos}위라는 숫자보다, 어린 나이에 이 무대에서 한 시즌을 버텼다는 게 중요해요.`]);
   else if(R.first)v=`첫 시즌 ${R.field}명 중 ${R.pos}위. `+(R.pos/R.field<=.2?pick(['루키 시즌에 이 순위는 훌륭한 출발이에요.','데뷔 시즌부터 앞쪽에서 싸웠어요.']):R.pos/R.field<=.5?pick(['첫 시즌 치고 충분히 좋은 성적이에요.','적응하면서도 중위권 위를 지켰어요.']):R.pos/R.field<=.8?pick(['첫 시즌은 적응기예요. 초반만 지나면 페이스가 올라와요.','새 무대에 몸을 맞춘 시즌이에요. 진짜는 내년부터예요.']):'처음이라 쉽지 않았지만, 배운 게 많은 시즌이에요.');
   else if(R.pos<=3&&diff>=-2)v=pick([`${R.pos}위, 챔피언 경쟁까지 한 최고의 시즌이에요.`,`시즌 ${R.pos}위. 포디움 단골이 된 한 해였어요.`,`${R.pos}위로 정상 바로 아래까지 올라왔어요.`]);
   else if(expP&&diff>=3)v=pick([`예상 ${expP}위 전력으로 ${R.pos}위, 기대 이상의 시즌이에요.`,`전력만 보면 ${expP}위였는데 ${R.pos}위까지 끌어올렸어요.`,`차와 실력 이상을 해낸 ${R.pos}위예요 (예상 ${expP}위).`]);
@@ -4134,6 +4135,7 @@ function buildReact(R,x){
   // 4) what next
   // 4) only what matters for next season (training advice lives in the training plan)
   const adv=[];
+  if(R.skip)adv.push(R.skip.left>0?pick(['월반 효과로 강한 상대와 뛰며 더 빨리 성장하고 있어요. 이 효과는 한 시즌 더 이어져요.','한 단계 위에서 부딪힌 경험이 성장으로 돌아오고 있어요. 다음 시즌도 이 흐름을 살리세요.']):pick(['월반 효과는 이번 시즌까지예요. 이제 실력으로 증명할 때예요.','빨리 크는 시기는 지났어요. 이제부터는 이 무대에서 결과로 보여 줘야 해요.']));
   if(p.morale<45)adv.push(`체력이 ${p.morale}까지 떨어졌어요. 다음 시즌은 휴식과 회복을 먼저 챙기세요.`);
   if(ORDER.includes(R.sid)&&R.age>=24&&!p.debutYear)adv.push('냉정하게 말하면 F1 문이 좁아지고 있어요. 다른 리그에서 이름을 알리는 것도 방법이에요.');
   else if(p.series==='F1'&&p.role==='race'&&p.contract&&p.contract.left===1&&!R.titled)adv.push('계약이 1년 남았어요. 다음 시즌 성적이 재계약을 좌우해요.');
@@ -5046,7 +5048,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.12-d6',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.12-d7',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
