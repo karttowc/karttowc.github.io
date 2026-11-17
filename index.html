@@ -434,6 +434,8 @@ label.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--
 .btc span{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:78px;padding:10px 12px;border-radius:14px;background:var(--surface-2);font-family:var(--num);font-size:28px;font-weight:700;line-height:1}
 .btc span i{font-style:normal;font-family:inherit;font-size:12px;font-weight:600;color:var(--dim);font-family:"IBM Plex Sans KR",sans-serif}
 .btc .pos{color:#FF6B76}.btc .neg{color:#6AA6FF}
+.incmeta{display:flex;gap:6px;align-items:center;margin-top:4px}.incrisk{font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px;letter-spacing:.02em}.incrisk.safe{background:rgba(140,184,255,.16);color:#8CB8FF}.incrisk.bet{background:rgba(255,200,60,.18);color:var(--gold)}
+.toast.big{background:var(--gold);color:#16120A;font-weight:800;font-size:16px;padding:14px 20px;animation:incbig .9s ease-out}@keyframes incbig{0%{transform:translateX(-50%) scale(.4);opacity:0}35%{transform:translateX(-50%) scale(1.15);opacity:1}55%{transform:translateX(-50%) scale(.96)}100%{transform:translateX(-50%) scale(1)}}
 .toast{top:calc(14px + env(safe-area-inset-top,0px));bottom:auto;position:fixed;left:50%;transform:translateX(-50%);background:var(--surface-2);padding:10px 16px;border-radius:12px;font-size:14px;z-index:120;box-shadow:0 6px 20px rgba(0,0,0,.4)}
 @media (prefers-reduced-motion:no-preference){.card,.choice{transition:border-color .15s}}
 
@@ -3486,63 +3488,66 @@ function trWhen(){return S.train==='rest'?'이번 시즌 휴식 · 체력 회복
 /* ---------- race incidents ---------- */
 const INC=[
  {id:'rain',title:'갑자기 비가 내리기 시작했어요',desc:'트랙이 빠르게 젖고 있어요. 지금 결정해야 해요.',choices:[
-   {label:'곧바로 인터미디엇으로 교체',stat:'wet',good:[-4,-1],bad:[1,3]},
-   {label:'슬릭으로 버틴다',stat:'mental',good:[-6,-3],bad:[3,6],dnf:.1,diff:-.15}]},
+   {label:'곧바로 인터미디엇으로 교체',risk:'safe',stat:'wet',good:[-2,0],bad:[1,2]},
+   {label:'슬릭으로 버틴다',risk:'bet',stat:'mental',good:[-6,-3],bad:[1,3],dnf:.05}]},
  {id:'sc',title:'세이프티카 출동!',desc:'앞에서 사고가 났어요. 피트 창이 열렸어요.',choices:[
-   {label:'바로 피트인',stat:'tyre',good:[-3,-1],bad:[1,2]},
-   {label:'트랙 포지션 유지',stat:'race',good:[-2,0],bad:[1,4]}]},
+   {label:'바로 피트인',risk:'safe',stat:'tyre',good:[-1,0],bad:[0,2]},
+   {label:'트랙 포지션 유지',risk:'bet',stat:'race',good:[-5,-3],bad:[1,3]}]},
  {id:'battle',ahead:true,title:'앞차와 치열한 배틀',desc:'세 바퀴째 따라붙고 있어요. 추월 각이 보여요.',choices:[
-   {label:'과감하게 추월한다',stat:'race',good:[-3,-2],bad:[1,3],dnf:.12},
-   {label:'기다리며 압박한다',stat:'consistency',good:[-1,0],bad:[0,1]}]},
+   {label:'과감하게 추월한다',risk:'bet',stat:'race',good:[-4,-3],bad:[1,2],dnf:.06},
+   {label:'기다리며 압박한다',risk:'safe',stat:'consistency',good:[-1,0],bad:[0,1]}]},
  {id:'tyre',title:'타이어 마모가 심해요',desc:'엔지니어가 전략을 물어요.',choices:[
-   {label:'원스톱으로 버틴다',stat:'tyre',good:[-3,-1],bad:[2,5]},
-   {label:'투스톱으로 바꾼다',stat:null,good:[0,1],bad:[1,2]}]},
+   {label:'원스톱으로 버틴다',risk:'bet',stat:'tyre',good:[-5,-3],bad:[1,3]},
+   {label:'투스톱으로 바꾼다',risk:'safe',stat:'consistency',good:[-1,0],bad:[1,2]}]},
  {id:'damage',title:'프런트 윙이 손상됐어요',desc:'첫 랩 접촉으로 다운포스가 줄었어요.',choices:[
-   {label:'피트에서 교체한다',stat:null,good:[1,2],bad:[3,4]},
-   {label:'그대로 달린다',stat:'consistency',good:[-1,0],bad:[2,4],dnf:.15}]},
+   {label:'피트에서 교체한다',risk:'safe',stat:'consistency',good:[0,1],bad:[2,3]},
+   {label:'그대로 달린다',risk:'bet',stat:'race',good:[-4,-2],bad:[2,3],dnf:.08}]},
  {id:'order',f1:true,title:'팀 무전: 팀메이트에게 자리를 내줘라',desc:'팀메이트의 챔피언십을 위해 필요하대요.',choices:[
    {label:'팀 오더를 따른다',fixed:{delta:1,eff:{rep:4,morale:-3}}},
    {label:'무시하고 달린다',fixed:{delta:0,eff:{fans:4,morale:-3}}}]},
  {id:'start',ahead:true,title:'스타트 직전, 앞이 막혀 있어요',desc:'첫 코너 인사이드에 틈이 보여요.',choices:[
-   {label:'과감하게 인사이드로',stat:'race',good:[-4,-2],bad:[1,3],dnf:.08},
-   {label:'안전하게 자리를 지킨다',stat:'consistency',good:[-1,0],bad:[0,1]}]},
+   {label:'과감하게 인사이드로',risk:'bet',stat:'race',good:[-5,-3],bad:[1,2],dnf:.06},
+   {label:'안전하게 자리를 지킨다',risk:'safe',stat:'consistency',good:[-1,0],bad:[0,1]}]},
  {id:'undercut',ahead:true,title:'앞차와의 피트 싸움',desc:'엔지니어가 언더컷이냐 오버컷이냐 묻고 있어요.',choices:[
-   {label:'먼저 들어간다 (언더컷)',stat:'quali',good:[-2,-1],bad:[0,2]},
-   {label:'길게 버틴다 (오버컷)',stat:'tyre',good:[-2,-1],bad:[1,2]}]},
+   {label:'먼저 들어간다 (언더컷)',risk:'bet',stat:'quali',good:[-5,-2],bad:[1,3]},
+   {label:'길게 버틴다 (오버컷)',risk:'safe',stat:'tyre',good:[-1,0],bad:[0,2]}]},
  {id:'redflag',title:'적기! 레이스 중단',desc:'큰 사고로 레이스가 멈췄어요. 재출발 타이어를 공짜로 바꿀 수 있어요.',choices:[
-   {label:'소프트로 재출발',stat:'race',good:[-3,-1],bad:[0,3]},
-   {label:'하드로 끝까지',stat:'tyre',good:[-2,0],bad:[0,2]}]},
+   {label:'소프트로 재출발',risk:'bet',stat:'race',good:[-5,-3],bad:[1,3]},
+   {label:'하드로 끝까지',risk:'safe',stat:'tyre',good:[-1,0],bad:[0,2]}]},
  {id:'matefight',ahead:true,f1:true,title:'마지막 랩, 팀메이트가 바로 앞',desc:'같은 팀 차가 바로 앞에 있어요. 팀은 "순위 유지"라고 무전했어요.',choices:[
-   {label:'그래도 공격한다',stat:'race',good:[-1,-1],bad:[1,3],dnf:.12,eff:{fans:5}},
+   {label:'그래도 공격한다',risk:'bet',stat:'race',good:[-1,-1],bad:[1,2],dnf:.06,eff:{fans:5}},
    {label:'순위를 유지한다',fixed:{delta:0,eff:{rep:3}}}]},
  {id:'fuel',title:'연료가 아슬아슬해요',desc:'엔지니어가 연료를 아끼라고 지시했어요.',choices:[
    {label:'리프트 앤 코스트로 아낀다',fixed:{delta:1,eff:{rep:1}}},
-   {label:'무시하고 계속 밀어붙인다',stat:'consistency',good:[-3,-1],bad:[0,2],dnf:.1}]},
+   {label:'무시하고 계속 밀어붙인다',risk:'bet',stat:'consistency',good:[-4,-2],bad:[1,3],dnf:.05}]},
  {id:'limits',title:'트랙 리밋 경고 2회째',desc:'한 번 더 넘으면 5초 페널티예요.',choices:[
-   {label:'라인을 조심한다',stat:'consistency',good:[0,0],bad:[1,1]},
-   {label:'신경 쓰지 않고 푸시',stat:'race',good:[-2,-1],bad:[2,4]}]},
+   {label:'라인을 조심한다',risk:'safe',stat:'consistency',good:[0,0],bad:[1,1]},
+   {label:'신경 쓰지 않고 푸시',risk:'bet',stat:'race',good:[-4,-2],bad:[1,3]}]},
  {id:'heat',title:'숨 막히는 더위',desc:'차 안이 찜통이에요. 몸이 버티기 힘들어요.',choices:[
    {label:'페이스를 조절한다',fixed:{delta:1,eff:{morale:2}}},
-   {label:'끝까지 밀어붙인다',stat:'consistency',good:[-2,-1],bad:[0,2],eff:{morale:-8}}]},
+   {label:'끝까지 밀어붙인다',risk:'bet',stat:'consistency',good:[-4,-2],bad:[1,3],eff:{morale:-8}}]},
  {id:'pitfail',title:'피트 스톱 실수!',desc:'바퀴 하나가 안 끼워졌어요. 정지 시간이 길어지고 있어요.',choices:[
    {label:'침착하게 기다린다',fixed:{delta:2,eff:{rep:2}}},
    {label:'무전으로 화를 낸다',fixed:{delta:2,eff:{fans:2,morale:-3}}}]},
  {id:'brake',title:'브레이크 온도가 치솟아요',desc:'이대로면 브레이크가 터질 수도 있어요.',choices:[
-   {label:'브레이크를 아껴 탄다',stat:'tyre',good:[0,1],bad:[1,2]},
-   {label:'그대로 밀어붙인다',stat:'race',good:[-3,-1],bad:[1,3],dnf:.15}]},
+   {label:'브레이크를 아껴 탄다',risk:'safe',stat:'tyre',good:[0,1],bad:[1,2]},
+   {label:'그대로 밀어붙인다',risk:'bet',stat:'race',good:[-4,-2],bad:[1,3],dnf:.08}]},
  {id:'vsc',title:'버추얼 세이프티카!',desc:'싸게 피트 스톱을 할 기회예요.',choices:[
-   {label:'바로 피트인',stat:'tyre',good:[-3,-1],bad:[0,2]},
-   {label:'트랙에 남는다',stat:'race',good:[-1,0],bad:[1,3]}]}
+   {label:'바로 피트인',risk:'safe',stat:'tyre',good:[-2,0],bad:[0,2]},
+   {label:'트랙에 남는다',risk:'bet',stat:'race',good:[-5,-3],bad:[1,3]}]}
 ];
 const incMean=()=>S.p.series==='F1'?84:AI_MEAN[S.p.series]||70;
-const incChance=c=>{const m=incMean(),sv=c.stat?S.p.stats[c.stat]:m+4;return clamp(.5+(sv-m)/40+(c.diff||0),.15,.85)};
+// safe vs bet: the base decides the choice, the stat only nudges it (±10%p) so a bet never turns into the safe pick
+const INC_BASE={safe:.7,bet:.35};
+const incStat=c=>c.stat?Math.round(clamp((S.p.stats[c.stat]-incMean())/80,-.1,.1)*100):0;
+const incChance=c=>clamp((INC_BASE[c.risk]||.5)+incStat(c)/100,.05,.95);
 const ISVG='<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="currentColor" opacity=".18"/><circle cx="10" cy="10" r="8.25" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="6.2" r="1.25" fill="currentColor"/><rect x="9" y="8.6" width="2" height="6" rx="1" fill="currentColor"/></svg>';
 function applyIncident(inc,j){
   const p=S.p,def=INC.find(x=>x.id===inc.id),c=def.choices[j],o=S.season.orders[inc.r];
   let delta=0,dnf=false,eff=null,ok=true;
   if(c.fixed){delta=c.fixed.delta;eff=c.fixed.eff}
   else{eff=c.eff||null;
-    const pc=incChance(c);inc.p=Math.round(pc*100);ok=Math.random()<pc;
+    const pc=incChance(c);inc.p=Math.round(pc*100);ok=Math.random()<pc;if(ok&&c.risk==='bet')eff={...(eff||{}),fans:((eff&&eff.fans)||0)+3};
     if(!ok&&c.dnf&&Math.random()<c.dnf*2)dnf=true;else delta=ri(...(ok?c.good:c.bad))}
   const i=o.fin.indexOf('me');let txt;
   if(i<0)txt='상황이 지나갔어요';
@@ -3551,8 +3556,8 @@ function applyIncident(inc,j){
     txt=g>0?`${g}그리드 올라섰어요 (P${i+1} → P${ni+1})`:g<0?`${-g}그리드 내려갔어요 (P${i+1} → P${ni+1})`:`순위를 지켰어요 (P${ni+1})`}
   const et=eff?applyEff(eff):'';inc.done=true;inc.j=j;inc.ok=ok;inc.dnf=dnf;save();
   // a success can still cost a place (pit for a new wing): say the damage was limited, never paint it red
-  const soft=ok&&!c.fixed&&txt.includes('내려');
-  return{t:(c.fixed?'':ok?(soft?'성공! 피해를 줄였어요 · ':'성공! '):'실패… ')+txt+(et?` · ${et}`:''),c:dnf||(!soft&&txt.includes('내려'))?'bad':txt.includes('올라')?'gold':'blue'};
+  const soft=ok&&!c.fixed&&txt.includes('내려'),big=ok&&c.risk==='bet'&&!soft;
+  return{t:(c.fixed?'':big?(txt.includes('올라')?'대역전! ':'도박 성공! '):ok?(soft?'성공! 피해를 줄였어요 · ':'성공! '):'실패… ')+txt+(et?` · ${et}`:''),c:dnf||(!soft&&txt.includes('내려'))?'bad':big||txt.includes('올라')?'gold':'blue',big};
 }
 
 /* ---------- mid-season gamble ---------- */
@@ -4871,10 +4876,11 @@ function showIncident(inc){
   box.innerHTML=`<div class="sheet"><section class="card"><div class="eyebrow">${roundName(inc.r)} · 레이스 중 상황</div><h3 class="h2">${esc(d.title)}</h3>
     ${ci>=0?`<div class="incpos">지금 순위 <b class="num">P${ci+1}</b><span class="muted"> / ${cn}</span></div>`:''}
     ${d.choices.map((c,j)=>{const R='font-size:13px',E=e=>e?effChips(e).replace(/^<span class="chips">|<\/span>$/g,''):'';
-      const top=c.fixed?'<span class="muted" style="font-size:13px">확정</span>':`<b class="num" style="font-size:22px;color:#8CB8FF">${Math.round(incChance(c)*100)}%</b>`;
+      const top=c.fixed?'<span class="muted" style="font-size:13px">확정</span>':`<b class="num" style="font-size:22px;color:${c.risk==='bet'?'var(--gold)':'#8CB8FF'}">${Math.round(incChance(c)*100)}%</b>`;
+      const sd=incStat(c),tag=c.fixed?'':`<span class="incrisk ${c.risk}">${c.risk==='bet'?'도박':'안전'}</span><span class="muted" style="font-size:12px">${c.stat?`${LBL[c.stat]} ${sd>0?'+':sd<0?'−':'±'}${Math.abs(sd)}%p`:''}</span>`;
       const body=c.fixed?`<span class="chip ${c.fixed.delta>0?'down':''}" style="${R}">${c.fixed.delta>0?c.fixed.delta+'그리드 하락':'순위 유지'}</span>${E(c.fixed.eff)}`
         :`<span class="chip ${c.good[1]>0?'':'up'}" style="${R}">성공 ${-c.good[0]>0&&ci===0?'1위 지키기':-c.good[0]>0?(()=>{const cap=x=>ci>0?Math.min(ci,x):x,hi=cap(-c.good[0]),lo=Math.max(0,cap(-c.good[1]));return lo===hi?'▲'+hi+'그리드':lo===0?'순위 유지~▲'+hi+'그리드':'▲'+lo+'~'+hi+'그리드'})():c.good[1]<=0?'순위 유지':c.good[0]>0?'▼'+c.good[0]+(c.good[1]>c.good[0]?'~'+c.good[1]:'')+'그리드':'순위 유지~▼'+c.good[1]}</span><span class="chip down" style="${R}">실패 ${c.bad[0]===c.bad[1]?'▼'+c.bad[1]:c.bad[0]===0?'순위 유지~▼'+c.bad[1]:'▼'+c.bad[0]+'~'+c.bad[1]}그리드${c.dnf?' · 리타이어 위험':''}</span>${E(c.eff)}`;
-      return`<button class="choice" type="button" data-inc="${j}" style="background:var(--surface-2)"><span class="row"><span class="h3">${esc(c.label)}</span>${top}</span><span class="chips">${body}</span></button>`}).join('')}</section></div>`;
+      return`<button class="choice" type="button" data-inc="${j}" style="background:var(--surface-2)"><span class="row"><span><span class="h3">${esc(c.label)}</span>${tag?`<span class="incmeta">${tag}</span>`:''}</span>${top}</span><span class="chips">${body}</span></button>`}).join('')}</section></div>`;
 }
 function finishProgress(){
   clearTimeout(progTimer);if(!S||S.phase!=='progress')return;
@@ -5003,7 +5009,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.11-d3',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.11-d4',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -5740,7 +5746,7 @@ function bigToast(title,msg,risk){const old=document.getElementById('btoast');if
   const parts=String(msg||'').split(' · ').filter(Boolean),d=document.createElement('div');d.id='btoast';
   d.innerHTML=`<div class="bt">${risk?`<div class="btr">${esc(risk)}</div>`:''}<b>${esc(title)}</b><div class="btc">${parts.map(s=>{const m=s.match(/^(.*?)\s([+-]\d+)$/);return m?`<span class="${m[2][0]==='+'?'pos':'neg'}"><i>${esc(m[1])}</i>${m[2]}</span>`:`<span>${esc(s)}</span>`}).join('')}</div></div>`;
   document.body.appendChild(d);const close=()=>{d.classList.add('bye');setTimeout(()=>d.remove(),200)};setTimeout(close,2200)}
-function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
+function toast(t,big){const d=document.createElement('div');d.className='toast'+(big?' big':'');d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),big?3000:2200)}
 async function saveFile(filename,data){
   if(!DL)return;try{await DL.save({filename,data});toast('저장했어요')}catch(e){if(e&&e.code!=='declined')toast('저장하지 못했어요. 잠시 후 다시 시도해 주세요.')}
 }
@@ -5787,7 +5793,7 @@ root.addEventListener('click',e=>{
       box.innerHTML=`<div class="sheet"><section class="card"><div class="eyebrow">휴식기 결과</div><h3 class="h2" style="color:${res.ok===true?'var(--gold)':res.ok===false?'#FF6B78':'var(--fg)'}">${res.ok===true?'성공!':res.ok===false?'실패…':'휴식'}</h3><p style="margin:0">${esc(res.t)}</p><button class="btn" type="button" id="gachaOk">시즌 이어가기</button></section></div>`;
       feed.unshift({t:`휴식기 · ${res.t}`,c:res.ok===true?'gold':res.ok===false?'bad':'blue'});paintFeed()},go?900:0);return}
   if(id==='gachaOk'){document.getElementById('pInc').innerHTML='';progTimer=setTimeout(stepProgress,400);return}
-  if(d.inc!=null&&S.phase==='progress'){const inc=S.season.incidents.find(x=>x.r===progI&&!x.done);if(!inc)return;const res=applyIncident(inc,+d.inc);document.getElementById('pInc').innerHTML='';feed.unshift({t:`${roundName(inc.r)} · ${res.t}`,c:res.c});paintFeed();toast(res.t);progTimer=setTimeout(stepProgress,600);return}
+  if(d.inc!=null&&S.phase==='progress'){const inc=S.season.incidents.find(x=>x.r===progI&&!x.done);if(!inc)return;const res=applyIncident(inc,+d.inc);document.getElementById('pInc').innerHTML='';feed.unshift({t:`${roundName(inc.r)} · ${res.t}`,c:res.c});paintFeed();toast(res.t,res.big);progTimer=setTimeout(stepProgress,res.big?1400:600);return}
   if(d.padlg){padLg=d.padlg;newsMore=false;render();window.scrollTo(0,0);return}
   if(d.ntab){newsTab=d.ntab;newsMore=false;render();return}
   if(d.nmore){newsMore=!newsMore;render();return}
