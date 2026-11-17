@@ -568,6 +568,9 @@ html,body{margin:0}
 .hof .rkn{display:flex;align-items:baseline;gap:8px}.hof .rkn b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hof .rkn i{margin-left:auto;flex:none;font-style:normal;font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums}
 .hof .rkmeta{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hof .rkch{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent);padding-right:16px;gap:4px;margin-top:3px}.hof .rkch .chip{font-size:11px;padding:2px 7px;white-space:nowrap;flex:none}
+.hof .rkdel{all:unset;flex:none;cursor:pointer;font-size:12px;color:var(--muted);padding:6px 4px 6px 8px}
+.hof .rkdelc{display:flex;flex-direction:column;gap:8px;font-size:13px;padding:10px 12px;margin:0 0 8px;border-radius:12px;border:1px solid var(--line)}
+.hof .rkdelb{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .hof .rkwc{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
 .hof .rkwc .t{display:flex;align-items:center;gap:4px}
 .hof .rkwc.etc{flex-direction:row;align-items:center;gap:8px}.hof .rkwc.etc img{height:24px}.hof .rkwc.etc b{font-size:22px}
@@ -3581,6 +3584,10 @@ function bestStage(p){if(p.debutYear)return'포뮬러 1';const L=['KART','F4','F
 // check value on each ranking entry: an entry typed into localStorage by hand has none, so it isn't sent
 function hofCk(h){let k=11;for(const c of [h.cid,h.name,h.age,h.titles,h.wins,h.podiums,h.starts,h.peak,h.tro,h.jr,h.end,'k2wc-h'].join('|'))k=(k*33+c.charCodeAt(0))>>>0;return k.toString(36)}
 function hofSave(a){try{localStorage.setItem(KEYH,JSON.stringify(a.slice(0,50)))}catch(e){}}
+// careers the player deleted from 내 기록: never added again (the retired save may still be open) / server deletes still to send
+const KEYDEL='k2wc-hof-del',KEYDQ='k2wc-hof-delq';
+const lsJ=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k)||'null');return Array.isArray(v)?v:d}catch(e){return d}},lsW=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const hofDeleted=cid=>lsJ(KEYDEL,[]).includes(cid);
 // ranking order: F1 titles > F1 wins > other-stage trophies > F1 podiums > junior titles > peak OVR
 function rkSort(a){return a.sort((x,y)=>y.titles-x.titles||y.wins-x.wins||(y.tro||0)-(x.tro||0)||y.podiums-x.podiums||(y.jr||0)-(x.jr||0)||(y.peak||0)-(x.peak||0))}
 // numbers a real career can't reach (edited save / rigged randomness): the career stays, it just isn't sent to the ranking
@@ -3598,7 +3605,7 @@ function xLog(){const p=S&&S.p;if(!p||!p.x||p.xLog||xOk(S.cid))return;p.xLog=1;c
   logEv('flag',{x:p.x,why:p.x===2?'콘솔 랜덤':tampWhy(p)||'예전 표시',age:p.age,lk:p.series==='ALT'?p.alt:p.series,ovr:ovrOf(p.stats),stats:{...p.stats},pot:p.potential,pot0:p.pot0??null,titles:T.titles,wins:T.wins,starts:T.starts,seasons:p.history.length})}
 const TAMP_MSG=`<b style="font-size:17px">비정상적인 플레이가 감지되었습니다.</b><br><span class="muted">이 커리어는 랭킹에 올라가지 않습니다.</span>`,TAMP_FB=`<p style="margin:8px 0 0"><button class="dlink" type="button" id="fbOpen" style="font-size:14px;color:var(--muted);text-decoration:underline">의견 보내기</button><button class="ibtn" type="button" id="tampI" aria-label="잘못 감지됐다면">${ISVG}</button></p><p id="tampInfo" class="muted" hidden style="margin:6px 0 0;font-size:13px;line-height:1.5">잘못 감지된 것 같다면 의견을 보내 주세요. 기록 확인 후 정당한 플레이가 확인되면 랭킹에 다시 올라가요.</p>`;
 function tampI(){const x=document.getElementById('tampInfo');if(x)x.hidden=!x.hidden}
-function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.random().toString(36).slice(2,8);const a=hofLoad();if(a.some(x=>x.cid===S.cid))return;const p=S.p,T=p.tot;
+function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.random().toString(36).slice(2,8);const a=hofLoad();if(a.some(x=>x.cid===S.cid)||hofDeleted(S.cid))return;const p=S.p,T=p.tot;
   a.push({cid:S.cid,at:Date.now(),name:p.name,num:p.num,nat:p.nat,helmet:p.helmet,start:S.startYear,end:S.year,age:p.age,titles:T.titles,wins:T.wins,podiums:T.podiums,starts:T.starts,top:bestStage(p),tro:altTrophies(p).length,earn:p.earn||0,
     peak:p.peak,jr:p.jr.length,...(flagged(p)?{x:1}:{}),trs:[...(tripleCrown()?['트리플 크라운']:[]),...altTrophies(p).map(t=>t.n),...p.jr.map(j=>`${j.name} 챔피언`)]});a[a.length-1].ck=hofCk(a[a.length-1]);
   hofSave(rkSort(a));rkPush()}
@@ -3606,7 +3613,7 @@ function hofAdd(){if(!S||!S.p||!S.p.retired)return;S.cid??=Date.now()+'-'+Math.r
 const KEYA='k2wc-arc-v1',ARC_MAX=20,ARC_DROP=['jr','altR','altSum','news','fanSeen','f1sum','altM','f1Out','altNews','notice','paddock','season','offers','events','last','recentEv'];
 function arcLoad(){try{const a=JSON.parse(localStorage.getItem(KEYA)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
 function arcSave(a){while(a.length){try{localStorage.setItem(KEYA,JSON.stringify(a));return}catch(e){a.shift()}}try{localStorage.removeItem(KEYA)}catch(e){}}
-function arcAdd(){if(arcS||!S||!S.p||!S.p.retired||!S.cid)return;const a=arcLoad();if(a.some(x=>x.cid===S.cid))return;
+function arcAdd(){if(arcS||!S||!S.p||!S.p.retired||!S.cid||hofDeleted(S.cid))return;const a=arcLoad();if(a.some(x=>x.cid===S.cid))return;
   const s=JSON.parse(JSON.stringify(S));ARC_DROP.forEach(k=>delete s[k]);s.p.cerDone=true;a.push({cid:S.cid,s});arcSave(a.slice(-ARC_MAX))}
 const arcHas=()=>new Set(arcLoad().map(x=>x.cid));
 function arcOpen(cid){const x=arcLoad().find(y=>y.cid===cid);if(!x)return;if(xOk(cid))delete x.s.p.x;
@@ -3645,7 +3652,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.13',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.14-d1',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -3696,7 +3703,7 @@ setTimeout(logFlush,3000);
 // ranking season: only records since the v1.0.0 launch count (older ones were set under an easier balance; kept on the server)
 const RK_FROM='2026-11-02T07:31:00Z';
 const SB_URL='https://nylfktkmicqqlgkjfvyg.supabase.co/rest/v1/ranking',SB_KEY='sb_publishable_oIyy0JrrciMA_g_iX70j_A_coEepIDF',RK_VER='0.21.0';
-let rkInfo=false,rkTab='week',rkLg='f1',rkD={},rkErr={},rkBusy={};
+let rkDel=null,rkInfo=false,rkTab='week',rkLg='f1',rkD={},rkErr={},rkBusy={};
 // league rankings: WEC / IndyCar = champion count -> big race wins -> peak OVR (from the trophy list, so old records count too)
 // ETC(기타) = SF·FE·DTM champions added up -> peak OVR, each league's trophy shown on the right
 const RK_LG={WEC:{c:'WEC 하이퍼카 챔피언',r:'르망 24시 우승',rn:'르망',cn:'WEC 챔피언',tro:'WEC',lbl:'WEC'},INDY:{c:'인디카 챔피언',r:'인디 500 우승',rn:'인디 500',cn:'인디카 챔피언',tro:'INDY',lbl:'인디카'},
@@ -3724,13 +3731,29 @@ if(rkNet()&&typeof document!=='undefined'){
   if(/[?&]v=/.test(location.search))try{history.replaceState(null,'',location.pathname+location.hash)}catch(e){}
   setTimeout(()=>verChk(true),300);
   let verHid=0;document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')verHid=Date.now();else if(verHid&&Date.now()-verHid>1800000){verHid=0;verChk(false)}})}
-function rkPush(){if(!rkNet())return;
+// delete key: a random key stays on this phone, only its hash goes up with the ranking row; rk_delete (Supabase function) removes the row when the key matches
+const rkHex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+function rkDk(cid){const a=hofLoad(),x=a.find(y=>y.cid===cid);if(!x)return null;if(!x.dk){const u=new Uint8Array(16);crypto.getRandomValues(u);x.dk=rkHex(u);hofSave(a)}return x.dk}
+const rkHash=k=>crypto.subtle.digest('SHA-256',new TextEncoder().encode(k)).then(rkHex);
+function rkMark(cid,f){const b=hofLoad(),x=b.find(y=>y.cid===cid);if(x){Object.assign(x,f);hofSave(b)}}
+function rkPush(){if(!rkNet())return;rkDelFlush();
   {const a=hofLoad();if(a.some(h=>h.x&&xOk(h.cid))){a.forEach(h=>{if(h.x&&xOk(h.cid))delete h.x});hofSave(a)}}
   hofLoad().filter(h=>!h.sent&&!h.x&&h.ck===hofCk(h)&&!badName(h.name)).forEach(h=>{
-    fetch(SB_URL,{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
-      body:JSON.stringify({cid:h.cid,name:h.name,num:h.num,nat:h.nat,helmet:h.helmet,start_year:h.start,end_year:h.end,age:h.age,titles:h.titles,wins:h.wins,podiums:h.podiums,starts:h.starts,
-        peak:h.peak??null,top:h.top,tro:h.tro||0,jr:h.jr||0,trophies:h.trs||[],earn:h.earn||0,ver:RK_VER})})
-    .then(r=>{if(!r.ok&&r.status!==409)return;const b=hofLoad(),x=b.find(y=>y.cid===h.cid);if(x){x.sent=1;hofSave(b)}rkD={};if(hofOpen&&rkOn(rkTab))rkLoad(rkKey())}).catch(()=>{})})}
+    const dk=typeof crypto!=='undefined'&&crypto.subtle?rkDk(h.cid):null,
+      body={cid:h.cid,name:h.name,num:h.num,nat:h.nat,helmet:h.helmet,start_year:h.start,end_year:h.end,age:h.age,titles:h.titles,wins:h.wins,podiums:h.podiums,starts:h.starts,
+        peak:h.peak??null,top:h.top,tro:h.tro||0,jr:h.jr||0,trophies:h.trs||[],earn:h.earn||0,ver:RK_VER},
+      post=b=>fetch(SB_URL,{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(b)});
+    (dk?rkHash(dk).catch(()=>null):Promise.resolve(null))
+    .then(dh=>dh?post({...body,del_hash:dh}).then(r=>!r.ok&&r.status===400?post(body).then(r2=>{if(r2.ok)rkMark(h.cid,{dkNo:1});return r2}):r):post(body))// server without the del_hash column yet: send without it
+    .then(r=>{if(!r.ok&&r.status!==409)return;rkMark(h.cid,{sent:1});rkD={};if(hofOpen&&rkOn(rkTab))rkLoad(rkKey())}).catch(()=>{})})}
+// deletes wait in a queue until the server says ok (offline, or the function not there yet)
+function rkDelFlush(){if(!rkNet())return;lsJ(KEYDQ,[]).forEach(d=>fetch(SB_URL.replace(/ranking$/,'rpc/rk_delete'),{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({p_cid:String(d.cid),p_key:d.dk})})
+  .then(r=>{if(!r.ok)return;lsW(KEYDQ,lsJ(KEYDQ,[]).filter(y=>y.cid!==d.cid));rkD={};if(hofOpen&&rkOn(rkTab))rkLoad(rkKey())}).catch(()=>{}))}
+const rkSrvDel=h=>!!(h&&h.dk&&!h.dkNo);
+function hofRemove(cid){const a=hofLoad(),h=a.find(x=>x.cid===cid);
+  lsW(KEYDEL,[...lsJ(KEYDEL,[]).filter(x=>x!==cid),cid].slice(-200));
+  if(rkSrvDel(h))lsW(KEYDQ,[...lsJ(KEYDQ,[]).filter(x=>x.cid!==cid),{cid,dk:h.dk}]);
+  hofSave(a.filter(x=>x.cid!==cid));arcSave(arcLoad().filter(x=>x.cid!==cid));rkDel=null;rkD={};rkDelFlush()}
 function rkLoad(t){if(rkBusy[t]||!rkNet())return;rkBusy[t]=true;rkErr[t]=false;const from=t.startsWith('week')?rkWeek():RK_FROM,g=RK_LG[t.replace(/^(week|all)/,'')];
   // league tab: careers holding that league's trophies, most other-stage trophies first, sorted on the page
   const q=g?'&or='+encodeURIComponent(`(${[...rkCs(g),...(g.r?[g.r]:[])].map(t=>`trophies.cs."${JSON.stringify([t]).replace(/"/g,'\\"')}"`).join(',')})`)+'&order=tro.desc,created_at.asc&limit=500':'&order=titles.desc,wins.desc,tro.desc,podiums.desc,jr.desc,peak.desc.nullslast,created_at.asc&limit=100';
@@ -3803,7 +3826,7 @@ function hofSheet(H){
     return`<div class="row2${i<3?' p'+i:''}${all&&mine.has(h.cid)?' me':''}${av?' arc':''}"${av?` data-arc="${esc(h.cid)}" role="button" tabindex="0" aria-label="${esc(h.name)} 커리어 결산 보기"`:''}><span class="rk${i<3?' m'+i:''}">${i+1}</span>${helmet(h.helmet,h.num,40)}
       <span style="flex:1;min-width:0"><span class="rkn"><b>${esc(h.name)}</b>${h.at?`<i>${rkAgo(h.at)}</i>`:''}</span>
       <span class="muted rkmeta">${esc(ser)}${h.top==='포뮬러 1'||h.podiums?` · 포디움 ${h.podiums}`:''}${h.peak?` · OVR ${h.peak}`:''} · ${h.age}세</span>
-      ${tr.length||g&&h.titles?`<div class="chips rkch">${g&&h.titles?`<span class="chip f1">F1 월챔${h.titles>1?` ×${h.titles}`:''}</span>`:''}${tr.map(([t,n])=>`<span class="chip ${t==='트리플 크라운'?'gold':'silver'}">${esc(rkShort(t))}${n>1?` ×${n}`:''}</span>`).join('')}</div>`:''}</span>${side}</div>`};
+      ${tr.length||g&&h.titles?`<div class="chips rkch">${g&&h.titles?`<span class="chip f1">F1 월챔${h.titles>1?` ×${h.titles}`:''}</span>`:''}${tr.map(([t,n])=>`<span class="chip ${t==='트리플 크라운'?'gold':'silver'}">${esc(rkShort(t))}${n>1?` ×${n}`:''}</span>`).join('')}</div>`:''}</span>${side}${all?'':`<button class="rkdel" type="button" data-rkdel="${esc(h.cid)}" aria-label="${esc(h.name)} 기록 삭제">삭제</button>`}</div>${!all&&rkDel===h.cid?`<div class="rkdelc"><span>${esc(h.name)} 기록을 지울까요? ${h.sent&&!rkSrvDel(h)?'예전에 올린 기록이라 전체 랭킹에서는 지워지지 않고, 이 기기에서만 지워져요.':h.sent?'전체 랭킹에서도 지워지고, 되돌릴 수 없어요.':'되돌릴 수 없어요.'}</span><span class="rkdelb"><button class="btn ghost" type="button" id="rkDelNo">취소</button><button class="btn" type="button" id="rkDelYes" style="background:var(--bad)">삭제</button></span></div>`:''}`};
   const body=all&&!rkNet()?`<p class="muted" style="margin:0">전체 랭킹은 인터넷에 연결된 게임 사이트에서 볼 수 있어요.</p>`:
     all&&rkErr[k]?`<p class="muted" style="margin:0">랭킹을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.</p><button class="btn ghost" type="button" id="rkRetry">다시 불러오기</button>`:
     all&&!L?`<p class="muted" style="margin:0">랭킹을 불러오는 중이에요…</p>`:
@@ -4395,6 +4418,9 @@ root.addEventListener('click',e=>{
   {const ib=e.target.closest('span.ibtn[data-sheet]');if(ib){openSheet(ib.dataset.sheet);return}}
   if(rkInfo&&!e.target.closest('#rkInfo')){rkInfo=false;render();return}
   const t=e.target.closest('button,[data-arc],#sheetBg,#hofBg');if(!t)return;
+  if(t.dataset&&t.dataset.rkdel){rkDel=rkDel===t.dataset.rkdel?null:t.dataset.rkdel;render();return}
+  if(t.id==='rkDelNo'){rkDel=null;render();return}
+  if(t.id==='rkDelYes'){if(rkDel)hofRemove(rkDel);render();return}
   if(t.dataset&&t.dataset.arc){arcOpen(t.dataset.arc);return}
   if(t.id==='hofBg'){if(e.target===t){hofOpen=false;render()}return}
   if(t.id==='sheetBg'&&e.target===t){if(sheetBack){sheet=sheetBack;sheetBack=null;render();return}if(PRE(sheet)||sheet&&(sheet.type==='chres'||sheet.type==='num1'||sheet.type==='legend'))return;sheet=null;chain=false;evPick=null;render();return}
