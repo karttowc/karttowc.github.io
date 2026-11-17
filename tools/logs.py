@@ -18,7 +18,14 @@ if '--since' in args:i=args.index('--since');PATCH=args[i+1];del args[i:i+2]
 FBN=0
 if '--fb' in args:i=args.index('--fb');FBN=int(args[i+1]);del args[i:i+2]
 files=[a for a in args if a!='--old']
-get=lambda u,q:json.load(urllib.request.urlopen(u+'?'+urllib.parse.urlencode(q),timeout=300))
+def get(u,q):
+    # the sheet (or the proxy) sometimes drops a long page: retry a few times
+    import time
+    for k in range(5):
+        try:return json.load(urllib.request.urlopen(u+'?'+urllib.parse.urlencode(q),timeout=300))
+        except Exception as e:
+            if k==4:raise
+            print('retry',k+1,type(e).__name__,file=sys.stderr);time.sleep(5*(k+1))
 def parse(rows):
     for r in rows:
         try:x=json.loads(r[4])

@@ -557,7 +557,8 @@
    "id": "mercedes",
    "name": "메르세데스 주니어",
    "teams": [
-    "mercedes"
+    "mercedes",
+    "williams"
    ],
    "strictness": "low"
   },
