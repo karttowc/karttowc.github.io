@@ -20,7 +20,7 @@
   - 공개 버전은 절대 뒤로 돌리지 않는다(사이트에 이미 v1.3.3이 나감).
 - **공개 버전: v1.7.15** (main, 2026-11-17 공개. dev d1~d2(`docs/history.md`의 '지난 dev(v1.7.15) 기록'): 업데이트 소식 제목 색(게임 밖 소식 = 파란색 `info:true`), 감사의 글 창 제목 '개발자의 감사 편지💌'·'다시 보지 않기' 체크(그냥 닫으면 다음에 또 뜸)·시트 kind 'thx' 줄(show/close/never). 밸런스 변화 없음 → `logs.py` PATCH는 1.7.12 그대로. 업데이트 소식은 안 넣음. 다음 dev는 v1.7.16-d1).
 - **옛 기록은 `docs/history.md`**(지난 dev 기록 전부, 그 전 공개 버전들, 옛 버전 기록, 옛 PATCH). 자동으로 안 읽히니까 "전에 왜 그랬지?"가 필요할 때만 검색해서 본다(2026-11-16 찬우 결정). 꼭 볼 때: 밸런스 숫자(`balance.json`)를 바꿀 때(전에 해 본 값과 결과), 예전에 뺐거나 바꾼 기능을 다시 건드릴 때, 찬우가 "전에 그거"처럼 옛 작업을 말할 때. 공개할 때 '지금 dev' 줄은 거기 '지난 dev 기록' 맨 위로 옮기고, 여기 '공개 버전' 줄은 방금 공개한 것 하나만 남긴다(전 것은 history의 공개 버전 기록으로).
-- **지금 dev:** 없음(v1.7.15 공개 직후, 다음은 v1.7.16-d1).
+- **지금 dev:** v1.7.16-d1 — 설정 '보낸 플레이 기록 삭제'(`logDel`, 시트 `?del=1`이 그 uid 줄 B:E 비우고 의견·기기·부정 플레이 줄 삭제, 지운 뒤 uid 새로), `logs.py --del UID`, 개인정보 처리방침 문구. **찬우가 새 `logsheet.gs`를 시트에 붙여 넣고 배포해야 동작.** 밸런스 변화 없음.
 - **dev 브랜치에서 작업**한다. `main`은 공개 사이트(GitHub Pages)다.
 - 찬우가 **"올려줘"**(줄여서 **"ㅇㄹㅈ"**도 같은 뜻) 라고 할 때만 dev를 main에 합친다. 그 전에는 main을 건드리지 않는다.
 - 보고할 때 버전을 붙인다: dev 반영은 "v1.4.0-d6 반영했어", 공개는 "v1.4.0 올렸어".
@@ -96,6 +96,7 @@ python3 tools/build.py && node --check build/game.js && node tools/test_render.j
 - 은퇴식 `cerPage`(탭으로 넘김), 닮은 실제 드라이버 `REAL`/`similarDriver`.
 - 의견 보내기 `fbSend`/시트 'fb': 플레이 기록 시트로 감, '의견' 탭은 `logsheet.gs` 새 버전 배포 후부터.
 - 익명 플레이 기록: `logEv`로 큐(`k2wc-log-v1`)에 쌓고 `logFlush`가 구글 Apps Script 웹앱(`LOG_URL`)에 POST → 찬우 구글 시트. 종류 new(새 커리어)/season(`logSeason`, 시즌 결과·체력·훈련·이벤트·르망·도박·그 시즌으로 온 제안 선택 `pick`)/retire(`logRetire`). v0.26.1 전 기록엔 따로 pick 줄이 있음. 시트 쪽 코드는 `tools/logsheet.gs`(KEY는 시트에만). 랜덤 `k2wc-uid`, 이름 없음. 설정의 토글로 끔(`k2wc-log-off`).
+- 기록 삭제: 설정 '보낸 플레이 기록 삭제' → `logsheet.gs` `del(uid)`(키 없이, 무작위 ID라). 달 탭은 A열 남기고 B:E만 비움(`logs.py` 읽기 위치 안 밀리게). 지운 uid는 스크립트 속성 `d<uid>`, `logs.py`가 `?dels=1`로 받아 `play_logs.json`에서도 뺌. 의견으로 ID가 오면 `LOG_KEY=... python3 tools/logs.py --del UID`.
 - 방문 통계: GoatCounter(`lchanwoo05.goatcounter.com`) 스크립트를 `<head>`에 넣음. 방문자 수 추이·유입 경로·나라·기기는 거기 대시보드에서 본다. 로컬/file 실행은 자동 제외.
 - 랭킹(옛 명예의 전당): 은퇴 기록을 Supabase `ranking` 테이블에 올림(`rkPush`, 실패하면 다음 실행 때 다시), 전체 상위 100 `rkLoad`. 정렬 F1 월챔→F1 우승→다른 무대 트로피→포디움→주니어 챔피언→최고 OVR. 서버 쪽 check 제약으로 말 안 되는 숫자 거부, 욕설 이름 `badName`(막진 않고, 이름 정하고 다음 누를 때 랭킹 제외 토스트만).
 - 라이벌 제도는 **v0.18.0에서 제거**함(`S.rival`은 항상 null).

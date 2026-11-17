@@ -8,6 +8,8 @@ Usage: LOG_KEY=... python3 tools/logs.py [--old] [--since VER] [log files...]
   (season, team, rank, age, OVR, path, stats, offers), and new flagged (ranking-excluded) careers. --fb N = last N feedback instead.
   Log files = "플레이 기록 파일 받기" downloads (unsent queue), merged in.
   --stats  read only the sheet's '통계' tab (players per day/hour, seconds) and rewrite docs/stats.md. Nothing else.
+  --del UID  wipe what that device sent (same as the game's '보낸 플레이 기록 삭제'; needs the logsheet.gs with del), and drop it from play_logs.json.
+  Every normal run also drops devices deleted from the game (GET dels).
   --stats-init  (once) fill the '통계'·'기기' tabs from all records fetched so far (needs the new logsheet.gs deployed).
 """
 import os,sys,json,urllib.request,urllib.parse,collections
@@ -57,6 +59,14 @@ if '--stats' in args:
     r=get(URL,{'key':key,'stats':1})
     if 'stats' not in r:sys.exit('시트에 새 logsheet.gs가 아직 배포 안 됨 (통계 탭 없음)')
     stats_md(r['stats']);sys.exit()
+if '--del' in args:
+    i=args.index('--del');u=args[i+1]
+    r=json.load(urllib.request.urlopen(urllib.request.Request(URL+'?del=1',data=json.dumps({'uid':u}).encode(),headers={'Content-Type':'text/plain'}),timeout=300))
+    print('del',u,r)
+    if not r.get('ok'):sys.exit(1)
+    if os.path.exists(DB):
+        a=json.load(open(DB));b=[d for d in a if str(d.get('uid') or '')!=u];json.dump(b,open(DB,'w'),ensure_ascii=False);print('play_logs.json',len(a)-len(b),'records dropped')
+    sys.exit()
 if '--fb' in args:i=args.index('--fb');FBN=int(args[i+1]);del args[i:i+2]
 files=[a for a in args if not a.startswith('--')]
 recs=json.load(open(DB)) if os.path.exists(DB) else []
@@ -76,6 +86,11 @@ if key and URL:
     json.dump({**st0,**cur},open(ST,'w'))
 for f in files:recs+=json.load(open(f))
 if not recs:sys.exit('no records (LOG_KEY env var or log files needed)')
+if key:
+    # devices that deleted their records (game settings or --del): drop the local copy too
+    try:dels=set(get(URL,{'key':key,'dels':1}).get('dels') or [])
+    except Exception:dels=set()
+    if dels:k0=len(recs);recs=[d for d in recs if str(d.get('uid') or '') not in dels];print(f"deleted devices {len(dels)} ({k0-len(recs)} records dropped)") if k0>len(recs) else None
 seen=set();recs=[d for d in recs if not((d.get('uid'),d.get('t'),d.get('kind')) in seen or seen.add((d.get('uid'),d.get('t'),d.get('kind'))))]
 json.dump(recs,open(DB,'w'),ensure_ascii=False)
 if '--stats-init' in args:

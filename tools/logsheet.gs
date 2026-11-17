@@ -134,10 +134,59 @@ function tab(name) {
 }
 
 // POST body: one record or an array of records (game batches up to 30)
+// POST ?del=1 body {uid}: wipe what one device sent (settings → '보낸 플레이 기록 삭제', or tools/logs.py --del UID).
+// Month tabs: B:E of its rows are cleared (column A stays, so row numbers and tools/logs.py's read cursor don't move).
+// '의견' rows (기기 = first 6 of uid), its '기기' row and '부정 플레이' rows of its careers are deleted.
+// The uid is kept as script property 'd<uid>' so tools/logs.py drops its local copy too (GET ?key=KEY&dels=1).
+// Needs no key: the ID is random and only that device (or whoever it told) knows it.
+function del(uid) {
+  uid = String(uid || '').slice(0, 40);
+  if (!/^[a-z0-9]{8,40}$/.test(uid)) return out({ ok: 0, error: 'uid' });
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(25000)) return out({ ok: 0, error: 'busy' });
+  try {
+    const ss = SpreadsheetApp.getActive(), cids = new Set();
+    let n = 0;
+    ss.getSheets().filter(sh => isTab(sh.getName())).forEach(sh => {
+      const last = sh.getLastRow();
+      if (last < 2) return;
+      const v = sh.getRange(2, 2, last - 1, 2).getValues(), hit = [];
+      v.forEach((r, i) => { if (String(r[0]) === uid) { hit.push(i + 2); if (r[1]) cids.add(String(r[1])); } });
+      if (!hit.length) return;
+      // careers inside batch rows (cid column is blank there): read the json of the hit rows, run by run
+      for (let i = 0; i < hit.length;) {
+        let j = i; while (j + 1 < hit.length && hit[j + 1] === hit[j] + 1) j++;
+        sh.getRange(hit[i], 5, j - i + 1, 1).getValues().forEach(([t]) => {
+          try { const x = JSON.parse(t); (Array.isArray(x) ? x : [x]).forEach(d => { if (d && d.cid) cids.add(String(d.cid)); }); } catch (err) {}
+        });
+        i = j + 1;
+      }
+      for (let i = 0; i < hit.length; i += 400) sh.getRangeList(hit.slice(i, i + 400).map(r => `B${r}:E${r}`)).clearContent();
+      n += hit.length;
+    });
+    const drop = (name, col, f) => {
+      const sh = ss.getSheetByName(name);
+      if (!sh || sh.getLastRow() < 2) return 0;
+      const v = sh.getRange(2, col, sh.getLastRow() - 1, 1).getDisplayValues();
+      let k = 0;
+      for (let i = v.length - 1; i >= 0; i--) if (f(String(v[i][0]))) {
+        try { sh.deleteRow(i + 2); } catch (err) { sh.getRange(i + 2, 1, 1, sh.getLastColumn()).clearContent(); }  // the last data row can't always be deleted
+        k++; }
+      return k;
+    };
+    const fb = drop('의견', 6, x => x === uid.slice(0, 6));
+    drop('기기', 1, x => x === uid);
+    const xs = drop('부정 플레이', 12, x => cids.has(x));
+    PropertiesService.getScriptProperties().setProperty('d' + uid, String(Date.now()));
+    return out({ ok: 1, rows: n, fb, xs, careers: cids.size });
+  } finally { lock.releaseLock(); }
+}
+
 function doPost(e) {
   let a;
   try { a = JSON.parse(e.postData.contents); } catch (err) { return out({ ok: 0 }); }
   const q = e.parameter || {};
+  if (q.del) return del(a && a.uid);
   if (q.init) {
     if (q.key !== KEY) return out({ error: 'key' });
     const lk = LockService.getScriptLock();
@@ -204,12 +253,14 @@ function doPost(e) {
 }
 
 // GET ?key=KEY&stats=1 → {stats: statRows()} (tools/logs.py --stats)
+// GET ?key=KEY&dels=1 → {dels: [uid…]} deleted devices (tools/logs.py drops them from play_logs.json)
 // GET ?key=KEY&tab=2026-11&row=120 → rows after row 120 of that tab, then later tabs, up to PAGE.
 // Returns {rows, next:{tab,row}, more}; pass next back to keep reading (tools/logs.py does this).
 function doGet(e) {
   const q = e.parameter || {};
   if (q.key !== KEY) return out({ error: 'key' });
   if (q.stats) return out({ stats: statRows() });
+  if (q.dels) { const P = PropertiesService.getScriptProperties().getProperties(); return out({ dels: Object.keys(P).filter(k => k[0] === 'd').map(k => k.slice(1)) }); }
   const ss = SpreadsheetApp.getActive();
   const tabs = ss.getSheets().map(s => s.getName()).filter(isTab).sort();
   const t = q.tab || '', row = +q.row || 1, rows = [];

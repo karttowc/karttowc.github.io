@@ -3655,7 +3655,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.15',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.16-d1',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -3697,6 +3697,14 @@ function fbSend(){const text=fbText.trim().slice(0,300);if(!text){toast('내용�
     lk:p?p.series+(p.role&&p.role!=='race'?':'+p.role:''):null,phase:S?S.phase:'title',seasons:p&&p.history?p.history.length:0,year:S?S.year:null,...(p&&flagged(p)?{x:p.x||1}:{})};
   fbLast=Date.now();
   logPost([d]).then(()=>{fbText='';sheet=null;render();toast('보냈어요. 고마워요!')}).catch(()=>{fbLast=0;toast('보내지 못했어요. 잠시 후 다시 시도해 주세요.')})}
+// delete everything this device sent (logsheet.gs ?del=1 clears its rows), then start over with a new ID and an empty queue
+let logDelBusy=false;
+function logDel(){if(logDelBusy)return;if(!rkNet()){toast('인터넷이 연결돼 있지 않아요');return}
+  const uid=lsGet('k2wc-uid');if(!uid){sheet='menu';render();toast('보낸 기록이 없어요');return}
+  logDelBusy=true;render();
+  fetch(LOG_URL+'?del=1',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({uid})}).then(r=>r.json()).then(j=>{if(!(j&&j.ok))throw 0;
+    try{localStorage.removeItem('k2wc-uid')}catch(e){}lsSet(KEYL,'[]');logDelBusy=false;sheet='menu';render();toast('보낸 기록을 지웠어요')})
+  .catch(()=>{logDelBusy=false;render();toast('지우지 못했어요. 잠시 후 다시 시도해 주세요.')})}
 function logDownload(){const q=logQ();if(!q.length)return;const name=`kart-to-wc-log-${logUid().slice(0,6)}-${Date.now()}.json`,data=JSON.stringify(q);
   if(DL){saveFile(name,data);return}
   try{const u=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);toast('기록 파일을 받았어요')}catch(e){toast('파일을 받지 못했어요')}}
@@ -4412,7 +4420,9 @@ function menuSheet(){
     <button class="btn ghost" type="button" id="fbOpen">의견 보내기</button>
     <button class="btn ghost" type="button" id="logToggle">익명 플레이 기록 보내기: ${logOff()?'끔':'켬'}</button>
     ${logBtn()}
-    <p class="muted" style="margin:0;font-size:12px">시즌 결과·선택 같은 플레이 기록을 이름 없이 익명으로 모아 밸런스 조정에 써요.<br>내 기록 ID <b class="num" style="user-select:all">${esc(logUid())}</b> · 보낸 기록을 지우고 싶으면 이 ID를 의견 보내기로 알려 주세요.</p>
+    <p class="muted" style="margin:0;font-size:12px">시즌 결과·선택 같은 플레이 기록을 이름 없이 익명으로 모아 밸런스 조정에 써요.<br>내 기록 ID <b class="num" style="user-select:all">${esc(logUid())}</b></p>
+    ${sheet==='logdel'?`<p style="margin:0">이 기기에서 보낸 플레이 기록과 의견을 모두 지울까요? 되돌릴 수 없어요. 랭킹 기록은 랭킹의 '내 기록'에서 따로 지워요.</p><div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" id="cancelNew">취소</button><button class="btn" type="button" id="logDelGo" style="background:var(--bad)">${logDelBusy?'지우는 중…':'지우기'}</button></div>`:
+    `<button class="btn ghost" type="button" id="logDel" style="color:var(--bad)">보낸 플레이 기록 삭제</button>`}
     <p class="muted" style="margin:0;font-size:12px">비공식 팬 게임이에요. 수익을 내지 않으며 F1·FIA·각 팀과 관련이 없어요. 팀명·로고·선수명 등 상표는 각 소유자의 것이에요.</p>
     <button class="btn" type="button" id="closeSheet">닫기</button>
     <p class="muted" style="margin:0;font-size:11px;text-align:center">v${LOG_VER}</p></section></div>`;
@@ -4519,6 +4529,8 @@ root.addEventListener('click',e=>{
   if(id==='rkInfo'){rkInfo=!rkInfo;render();return}
   if(id==='hofClose'){hofOpen=false;render();return}
   if(id==='logDl'){logDownload();return}
+  if(id==='logDel'){sheet='logdel';render();return}
+  if(id==='logDelGo'){logDel();return}
   if(id==='tampI'){tampI();return}
   if(id==='fbOpen'){sheet='fb';render();setTimeout(()=>{const x=document.getElementById('fbText');if(x)x.focus()},50);return}
   if(id==='fbSend'){fbSend();return}
