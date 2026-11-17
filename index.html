@@ -3550,7 +3550,9 @@ function applyIncident(inc,j){
   else{const ni=clamp(i+delta,0,o.fin.length-1);o.fin.splice(i,1);o.fin.splice(ni,0,'me');const g=i-ni;
     txt=g>0?`${g}계단 올라섰어요 (${ni+1}위)`:g<0?`${-g}계단 내려갔어요 (${ni+1}위)`:`순위를 지켰어요 (${ni+1}위)`}
   const et=eff?applyEff(eff):'';inc.done=true;inc.j=j;inc.ok=ok;inc.dnf=dnf;save();
-  return{t:(c.fixed?'':ok?'성공! ':'실패… ')+txt+(et?` · ${et}`:''),c:dnf||txt.includes('내려')?'bad':txt.includes('올라')?'gold':'blue'};
+  // a success can still cost a place (pit for a new wing): say the damage was limited, never paint it red
+  const soft=ok&&!c.fixed&&txt.includes('내려');
+  return{t:(c.fixed?'':ok?(soft?'성공! 피해를 줄였어요 · ':'성공! '):'실패… ')+txt+(et?` · ${et}`:''),c:dnf||(!soft&&txt.includes('내려'))?'bad':txt.includes('올라')?'gold':'blue'};
 }
 
 /* ---------- mid-season gamble ---------- */
@@ -4871,7 +4873,7 @@ function showIncident(inc){
     ${d.choices.map((c,j)=>{const R='font-size:13px',E=e=>e?effChips(e).replace(/^<span class="chips">|<\/span>$/g,''):'';
       const top=c.fixed?'<span class="muted" style="font-size:13px">확정</span>':`<b class="num" style="font-size:22px;color:#8CB8FF">${Math.round(incChance(c)*100)}%</b>`;
       const body=c.fixed?`<span class="chip ${c.fixed.delta>0?'down':''}" style="${R}">${c.fixed.delta>0?c.fixed.delta+'그리드 하락':'순위 유지'}</span>${E(c.fixed.eff)}`
-        :`<span class="chip up" style="${R}">성공 ${-c.good[0]>0?'최대 ▲'+(-c.good[0])+'그리드':'순위 유지'}</span><span class="chip down" style="${R}">실패 최대 ▼${c.bad[1]}그리드${c.dnf?' · 리타이어 위험':''}</span>${E(c.eff)}`;
+        :`<span class="chip ${c.good[1]>0?'':'up'}" style="${R}">성공 ${-c.good[0]>0?'최대 ▲'+(-c.good[0])+'그리드':c.good[1]<=0?'순위 유지':c.good[0]>0?'▼'+c.good[0]+(c.good[1]>c.good[0]?'~'+c.good[1]:'')+'그리드':'순위 유지~▼'+c.good[1]}</span><span class="chip down" style="${R}">실패 최대 ▼${c.bad[1]}그리드${c.dnf?' · 리타이어 위험':''}</span>${E(c.eff)}`;
       return`<button class="choice" type="button" data-inc="${j}" style="background:var(--surface-2)"><span class="row"><span class="h3">${esc(c.label)}</span>${top}</span><span class="chips">${body}</span></button>`}).join('')}</section></div>`;
 }
 function finishProgress(){
@@ -5001,7 +5003,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.10',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.11-d1',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
