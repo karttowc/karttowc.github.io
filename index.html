@@ -4132,6 +4132,35 @@ function buildReact(R,x){
   if(R.hunt&&R.pos)f=(f?f+' ':'')+(BOP(R.lk)?`BoP 견제로 머신이 ${R.hunt} 묶인 채 달렸어요`:`라이벌들의 견제로 머신 우위가 ${R.hunt} 줄어든 채 달렸어요`)+(R.titled?'. 그래도 타이틀을 지켜 냈어요.':R.pos<=3?'. 그래도 정상 경쟁을 했어요.':'.');
   if(R.tie&&R.tie.pos<=2&&R.tie.won===(R.tie.pos===1))f=(f?f+' ':'')+(R.tie.won?`${jo(R.tie.n,'과','와')} 포인트는 같았지만 ${R.tie.k}에서 앞서 타이틀을 가져왔어요.`:`${jo(R.tie.n,'과','와')} 포인트는 같았지만 ${R.tie.k}에서 밀려 타이틀을 놓쳤어요.`);
   if(f)E.push(f);
+  // 3b) career context: what this season meant for the move I made or the path I'm on (details the ⓘ sheets leave out)
+  {const cx=[],CR=B.career,ovr=ovrOf(p.stats),hh=R.h2h?(R.h2h.q[0]+R.h2h.r[0])/Math.max(1,R.h2h.q[0]+R.h2h.q[1]+R.h2h.r[0]+R.h2h.r[1]):null,
+    cons=R.sid==='F1'&&S.f1sum&&S.f1sum.year===R.year?S.f1sum.cons:null,rk=id=>cons?cons.findIndex(c=>c.id===id):-1,
+    tid=h=>h.tid||(K.teams.find(t=>t.name===h.team||t.short===h.team)||{}).id||null;
+   // F1 move: was leaving the old team the right call
+   if(R.sid==='F1'&&R.role==='race'&&prev&&prev.sid==='F1'&&prev.role==='race'&&tid(prev)&&tid(R)&&tid(prev)!==tid(R)){const a=rk(tid(R)),b=rk(tid(prev));
+     if(a>=0&&b>=0)cx.push(a<b?pick([`팀을 옮긴 판단이 맞았어요. 전 팀 ${jo(prev.team,'은','는')} 컨스트럭터 ${b+1}위, 지금 팀은 ${a+1}위예요.`,`이적은 성공이에요. 지금 팀이 컨스트럭터 ${a+1}위로, ${b+1}위인 전 팀 ${prev.team}보다 위에 있어요.`])
+       :pick([`전 팀 ${jo(prev.team,'이','가')} 컨스트럭터 ${b+1}위로 지금 팀(${a+1}위)보다 위에 있어요. 아쉬운 이적이 됐어요.`,`옮긴 팀은 ${a+1}위, 떠난 ${jo(prev.team,'은','는')} ${b+1}위예요. 이번엔 이적이 손해였어요.`]))}
+   // transfer request result
+   if(p.xferDone&&p.xferDone.year===R.year)cx.push(p.xferDone.n?`이적 요청이 통했어요. 더 좋은 팀 ${p.xferDone.n}곳이 자기 팀 드라이버보다 나를 높게 봤어요.`:'이적 요청에 응한 팀이 없었어요. 더 좋은 팀으로 가려면 그 팀의 약한 드라이버보다 앞서야 해요.');
+   // debut routes: Racing Bulls -> Red Bull, Haas -> Ferrari (its junior), Williams -> Mercedes (its junior)
+   if(R.sid==='F1'&&R.role==='race'&&!p.retired){const id=tid(R),rt=id==='racingbulls'?['redbull',CR.rb_route]:id==='haas'&&jrOf(p)==='ferrari'?['ferrari',CR.fe_promo]:id==='williams'&&jrOf(p)==='mercedes'?['mercedes',CR.mw_promo]:null;
+     if(rt&&rt[1]&&p.age<=rt[1].max_age){const nm=teamDef(rt[0]).name;
+       cx.push((hh!=null&&hh>=rt[1].beat_mate)||R.pos<=rt[1].pos?pick([`이 성적이면 ${nm} 승격 후보로 거론돼요.`,`${nm}도 이 시즌을 지켜봤어요. 승격 이야기가 나올 만한 활약이에요.`])
+         :pick([`${nm}로 올라가려면 팀메이트를 이기거나 더 앞에서 끝내야 해요.`,`${nm} 승격은 아직 멀어요. 팀메이트부터 넘어야 해요.`]))}}
+   // academy: Friday runs, warnings
+   if(p.academy&&ORDER.includes(R.sid)){const an=(K.academies.find(a=>a.id===p.academy)||{}).name||'아카데미';
+     if(p.academyBad&&R.pos&&R.pos/R.field>1-B.career.academy.warn_bottom_fraction)cx.push(`하위권이라 ${an} 경고를 받았어요. 다음 시즌에도 하위권이면 방출돼요.`);
+     else if(R.sid==='F3'||R.sid==='F2')cx.push(`${an} 덕분에 F1 차로 금요일 연습을 했어요. 퀄리파잉 +2, 휠투휠 +1, 평판 +3을 얻었어요.`)}
+   // F1 reserve: Friday runs, how close a promotion is, seasons left
+   if(R.sid==='F1'&&R.role==='reserve'&&p.series==='F1'&&p.role==='reserve'){let n=0;for(let i=H.length-1;i>=0&&H[i].role==='reserve';i--)n++;
+     const mx=CR.reserve_rule.max_run,ds=S.f1.filter(d=>d.team===p.team.id),w=ds.length?ds.reduce((a,b)=>ovrOf(a.stats)<=ovrOf(b.stats)?a:b):null,t=teamDef(p.team.id);
+     let l='금요일 연습으로 슈퍼 라이선스 10점을 쌓았어요.';
+     if(w&&p.age<=CR.reserve_promote_max_age)l+=ovr>=ovrOf(w.stats)-CR.reserve_promote_gap&&ovr>=CR.f1_seat_ovr[t.tier]-repAdj()-3?` 주전 ${jo(w.name,'과','와')} 차이가 작아 승격 후보예요.`:` 승격하려면 주전 ${jo(w.name,'과','와')}의 실력 차를 더 줄여야 해요.`;
+     if(n===1&&n<mx)l+=' 승격은 2시즌째부터 노릴 수 있어요.';
+     else if(n===mx-1)l+=' 리저브는 한 시즌 남았어요.';
+     else if(n>=mx)l+=' 리저브는 여기까지예요. 레이스 시즌을 뛰어야 다시 리저브 제안이 와요.';
+     cx.push(l)}
+   if(cx.length)E.push(cx.join(' '))}
   // 4) what next
   // 4) only what matters for next season (training advice lives in the training plan)
   const adv=[];
@@ -5048,7 +5077,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.12-d7',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.12-d8',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -5601,21 +5630,17 @@ function sheetView(){
   if(typeof sheet==='string'&&sheet.startsWith('acad_')){const a=K.academies.find(x=>x.id===sheet.slice(5)),tn=a?a.teams.map(id=>teamDef(id).name).join('·'):'소속 팀';
     return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">진로 설명</div><h3 class="h2">육성 계약</h3>
     <p style="margin:0">${a?esc(a.name):'F1 팀 아카데미'}에 들어가요. 팀이 밀어주는 대신 성적으로 보답해야 해요.</p>
-    <div class="kv st"><div class="row"><span class="up">좋은 점</span><span>한 등급 위 팀에서 뛰고, ${esc(tn)} F1 시트를 받기 쉬워요. 리저브 제안도 와요.</span></div>
+    <div class="kv st"><div class="row"><span class="up">좋은 점</span><span>한 등급 위 팀에서 뛰고, ${esc(tn)} F1 시트를 받기 쉬워요. F3·F2에선 F1 차로 금요일 연습을 해요.</span></div>
       ${ACRT[a&&a.id]?`<div class="row"><span class="up">데뷔 루트</span><span>${ACRT[a.id]}</span></div>`:''}
-      <div class="row"><span class="up">금요일 연습</span><span>F3·F2에선 매 시즌 F1 차로 금요일 연습을 해요. 시즌이 끝날 때마다 퀄리파잉 페이스 +2, 휠투휠 +1, 평판 +3</span></div>
-      <div class="row"><span class="down">조건</span><span>하위 1/3이면 경고, 두 번 연속이면 방출돼요.</span></div>
-      <div class="row"><span class="down">주의</span><span>다른 팀 관심은 조금씩 식고, 다른 팀 F1 시트로 가면 계약이 끝나요.</span></div></div>
+      <div class="row"><span class="down">조건</span><span>성적이 나쁘면 방출돼요. 다른 팀 F1 시트로 가면 계약이 끝나요.</span></div></div>
     <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`}
   if(sheet==='scout')return scoutSheet();
-  if(sheet==='rsv_'){const p=S.p,n=p.series==='F1'&&p.role==='reserve'?(()=>{let n=0;for(let i=p.history.length-1;i>=0&&p.history[i].role==='reserve';i--)n++;return n})():0;
+  if(sheet==='rsv_'){
     return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">진로 설명</div><h3 class="h2">리저브 드라이버</h3>
     <p style="margin:0">F1 팀에 들어가지만 레이스는 뛰지 않아요. 주전이 빠질 때를 기다리며 팀 일을 해요.</p>
-    <div class="kv st"><div class="row"><span class="up">좋은 점</span><span>금요일 연습(FP1)으로 슈퍼 라이선스 포인트를 매년 10점 받아요. 주전이 다치면 대타로 F1 레이스에 나가요.</span></div>
-      <div class="row"><span class="up">레이스 시트</span><span>나를 높게 보는 팀(관심도 높음)은 시트 기준을 낮춰 줘요. 2시즌째부터는 내 팀이 약한 주전 대신 나를 올려 줄 때도 있어요.</span></div>
-      <div class="row"><span class="down">아쉬운 점</span><span>레이스가 없어 성장이 조금 느려요(85%).</span></div>
-      <div class="row"><span class="down">주의</span><span>승격은 주전과 실력 차가 작을 때만 와요. 리저브는 연속 3시즌까지예요. 그 뒤엔 다른 곳에서 레이스를 뛰어야 다시 리저브 제안이 와요.</span></div></div>
-    <p style="margin:0;font-weight:700">${n>=2?`벌써 리저브 ${n}시즌째예요. WEC·인디카 같은 다른 무대에서 우승해 이름을 알리는 것도 방법이에요.`:'실력을 키우며 기회를 기다리거나, 다른 무대에서 이름을 알리는 것도 방법이에요.'}</p>
+    <div class="kv st"><div class="row"><span class="up">좋은 점</span><span>슈퍼 라이선스 포인트를 매년 10점 받아요. 주전이 빠지면 대타로 나가고, 2시즌째부터 승격 기회가 생겨요.</span></div>
+      <div class="row"><span class="down">아쉬운 점</span><span>레이스가 없어 성장이 조금 느려요.</span></div>
+      <div class="row"><span class="down">주의</span><span>리저브는 연속 3시즌까지예요.</span></div></div>
     <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`}
   if(sheet==='st_morale'){const p=S.p,m=p.morale,rc=moraleRecover(),z=(a,b,c)=>`<i style="left:${a}%;width:${b-a}%;background:${c}"></i>`;
     return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">체력 설명</div><h3 class="h2">체력 <span class="num" style="color:var(--good)">${m}</span></h3>
@@ -5644,7 +5669,7 @@ function sheetView(){
     <div class="row"><span>마음이 바뀌면</span><span>제안을 안 고르고 남을 수 있어요</span></div></div>
     <button class="btn" type="button" id="altgoYes">전향 의사를 밝힌다</button><button class="btn ghost" type="button" data-sheet="leave">뒤로</button></section></div>`;
   if(sheet==='xfer')return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">프리시즌 · 결단</div><h3 class="h2">이적 요청하기</h3>
-    <p class="muted" style="margin:0">"다른 팀으로 가고 싶다"고 공개적으로 선언해요. 시즌이 끝나면 지금 팀보다 좋은 팀들이 그 팀의 약한 드라이버와 나를 비교해요. 내가 더 잘하면 빈자리가 없어도 제안이 와요.</p>
+    <p class="muted" style="margin:0">"다른 팀으로 가고 싶다"고 공개 선언해요. 시즌이 끝나면 더 좋은 팀들이 그 팀의 약한 드라이버와 나를 비교해요.</p>
     <div class="kv"><div class="row"><span>지금 바로</span>${hasClause()?'<span class="up">탈출 조항 · 손해 없음</span>':effChips({rep:-6})}</div>
     <div class="row"><span>시즌 중</span>${hasClause()?'<span class="up">페이스 그대로</span>':'<span class="down">팀 지원이 줄어 페이스 조금 하락</span>'}</div>
     <div class="row"><span>아무도 안 오면</span>${hasClause()?'<span class="up">손해 없음</span>':effChips({rep:-4,fans:-3})}</div></div>
