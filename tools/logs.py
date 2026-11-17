@@ -29,14 +29,14 @@ def stats_md(rows):
         vis={x["day"]:x["daily"] for x in g["stats"]}  # start 2 days early: GoatCounter cuts the first day short
     except Exception as e:print('(GoatCounter 방문 수 못 받음:',type(e).__name__+')',file=sys.stderr)
     n=lambda v:f"{int(v):,}" if str(v).strip() not in('','-') else '-'
-    top=lambda r:max(range(24),key=lambda h:int(r[6+h] or 0))
+    top=lambda r:max(range(24),key=lambda h:int(r[7+h] or 0))
     L=['# 플레이 인원 기록','','`python3 tools/logs.py --stats`가 시트 \'통계\' 탭에서 다시 만든다(직접 고치지 말 것). 기준: 기록이 시트에 도착한 시각(한국), 기기(uid) 수. 기록 끈 사람은 빠짐.',
        '방문은 GoatCounter(게임 안 한 사람 포함). 맨 위 날은 그날 도중 값일 수 있음.','',
-       f'## 누적: 플레이 {n(D[0][3])}명 (마지막 {D[0][0]})','',
-       '| 날짜 | 플레이 | 처음 온 사람 | 누적 | 새 커리어 | 은퇴 | 가장 많은 시간 | 방문 |','|---|---|---|---|---|---|---|---|']
-    for r in D:L.append(f"| {r[0]} | {n(r[1])} | {n(r[2])} | {n(r[3])} | {n(r[4])} | {n(r[5])} | {top(r)}시 ({n(r[6+top(r)])}) | {n(vis[r[0]]) if r[0] in vis else '-'} |")
+       f'## 누적: 플레이 {n(D[0][4])}명 (마지막 {D[0][0]})','',
+       '| 날짜 | 플레이 | 처음 온 사람 | 돌아온 사람 | 누적 | 새 커리어 | 은퇴 | 가장 많은 시간 | 방문 |','|---|---|---|---|---|---|---|---|---|']
+    for r in D:L.append(f"| {r[0]} | {n(r[1])} | {n(r[2])} | {n(r[3])} | {n(r[4])} | {n(r[5])} | {n(r[6])} | {top(r)}시 ({n(r[7+top(r)])}) | {n(vis[r[0]]) if r[0] in vis else '-'} |")
     open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','docs','stats.md'),'w').write('\n'.join(L)+'\n')
-    for r in D[:7]:print(r[0],'플레이',r[1],'처음',r[2],'누적',r[3],'방문',vis.get(r[0],'-'))
+    for r in D[:7]:print(r[0],'플레이',r[1],'처음',r[2],'돌아옴',r[3],'누적',r[4],'방문',vis.get(r[0],'-'))
 def get(u,q):
     # the sheet (or the proxy) sometimes drops a long page: retry a few times
     import time
@@ -94,7 +94,7 @@ if '--stats-init' in args:
         b=b|(1<<x.hour) if k==l else (1<<x.hour if k>l else b)
         dev[u]=(min(f,k),max(l,k),b)
     first=collections.Counter(f for f,l,b in dev.values());cum=0;rows=[]
-    for k in sorted(day):cum+=first[k];rows.append([k,len(day[k]),first[k],cum,nw[k],rt[k]]+[len(hr[k,h]) for h in range(24)])
+    for k in sorted(day):cum+=first[k];rows.append([k,len(day[k]),first[k],len(day[k])-first[k],cum,nw[k],rt[k]]+[len(hr[k,h]) for h in range(24)])
     devs=[[u,f,l,b] for u,(f,l,b) in dev.items()]
     q=urllib.parse.urlencode({'key':key,'init':1})
     r=json.load(urllib.request.urlopen(urllib.request.Request(URL+'?'+q,data=json.dumps({'days':rows[::-1],'devs':devs}).encode(),headers={'Content-Type':'application/json'}),timeout=300))

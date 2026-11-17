@@ -4,7 +4,7 @@
 // One tab per month (Asia/Seoul), e.g. "2026-11". Columns: recv(ms) uid cid kind json.
 // A batch from the game is written as ONE row (kind 'batch', json = array of records), split only to stay under the 50k-character cell limit.
 // Older rows hold one record each; tools/logs.py reads both.
-// '통계' tab (first tab, newest day on top): 날짜 · 플레이(그날 온 기기) · 처음 온 사람 · 누적 · 새 커리어 · 은퇴 · 0시~23시(그 시간에 온 기기).
+// '통계' tab (first tab, newest day on top): 날짜 · 플레이(그날 온 기기) · 처음 온 사람 · 돌아온 사람 · 누적 · 새 커리어 · 은퇴 · 0시~23시(그 시간에 온 기기).
 // Counted when a batch arrives (Seoul time of arrival). The hidden '기기' tab keeps each device's first/last day so nobody counts twice.
 // Past days were filled once by tools/logs.py --stats-init.
 const KEY = '여기에_비밀키';
@@ -13,12 +13,12 @@ const HEAD = ['recv', 'uid', 'cid', 'kind', 'json'], PAGE = 5000, MAXB = 50;
 const out = o => ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
 const isTab = n => /^\d{4}-\d{2}$/.test(n);
 const fmt = (ms, p) => Utilities.formatDate(new Date(ms), 'Asia/Seoul', p);
-const SH = ['날짜', '플레이', '처음 온 사람', '누적', '새 커리어', '은퇴', ...Array.from({ length: 24 }, (_, i) => i + '시')];
+const SH = ['날짜', '플레이', '처음 온 사람', '돌아온 사람', '누적', '새 커리어', '은퇴', ...Array.from({ length: 24 }, (_, i) => i + '시')];
 const DH = ['기기', '처음', '마지막', '그날 시간'];
 
 // hour columns shaded by how many came (re-applied when a day row is added, since inserting rows shifts ranges)
 function heat(s) {
-  const r = s.getRange(2, 7, Math.max(s.getMaxRows() - 1, 1), 24);
+  const r = s.getRange(2, 8, Math.max(s.getMaxRows() - 1, 1), 24);
   s.setConditionalFormatRules([SpreadsheetApp.newConditionalFormatRule()
     .setGradientMinpointWithValue('#ffffff', SpreadsheetApp.InterpolationType.NUMBER, '0')
     .setGradientMaxpoint('#f4a261').setRanges([r]).build()]);
@@ -31,7 +31,7 @@ function statTab() {
     if (s.getMaxColumns() > SH.length) s.deleteColumns(SH.length + 1, s.getMaxColumns() - SH.length);
     s.getRange(1, 1, 1, SH.length).setValues([SH]).setFontWeight('bold');
     s.setFrozenRows(1); s.setFrozenColumns(1);
-    s.getRange('A:A').setNumberFormat('@'); s.setColumnWidth(1, 90); s.setColumnWidths(7, 24, 36);
+    s.getRange('A:A').setNumberFormat('@'); s.setColumnWidth(1, 90); s.setColumnWidths(8, 24, 36);
     heat(s);
   }
   return s;
@@ -53,28 +53,28 @@ function stats(a, now) {
   let row;
   if (s.getLastRow() >= 2 && s.getRange(2, 1).getDisplayValue() === day) row = s.getRange(2, 1, 1, SH.length).getValues()[0];
   else {
-    const cum = s.getLastRow() >= 2 ? +s.getRange(2, 4).getValue() || 0 : 0;
+    const cum = s.getLastRow() >= 2 ? +s.getRange(2, 5).getValue() || 0 : 0;
     s.insertRowBefore(2); s.getRange(2, 1, 1, SH.length).setFontWeight('normal'); heat(s);
-    row = [day, 0, 0, cum, 0, 0, ...Array(24).fill(0)];
+    row = [day, 0, 0, 0, cum, 0, 0, ...Array(24).fill(0)];
   }
   [...new Set(a.map(d => String(d.uid || '').slice(0, 40)).filter(Boolean))].forEach(u => {
     const c = dv.getRange('A:A').createTextFinder(u).matchEntireCell(true).findNext();
     if (!c) {
       const r = dv.getRange(dv.getLastRow() + 1, 1, 1, 4);
       r.setNumberFormats([['@', '@', '@', '0']]).setValues([[u, day, day, 1 << h]]);
-      row[1]++; row[2]++; row[3]++; row[6 + h]++; return;
+      row[1]++; row[2]++; row[4]++; row[7 + h]++; return;
     }
     const r = dv.getRange(c.getRow(), 1, 1, 4), v = r.getValues()[0];
     let bits = +v[3] || 0;
-    if (String(v[2]) !== day) { bits = 0; v[2] = day; row[1]++; }
-    if (!(bits >> h & 1)) { bits |= 1 << h; row[6 + h]++; }
+    if (String(v[2]) !== day) { bits = 0; v[2] = day; row[1]++; row[3]++; }
+    if (!(bits >> h & 1)) { bits |= 1 << h; row[7 + h]++; }
     v[3] = bits; r.setValues([v]);
   });
-  row[4] += a.filter(d => d.kind === 'new').length;
-  row[5] += a.filter(d => d.kind === 'retire').length;
+  row[5] += a.filter(d => d.kind === 'new').length;
+  row[6] += a.filter(d => d.kind === 'retire').length;
   s.getRange(2, 1, 1, SH.length).setValues([row]);
 }
-// POST ?key=KEY&init=1 body {days:[[날짜,...30 cols], newest first], devs:[[uid,first,last,bits]]}: replaces both tabs (tools/logs.py --stats-init)
+// POST ?key=KEY&init=1 body {days:[[날짜,...31 cols], newest first], devs:[[uid,first,last,bits]]}: replaces both tabs (tools/logs.py --stats-init)
 function init(b) {
   const s = statTab(), dv = devTab();
   if (s.getLastRow() >= 2) s.getRange(2, 1, s.getLastRow() - 1, SH.length).clearContent();
