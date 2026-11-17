@@ -58,7 +58,7 @@ if '--stats' in args:
     if 'stats' not in r:sys.exit('시트에 새 logsheet.gs가 아직 배포 안 됨 (통계 탭 없음)')
     stats_md(r['stats']);sys.exit()
 if '--fb' in args:i=args.index('--fb');FBN=int(args[i+1]);del args[i:i+2]
-files=[a for a in args if a!='--old']
+files=[a for a in args if not a.startswith('--')]
 recs=json.load(open(DB)) if os.path.exists(DB) else []
 n0=len(recs)
 if key and old:recs+=parse(get(OLD_URL,{'key':key}))
