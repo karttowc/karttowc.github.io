@@ -4,7 +4,8 @@
 // One tab per month (Asia/Seoul), e.g. "2026-11". Columns: recv(ms) uid cid kind json.
 // A batch from the game is written as ONE row (kind 'batch', json = array of records), split only to stay under the 50k-character cell limit.
 // Older rows hold one record each; tools/logs.py reads both.
-// '통계' tab (first tab, newest day on top): 날짜 · 플레이(그날 온 기기) · 처음 온 사람 · 돌아온 사람 · 누적 · 새 커리어 · 은퇴 · 0시~23시(그 시간에 온 기기).
+// '통계' tab (first tab, newest day on top): 날짜 · 플레이(그날 온 기기) · 처음 온 사람 · 돌아온 사람 · 누적 · 새 커리어 · 은퇴.
+// '시간별' tab (second): 날짜 · 0시~23시 (그 시간에 온 기기, 0은 빈칸).
 // Counted when a batch arrives (Seoul time of arrival). The hidden '기기' tab keeps each device's first/last day so nobody counts twice.
 // Past days were filled once by tools/logs.py --stats-init.
 const KEY = '여기에_비밀키';
@@ -13,26 +14,44 @@ const HEAD = ['recv', 'uid', 'cid', 'kind', 'json'], PAGE = 5000, MAXB = 50;
 const out = o => ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
 const isTab = n => /^\d{4}-\d{2}$/.test(n);
 const fmt = (ms, p) => Utilities.formatDate(new Date(ms), 'Asia/Seoul', p);
-const SH = ['날짜', '플레이', '처음 온 사람', '돌아온 사람', '누적', '새 커리어', '은퇴', ...Array.from({ length: 24 }, (_, i) => i + '시')];
+const SH = ['날짜', '플레이', '처음 온 사람', '돌아온 사람', '누적', '새 커리어', '은퇴'];
+const HH = ['날짜', ...Array.from({ length: 24 }, (_, i) => i + '시')];
 const DH = ['기기', '처음', '마지막', '그날 시간'];
+const fit = (sh, n) => { if (sh.getMaxColumns() > n) sh.deleteColumns(n + 1, sh.getMaxColumns() - n); };
+const rowsFor = (sh, n) => { if (sh.getMaxRows() < n + 1) sh.insertRowsAfter(sh.getMaxRows(), n + 1 - sh.getMaxRows()); };
 
-// hour columns shaded by how many came (re-applied when a day row is added, since inserting rows shifts ranges)
-function heat(s) {
-  const r = s.getRange(2, 8, Math.max(s.getMaxRows() - 1, 1), 24);
-  s.setConditionalFormatRules([SpreadsheetApp.newConditionalFormatRule()
+// '시간별': hours shaded by how many came, 0 shown blank (rule re-applied when a day row is added, since inserting rows shifts ranges)
+function heat(h) {
+  const r = h.getRange(2, 2, Math.max(h.getMaxRows() - 1, 1), 24);
+  r.setNumberFormat('0;-0;;@');
+  h.setConditionalFormatRules([SpreadsheetApp.newConditionalFormatRule()
     .setGradientMinpointWithValue('#ffffff', SpreadsheetApp.InterpolationType.NUMBER, '0')
     .setGradientMaxpoint('#f4a261').setRanges([r]).build()]);
+}
+function hourTab() {
+  const ss = SpreadsheetApp.getActive();
+  let h = ss.getSheetByName('시간별');
+  if (!h) {
+    h = ss.insertSheet('시간별', 1); fit(h, HH.length);
+    h.getRange(1, 1, 1, HH.length).setValues([HH]).setFontWeight('bold');
+    h.setFrozenRows(1); h.setFrozenColumns(1);
+    h.getRange('A:A').setNumberFormat('@'); h.setColumnWidth(1, 90); h.setColumnWidths(2, 24, 36);
+    heat(h);
+  }
+  return h;
 }
 function statTab() {
   const ss = SpreadsheetApp.getActive();
   let s = ss.getSheetByName('통계');
   if (!s) {
-    s = ss.insertSheet('통계', 0);
-    if (s.getMaxColumns() > SH.length) s.deleteColumns(SH.length + 1, s.getMaxColumns() - SH.length);
+    s = ss.insertSheet('통계', 0); fit(s, SH.length);
     s.getRange(1, 1, 1, SH.length).setValues([SH]).setFontWeight('bold');
-    s.setFrozenRows(1); s.setFrozenColumns(1);
-    s.getRange('A:A').setNumberFormat('@'); s.setColumnWidth(1, 90); s.setColumnWidths(8, 24, 36);
-    heat(s);
+    s.setFrozenRows(1); s.getRange('A:A').setNumberFormat('@'); s.setColumnWidth(1, 90);
+  } else if (s.getMaxColumns() > SH.length && s.getRange(1, 8).getDisplayValue() === '0시') {
+    // first version had the hours in this tab too: move them to '시간별'
+    const h = hourTab(), last = s.getLastRow();
+    if (last >= 2) { const v = s.getRange(2, 1, last - 1, 31).getValues().map(r => [r[0], ...r.slice(7)]); rowsFor(h, v.length); h.getRange(2, 1, v.length, HH.length).setValues(v); }
+    s.setConditionalFormatRules([]); s.setFrozenColumns(0); fit(s, SH.length); heat(h);
   }
   return s;
 }
@@ -40,56 +59,64 @@ function devTab() {
   const ss = SpreadsheetApp.getActive();
   let d = ss.getSheetByName('기기');
   if (!d) {
-    d = ss.insertSheet('기기');
-    if (d.getMaxColumns() > DH.length) d.deleteColumns(DH.length + 1, d.getMaxColumns() - DH.length);
+    d = ss.insertSheet('기기'); fit(d, DH.length);
     d.getRange(1, 1, 1, DH.length).setValues([DH]); d.setFrozenRows(1);
     d.getRange('A:C').setNumberFormat('@'); d.hideSheet();
   }
   return d;
 }
-// count one arriving batch into today's row (row 2)
+// today's row (row 2, newest on top) of a tab, added if missing
+function today(sh, day, blank, isHour) {
+  if (sh.getLastRow() >= 2 && sh.getRange(2, 1).getDisplayValue() === day) return sh.getRange(2, 1, 1, blank.length).getValues()[0].map((v, i) => i ? +v || 0 : v);
+  sh.insertRowBefore(2); sh.getRange(2, 1, 1, blank.length).setFontWeight('normal');
+  if (isHour) heat(sh);
+  return blank;
+}
+// count one arriving batch into today's rows
 function stats(a, now) {
-  const day = fmt(now, 'yyyy-MM-dd'), h = +fmt(now, 'H'), s = statTab(), dv = devTab();
-  let row;
-  if (s.getLastRow() >= 2 && s.getRange(2, 1).getDisplayValue() === day) row = s.getRange(2, 1, 1, SH.length).getValues()[0];
-  else {
-    const cum = s.getLastRow() >= 2 ? +s.getRange(2, 5).getValue() || 0 : 0;
-    s.insertRowBefore(2); s.getRange(2, 1, 1, SH.length).setFontWeight('normal'); heat(s);
-    row = [day, 0, 0, 0, cum, 0, 0, ...Array(24).fill(0)];
-  }
+  const day = fmt(now, 'yyyy-MM-dd'), h = +fmt(now, 'H'), s = statTab(), hs = hourTab(), dv = devTab();
+  const cum = s.getLastRow() >= 2 ? +s.getRange(2, 5).getValue() || 0 : 0;
+  const row = today(s, day, [day, 0, 0, 0, cum, 0, 0]), hr = today(hs, day, [day, ...Array(24).fill(0)], true);
   [...new Set(a.map(d => String(d.uid || '').slice(0, 40)).filter(Boolean))].forEach(u => {
     const c = dv.getRange('A:A').createTextFinder(u).matchEntireCell(true).findNext();
     if (!c) {
       const r = dv.getRange(dv.getLastRow() + 1, 1, 1, 4);
       r.setNumberFormats([['@', '@', '@', '0']]).setValues([[u, day, day, 1 << h]]);
-      row[1]++; row[2]++; row[4]++; row[7 + h]++; return;
+      row[1]++; row[2]++; row[4]++; hr[1 + h]++; return;
     }
     const r = dv.getRange(c.getRow(), 1, 1, 4), v = r.getValues()[0];
     let bits = +v[3] || 0;
     if (String(v[2]) !== day) { bits = 0; v[2] = day; row[1]++; row[3]++; }
-    if (!(bits >> h & 1)) { bits |= 1 << h; row[7 + h]++; }
+    if (!(bits >> h & 1)) { bits |= 1 << h; hr[1 + h]++; }
     v[3] = bits; r.setValues([v]);
   });
   row[5] += a.filter(d => d.kind === 'new').length;
   row[6] += a.filter(d => d.kind === 'retire').length;
   s.getRange(2, 1, 1, SH.length).setValues([row]);
+  hs.getRange(2, 1, 1, HH.length).setValues([hr]);
 }
-// POST ?key=KEY&init=1 body {days:[[날짜,...31 cols], newest first], devs:[[uid,first,last,bits]]}: replaces both tabs (tools/logs.py --stats-init)
+// POST ?key=KEY&init=1 body {days:[[날짜, 플레이, 처음, 돌아옴, 누적, 새 커리어, 은퇴, 0시..23시], newest first], devs:[[uid,first,last,bits]]}
+// replaces the three tabs (tools/logs.py --stats-init)
 function init(b) {
-  const s = statTab(), dv = devTab();
-  if (s.getLastRow() >= 2) s.getRange(2, 1, s.getLastRow() - 1, SH.length).clearContent();
-  if (dv.getLastRow() >= 2) dv.getRange(2, 1, dv.getLastRow() - 1, DH.length).clearContent();
+  const s = statTab(), hs = hourTab(), dv = devTab();
+  [[s, SH.length], [hs, HH.length], [dv, DH.length]].forEach(([t, n]) => { if (t.getLastRow() >= 2) t.getRange(2, 1, t.getLastRow() - 1, n).clearContent(); });
   if (b.days.length) {
-    if (s.getMaxRows() < b.days.length + 1) s.insertRowsAfter(s.getMaxRows(), b.days.length + 1 - s.getMaxRows());
-    s.getRange(2, 1, b.days.length, SH.length).setValues(b.days);
+    rowsFor(s, b.days.length); rowsFor(hs, b.days.length);
+    s.getRange(2, 1, b.days.length, SH.length).setValues(b.days.map(r => r.slice(0, 7)));
+    hs.getRange(2, 1, b.days.length, HH.length).setValues(b.days.map(r => [r[0], ...r.slice(7)]));
   }
   if (b.devs.length) {
-    if (dv.getMaxRows() < b.devs.length + 1) dv.insertRowsAfter(dv.getMaxRows(), b.devs.length + 1 - dv.getMaxRows());
-    const r = dv.getRange(2, 1, b.devs.length, 4);
-    r.setNumberFormats(b.devs.map(() => ['@', '@', '@', '0'])).setValues(b.devs);
+    rowsFor(dv, b.devs.length);
+    dv.getRange(2, 1, b.devs.length, 4).setNumberFormats(b.devs.map(() => ['@', '@', '@', '0'])).setValues(b.devs);
   }
-  heat(s);
+  heat(hs);
   return out({ ok: 1, days: b.days.length, devs: b.devs.length });
+}
+// both tabs as text, joined by date: header + [날짜, 플레이, 처음, 돌아옴, 누적, 새 커리어, 은퇴, 0시..23시] (blank hour = 0)
+function statRows() {
+  const s = statTab().getDataRange().getDisplayValues(), h = hourTab().getDataRange().getDisplayValues(), m = {};
+  h.slice(1).forEach(r => { m[r[0]] = r.slice(1); });
+  return [SH.concat(HH.slice(1)), ...s.slice(1).filter(r => r[0]).map(r => r.slice(0, 7).concat((m[r[0]] || Array(24).fill('')).map(v => v || '0')))];
 }
 
 function tab(name) {
@@ -171,13 +198,13 @@ function doPost(e) {
   return out({ ok: a.length });
 }
 
-// GET ?key=KEY&stats=1 → {stats: the '통계' tab as text, header first} (tools/logs.py --stats)
+// GET ?key=KEY&stats=1 → {stats: statRows()} (tools/logs.py --stats)
 // GET ?key=KEY&tab=2026-11&row=120 → rows after row 120 of that tab, then later tabs, up to PAGE.
 // Returns {rows, next:{tab,row}, more}; pass next back to keep reading (tools/logs.py does this).
 function doGet(e) {
   const q = e.parameter || {};
   if (q.key !== KEY) return out({ error: 'key' });
-  if (q.stats) return out({ stats: statTab().getDataRange().getDisplayValues() });
+  if (q.stats) return out({ stats: statRows() });
   const ss = SpreadsheetApp.getActive();
   const tabs = ss.getSheets().map(s => s.getName()).filter(isTab).sort();
   const t = q.tab || '', row = +q.row || 1, rows = [];
