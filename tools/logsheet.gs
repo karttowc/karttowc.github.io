@@ -4,11 +4,93 @@
 // One tab per month (Asia/Seoul), e.g. "2026-11". Columns: recv(ms) uid cid kind json.
 // A batch from the game is written as ONE row (kind 'batch', json = array of records), split only to stay under the 50k-character cell limit.
 // Older rows hold one record each; tools/logs.py reads both.
+// '통계' tab (first tab, newest day on top): 날짜 · 플레이(그날 온 기기) · 처음 온 사람 · 누적 · 새 커리어 · 은퇴 · 0시~23시(그 시간에 온 기기).
+// Counted when a batch arrives (Seoul time of arrival). The hidden '기기' tab keeps each device's first/last day so nobody counts twice.
+// Past days were filled once by tools/logs.py --stats-init.
 const KEY = '여기에_비밀키';
 const HEAD = ['recv', 'uid', 'cid', 'kind', 'json'], PAGE = 5000, MAXB = 50;
 
 const out = o => ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
 const isTab = n => /^\d{4}-\d{2}$/.test(n);
+const fmt = (ms, p) => Utilities.formatDate(new Date(ms), 'Asia/Seoul', p);
+const SH = ['날짜', '플레이', '처음 온 사람', '누적', '새 커리어', '은퇴', ...Array.from({ length: 24 }, (_, i) => i + '시')];
+const DH = ['기기', '처음', '마지막', '그날 시간'];
+
+// hour columns shaded by how many came (re-applied when a day row is added, since inserting rows shifts ranges)
+function heat(s) {
+  const r = s.getRange(2, 7, Math.max(s.getMaxRows() - 1, 1), 24);
+  s.setConditionalFormatRules([SpreadsheetApp.newConditionalFormatRule()
+    .setGradientMinpointWithValue('#ffffff', SpreadsheetApp.InterpolationType.NUMBER, '0')
+    .setGradientMaxpoint('#f4a261').setRanges([r]).build()]);
+}
+function statTab() {
+  const ss = SpreadsheetApp.getActive();
+  let s = ss.getSheetByName('통계');
+  if (!s) {
+    s = ss.insertSheet('통계', 0);
+    if (s.getMaxColumns() > SH.length) s.deleteColumns(SH.length + 1, s.getMaxColumns() - SH.length);
+    s.getRange(1, 1, 1, SH.length).setValues([SH]).setFontWeight('bold');
+    s.setFrozenRows(1); s.setFrozenColumns(1);
+    s.getRange('A:A').setNumberFormat('@'); s.setColumnWidth(1, 90); s.setColumnWidths(7, 24, 36);
+    heat(s);
+  }
+  return s;
+}
+function devTab() {
+  const ss = SpreadsheetApp.getActive();
+  let d = ss.getSheetByName('기기');
+  if (!d) {
+    d = ss.insertSheet('기기');
+    if (d.getMaxColumns() > DH.length) d.deleteColumns(DH.length + 1, d.getMaxColumns() - DH.length);
+    d.getRange(1, 1, 1, DH.length).setValues([DH]); d.setFrozenRows(1);
+    d.getRange('A:C').setNumberFormat('@'); d.hideSheet();
+  }
+  return d;
+}
+// count one arriving batch into today's row (row 2)
+function stats(a, now) {
+  const day = fmt(now, 'yyyy-MM-dd'), h = +fmt(now, 'H'), s = statTab(), dv = devTab();
+  let row;
+  if (s.getLastRow() >= 2 && s.getRange(2, 1).getDisplayValue() === day) row = s.getRange(2, 1, 1, SH.length).getValues()[0];
+  else {
+    const cum = s.getLastRow() >= 2 ? +s.getRange(2, 4).getValue() || 0 : 0;
+    s.insertRowBefore(2); s.getRange(2, 1, 1, SH.length).setFontWeight('normal'); heat(s);
+    row = [day, 0, 0, cum, 0, 0, ...Array(24).fill(0)];
+  }
+  [...new Set(a.map(d => String(d.uid || '').slice(0, 40)).filter(Boolean))].forEach(u => {
+    const c = dv.getRange('A:A').createTextFinder(u).matchEntireCell(true).findNext();
+    if (!c) {
+      const r = dv.getRange(dv.getLastRow() + 1, 1, 1, 4);
+      r.setNumberFormats([['@', '@', '@', '0']]).setValues([[u, day, day, 1 << h]]);
+      row[1]++; row[2]++; row[3]++; row[6 + h]++; return;
+    }
+    const r = dv.getRange(c.getRow(), 1, 1, 4), v = r.getValues()[0];
+    let bits = +v[3] || 0;
+    if (String(v[2]) !== day) { bits = 0; v[2] = day; row[1]++; }
+    if (!(bits >> h & 1)) { bits |= 1 << h; row[6 + h]++; }
+    v[3] = bits; r.setValues([v]);
+  });
+  row[4] += a.filter(d => d.kind === 'new').length;
+  row[5] += a.filter(d => d.kind === 'retire').length;
+  s.getRange(2, 1, 1, SH.length).setValues([row]);
+}
+// POST ?key=KEY&init=1 body {days:[[날짜,...30 cols], newest first], devs:[[uid,first,last,bits]]}: replaces both tabs (tools/logs.py --stats-init)
+function init(b) {
+  const s = statTab(), dv = devTab();
+  if (s.getLastRow() >= 2) s.getRange(2, 1, s.getLastRow() - 1, SH.length).clearContent();
+  if (dv.getLastRow() >= 2) dv.getRange(2, 1, dv.getLastRow() - 1, DH.length).clearContent();
+  if (b.days.length) {
+    if (s.getMaxRows() < b.days.length + 1) s.insertRowsAfter(s.getMaxRows(), b.days.length + 1 - s.getMaxRows());
+    s.getRange(2, 1, b.days.length, SH.length).setValues(b.days);
+  }
+  if (b.devs.length) {
+    if (dv.getMaxRows() < b.devs.length + 1) dv.insertRowsAfter(dv.getMaxRows(), b.devs.length + 1 - dv.getMaxRows());
+    const r = dv.getRange(2, 1, b.devs.length, 4);
+    r.setNumberFormats(b.devs.map(() => ['@', '@', '@', '0'])).setValues(b.devs);
+  }
+  heat(s);
+  return out({ ok: 1, days: b.days.length, devs: b.devs.length });
+}
 
 function tab(name) {
   const ss = SpreadsheetApp.getActive();
@@ -23,6 +105,13 @@ function tab(name) {
 function doPost(e) {
   let a;
   try { a = JSON.parse(e.postData.contents); } catch (err) { return out({ ok: 0 }); }
+  const q = e.parameter || {};
+  if (q.init) {
+    if (q.key !== KEY) return out({ error: 'key' });
+    const lk = LockService.getScriptLock();
+    if (!lk.tryLock(25000)) return out({ error: 'busy' });
+    try { return init(a); } finally { lk.releaseLock(); }
+  }
   if (!Array.isArray(a)) a = [a];
   a = a.filter(d => d && typeof d === 'object').slice(0, MAXB);
   if (!a.length) return out({ ok: 0 });
@@ -39,6 +128,7 @@ function doPost(e) {
   try {
     const sh = tab(Utilities.formatDate(new Date(now), 'Asia/Seoul', 'yyyy-MM'));
     sh.getRange(sh.getLastRow() + 1, 1, rows.length, HEAD.length).setValues(rows);
+    try { stats(a, now); } catch (err) { console.error('stats', err); }  // counting must never lose the log rows
     // feedback ("의견 보내기") also goes to a readable "의견" tab
     const fb = a.filter(d => d.kind === 'fb' && d.text).map(d => [
       Utilities.formatDate(new Date(now), 'Asia/Seoul', 'yyyy-MM-dd HH:mm'), String(d.text).slice(0, 300),
@@ -81,11 +171,13 @@ function doPost(e) {
   return out({ ok: a.length });
 }
 
+// GET ?key=KEY&stats=1 → {stats: the '통계' tab as text, header first} (tools/logs.py --stats)
 // GET ?key=KEY&tab=2026-11&row=120 → rows after row 120 of that tab, then later tabs, up to PAGE.
 // Returns {rows, next:{tab,row}, more}; pass next back to keep reading (tools/logs.py does this).
 function doGet(e) {
   const q = e.parameter || {};
   if (q.key !== KEY) return out({ error: 'key' });
+  if (q.stats) return out({ stats: statTab().getDataRange().getDisplayValues() });
   const ss = SpreadsheetApp.getActive();
   const tabs = ss.getSheets().map(s => s.getName()).filter(isTab).sort();
   const t = q.tab || '', row = +q.row || 1, rows = [];

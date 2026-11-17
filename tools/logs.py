@@ -7,6 +7,8 @@ Usage: LOG_KEY=... python3 tools/logs.py [--old] [--since VER] [log files...]
   At the end (점검): feedback new since the last run, each with the sender's career at that moment
   (season, team, rank, age, OVR, path, stats, offers), and new flagged (ranking-excluded) careers. --fb N = last N feedback instead.
   Log files = "플레이 기록 파일 받기" downloads (unsent queue), merged in.
+  --stats  read only the sheet's '통계' tab (players per day/hour, seconds) and rewrite docs/stats.md. Nothing else.
+  --stats-init  (once) fill the '통계'·'기기' tabs from all records fetched so far (needs the new logsheet.gs deployed).
 """
 import os,sys,json,urllib.request,urllib.parse,collections
 URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec'  # v2 sheet (tools/logsheet.gs)
@@ -16,8 +18,25 @@ PATCH='1.7.12'  # latest balance patch: update this whenever a balance change go
 key=os.environ.get('LOG_KEY');args=sys.argv[1:];old='--old' in args
 if '--since' in args:i=args.index('--since');PATCH=args[i+1];del args[i:i+2]
 FBN=0
-if '--fb' in args:i=args.index('--fb');FBN=int(args[i+1]);del args[i:i+2]
-files=[a for a in args if a!='--old']
+def stats_md(rows):
+    # rows = '통계' tab as text, header first, newest day first; visits from GoatCounter when reachable (proxy has its key)
+    import datetime
+    H,D=rows[0],[r for r in rows[1:] if r[0]]
+    vis={}
+    try:
+        a=(datetime.date.fromisoformat(min(r[0] for r in D))-datetime.timedelta(days=2)).isoformat();b=(datetime.date.fromisoformat(max(r[0] for r in D))+datetime.timedelta(days=1)).isoformat()
+        g=json.load(urllib.request.urlopen(urllib.request.Request(f'https://lchanwoo05.goatcounter.com/api/v0/stats/total?start={a}&end={b}',headers={'Content-Type':'application/json'}),timeout=60))
+        vis={x["day"]:x["daily"] for x in g["stats"]}  # start 2 days early: GoatCounter cuts the first day short
+    except Exception as e:print('(GoatCounter 방문 수 못 받음:',type(e).__name__+')',file=sys.stderr)
+    n=lambda v:f"{int(v):,}" if str(v).strip() not in('','-') else '-'
+    top=lambda r:max(range(24),key=lambda h:int(r[6+h] or 0))
+    L=['# 플레이 인원 기록','','`python3 tools/logs.py --stats`가 시트 \'통계\' 탭에서 다시 만든다(직접 고치지 말 것). 기준: 기록이 시트에 도착한 시각(한국), 기기(uid) 수. 기록 끈 사람은 빠짐.',
+       '방문은 GoatCounter(게임 안 한 사람 포함). 맨 위 날은 그날 도중 값일 수 있음.','',
+       f'## 누적: 플레이 {n(D[0][3])}명 (마지막 {D[0][0]})','',
+       '| 날짜 | 플레이 | 처음 온 사람 | 누적 | 새 커리어 | 은퇴 | 가장 많은 시간 | 방문 |','|---|---|---|---|---|---|---|---|']
+    for r in D:L.append(f"| {r[0]} | {n(r[1])} | {n(r[2])} | {n(r[3])} | {n(r[4])} | {n(r[5])} | {top(r)}시 ({n(r[6+top(r)])}) | {n(vis[r[0]]) if r[0] in vis else '-'} |")
+    open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','docs','stats.md'),'w').write('\n'.join(L)+'\n')
+    for r in D[:7]:print(r[0],'플레이',r[1],'처음',r[2],'누적',r[3],'방문',vis.get(r[0],'-'))
 def get(u,q):
     # the sheet (or the proxy) sometimes drops a long page: retry a few times
     import time
@@ -33,6 +52,13 @@ def parse(rows):
         # a row is one record, or (logsheet.gs batch rows) a list of records
         if isinstance(x,list):yield from (d for d in x if isinstance(d,dict))
         else:yield x
+if '--stats' in args:
+    if not key:sys.exit('LOG_KEY needed')
+    r=get(URL,{'key':key,'stats':1})
+    if 'stats' not in r:sys.exit('시트에 새 logsheet.gs가 아직 배포 안 됨 (통계 탭 없음)')
+    stats_md(r['stats']);sys.exit()
+if '--fb' in args:i=args.index('--fb');FBN=int(args[i+1]);del args[i:i+2]
+files=[a for a in args if a!='--old']
 recs=json.load(open(DB)) if os.path.exists(DB) else []
 n0=len(recs)
 if key and old:recs+=parse(get(OLD_URL,{'key':key}))
@@ -52,6 +78,27 @@ for f in files:recs+=json.load(open(f))
 if not recs:sys.exit('no records (LOG_KEY env var or log files needed)')
 seen=set();recs=[d for d in recs if not((d.get('uid'),d.get('t'),d.get('kind')) in seen or seen.add((d.get('uid'),d.get('t'),d.get('kind'))))]
 json.dump(recs,open(DB,'w'),ensure_ascii=False)
+if '--stats-init' in args:
+    # rebuild the sheet's '통계' (per day, hourly) and '기기' (first/last day, hours on last day) tabs from every record, Seoul time
+    import datetime
+    if 'stats' not in get(URL,{'key':key,'stats':1}):sys.exit('시트에 새 logsheet.gs가 아직 배포 안 됨')
+    kst=datetime.timezone(datetime.timedelta(hours=9));day=collections.defaultdict(set);hr=collections.defaultdict(set);nw=collections.Counter();rt=collections.Counter();dev={}
+    for d in recs:
+        t,u=d.get('t'),str(d.get('uid') or '')[:40]
+        if not t or not u:continue
+        t=t/1000 if t>1e11 else t
+        if t<1.7e9:continue
+        x=datetime.datetime.fromtimestamp(t,kst);k=x.date().isoformat()
+        day[k].add(u);hr[k,x.hour].add(u);nw[k]+=d.get('kind')=='new';rt[k]+=d.get('kind')=='retire'
+        f,l,b=dev.get(u,(k,k,0))
+        b=b|(1<<x.hour) if k==l else (1<<x.hour if k>l else b)
+        dev[u]=(min(f,k),max(l,k),b)
+    first=collections.Counter(f for f,l,b in dev.values());cum=0;rows=[]
+    for k in sorted(day):cum+=first[k];rows.append([k,len(day[k]),first[k],cum,nw[k],rt[k]]+[len(hr[k,h]) for h in range(24)])
+    devs=[[u,f,l,b] for u,(f,l,b) in dev.items()]
+    q=urllib.parse.urlencode({'key':key,'init':1})
+    r=json.load(urllib.request.urlopen(urllib.request.Request(URL+'?'+q,data=json.dumps({'days':rows[::-1],'devs':devs}).encode(),headers={'Content-Type':'application/json'}),timeout=300))
+    print('stats-init',r);stats_md([['날짜']]+[[str(v) for v in x] for x in rows[::-1]]);sys.exit()
 print(f"new records {len(recs)-n0}")
 print(f"records {len(recs)} · players {len({d['uid'] for d in recs})} · careers {len({d['cid'] for d in recs})} (new {sum(d.get('kind')=='new' for d in recs)}, retired {sum(d.get('kind')=='retire' for d in recs)})")
 K=collections.defaultdict(list)
