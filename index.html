@@ -1030,6 +1030,7 @@ const B = {
   "car_weight": 0.6,
   "noise_sd": 3.0,
   "f1_quali_carry": 0.3,
+  "junior_quali_carry": 0.2,
   "wet_race_chance": 0.15,
   "wet_noise_sd": 5.0,
   "dnf": {
@@ -2647,7 +2648,7 @@ function startSeason(){
    const avgD=oth.reduce((a,e)=>a+e.d,0)/n,avgC=oth.reduce((a,e)=>a+e.car,0)/n,pvO=oth.map(e=>dw*e.d+cw*e.car);
    const rk=v=>1+pvO.filter(x=>x>v).length,dNo=me.d-mb;
    var why0={r0:rk(dw*avgD+cw*avgC),r1:rk(dw*dNo+cw*avgC),r2:rk(dw*dNo+cw*me.car),r3:rk(dw*me.d+cw*me.car),r3a:rk(dw*(me.d-avgAd)+cw*me.car)}}
-  const orders=[];simulate(ents,races,orders,p.series==='F1'?F1W:p.series==='ALT'?altCal(p.alt):LG&&LG.w?[{w:LG.w}]:null);
+  const orders=[];simulate(ents,races,orders,p.series==='F1'?F1W:p.series==='ALT'?altCal(p.alt):[{w:LG&&LG.w||1,q:B.race.junior_quali_carry||0}]);// junior races keep some of the grid order too
   // low stamina: tired mistakes turn some finishes into retirements
   if(p.morale<40){const pr=(40-p.morale)*.004;orders.forEach(o=>{const i=o.fin.indexOf('me');if(i>=0&&Math.random()<pr){o.fin.splice(i,1);o.dnf.push('me')}})}
   const cand=[];orders.forEach((o,r)=>{if(r>0&&o.fin.includes('me'))cand.push(r)});
@@ -5093,7 +5094,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.17-d2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.17-d3',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
