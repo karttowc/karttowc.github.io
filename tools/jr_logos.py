@@ -1,11 +1,12 @@
 """Junior team logos (F2·F3) -> data/skin_f1_2026.json 'junior_logos' {team name: data url}.
 Sources: 찬우's phone screenshots of the official F2/F3 site images, cropped to the logo box only
-(data/logos_src/jr/<key>.png, made with --crop from the screenshots), Hitech = Wikimedia 2025 logo.
+(data/logos_src/jr/<key>.png, made with --crop from the screenshots), Hitech = Wikimedia 2025 logo. Rodin = white R cut from 찬우's F2 broadcast screenshot (on dark), MP = image 찬우 gave (v1.7.18-d4).
 Each logo becomes a 128px rounded tile on its own background colour (like the SF/FE tiles)."""
 import json,base64,io,sys,pathlib
 from PIL import Image,ImageDraw
 R=pathlib.Path(__file__).resolve().parent.parent;SRC=R/'data/logos_src/jr';SKIN=R/'data/skin_f1_2026.json'
-NAMES={'prema':'프레마','trident':'트라이던트','campos':'캄포스','invicta':'인빅타','art':'ART 그랑프리','var':'반 아메르스포르트','dams':'DAMS','hitech':'하이테크','aix':'AIX 레이싱'}
+NAMES={'prema':'프레마','trident':'트라이던트','campos':'캄포스','invicta':'인빅타','art':'ART 그랑프리','var':'반 아메르스포르트','dams':'DAMS','hitech':'하이테크','aix':'AIX 레이싱','rodin':'로딘','mp':'MP 모터스포츠'}
+ALIAS={'로딘':'로딘 모터스포츠'}  # F4 leagues spell it in full
 def crop_shot(path):
     """the screenshot shows the logo on a full-width light band between black areas: keep that band, then the logo inside it"""
     im=Image.open(path).convert('RGB');W,H=im.size;px=im.load();x=W//2
@@ -36,4 +37,5 @@ if __name__=='__main__':
             for x in range(im.width):
                 if sum(abs(a-b) for a,b in zip(ip[x,y],bg))>60:mp[x,y]=255
         J[n]=tile(im.crop(m.getbbox()),bg)
+        if n in ALIAS:J[ALIAS[n]]=J[n]
     json.dump(d,open(SKIN,'w'),ensure_ascii=False,indent=1);print('ok',{n:len(v)//1024 for n,v in J.items()})
