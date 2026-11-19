@@ -1365,7 +1365,7 @@ function finishSeason(){
   if(p.series==='F1'&&p.role==='race'&&me.starts>0&&p.team){const id=p.team.id;p.legend=p.legend||{};
     if(!p.legend[id]&&(legSeasons(id)>=5||legTitles(id)>=2)){p.legend[id]=S.year;rec.legNew=1;ev.push(`${teamName}의 레전드가 됐어요! 팀이 레전드로 예우해요.`)}}
   const valBefore=p.val||valueOf();p.rep=recentForm();p.repBonus=Math.round((p.repBonus||0)*.5);p.val=valueOf();p.valPeak=Math.max(p.valPeak||0,p.val);rec.val=p.val;rec.valBefore=valBefore;
-  S.last={rec,ev,deltas,standings:st.slice(0,12).map((e,i)=>({pos:i+1,tie:(st[i-1]&&st[i-1].pts===e.pts)||(st[i+1]&&st[i+1].pts===e.pts)||undefined,name:e.name,no:e.no,crew:e.crew,team:e.team,color:e.color||null,pts:e.pts,wins:e.wins,me:!!e.isPlayer})),meRow:pos&&pos>12?{pos,tie:st[pos-2].pts===me.pts||(st[pos]&&st[pos].pts===me.pts)||undefined,name:me.name,no:me.no,crew:me.crew,team:me.team,color:me.color||null,pts:me.pts,wins:me.wins,me:true}:null};
+  S.last={rec,ev,deltas,standings:st.map((e,i)=>({pos:i+1,tie:(st[i-1]&&st[i-1].pts===e.pts)||(st[i+1]&&st[i+1].pts===e.pts)||undefined,name:e.name,no:e.no,crew:e.crew,team:e.team,color:e.color||null,pts:e.pts,wins:e.wins,me:!!e.isPlayer})),meRow:null};
   // world moves on
   if(!p.retired){scoutUpdate(pos,fieldN,titled,ev);altScoutUpdate(pos,fieldN,titled,ev)}
   ageF1Grid();altMarket(ev);rivalMove(ev);jrMove();
@@ -3672,7 +3672,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.18-d1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.18-d2',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -4181,6 +4181,7 @@ function render(){
   tabsEl.hidden=false;
   tabsEl.querySelectorAll('button').forEach(b=>{b.setAttribute('aria-current',b.dataset.tab===tab?'page':'false');b.classList.toggle('new',b.dataset.tab==='react'&&S.react&&!S.react.seen&&tab!=='react')});
   root.innerHTML=(tab==='home'?homeTab():tab==='react'?reactTab():tab==='paddock'?paddockTab():tab==='driver'?driverTab():recordsTab())+(sheet?sheetView():'');
+  if(sheet==='stand'){const r=root.querySelector('#sheetBg tr.me'),c=r&&r.closest('.card');if(c){const y=r.getBoundingClientRect().top-c.getBoundingClientRect().top;if(y>c.clientHeight*.7)c.scrollTop=y-c.clientHeight/2}}
 }
 function newsBody(N){const LIM=4;
   if(newsTab==='team'){const g=teamGroups(N);if(!g.length)return'<p class="muted" style="margin:0">올해는 팀 소식이 없어요.</p>';
