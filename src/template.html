@@ -2490,7 +2490,9 @@ function avatar(i,h,size=56,full,num){return full?`<img class="avfull" ${avAttr(
 const pAv=p=>p.avatar??avDefault(p.nat);
 /* trophy art by key: F1 / alt series id (image) or junior series (pixel cup); th = height in px */
 function trophyArt(k,th){return TROPHY[k]?`<img src="${TROPHY[k]}" alt="" style="height:${th}px;width:auto;display:block">`:JR_LBL[k]?jrTrophy(k,th):px(TROPHY_MAP,TROPHY_PAL,th)}
-const trRatio=k=>k==='INDY'?.42:TROPHY[k]?.55:.42; // INDY base is wide: smaller so the gloves cover its edges
+/* 주니어 트로피(v1.7.18-d3, 찬우가 준 그림): 우승 포즈에서 받침이 장갑 사이에 들어가는 높이 비율. 진열장·카드 크기도 이 비율로 */
+const JR_TR={F2:.40,F3:.40,FRECA:.31,F4:.31,KART:.27};
+const trRatio=k=>JR_TR[k]||(k==='INDY'?.42:TROPHY[k]?.55:.42); // INDY base is wide: smaller so the gloves cover its edges
 /* full-body trophy pose; size = figure height. Trophy sits behind the gloves so they look like they grip it */
 function avatarWin(i,h,size,k,num){const th=Math.round(size*trRatio(k)),top=th-Math.round(size*.08);
   return`<div class="avwin" style="width:${Math.round(size*.62)}px;height:${size+top}px"><span class="awt">${trophyArt(k,th)}</span><img class="avfull" ${avAttr(i,h,true,num)} alt="" style="height:${size}px"></div>`}
@@ -3184,10 +3186,10 @@ function cardTrophies(p,F){
   const TI=[],imOK=k=>TROPHY_IMG[k]&&TROPHY_IMG[k].complete&&TROPHY_IMG[k].naturalWidth;
   p.history.filter(h=>h.sid==='F1'&&h.titled).forEach(h=>TI.push({k:'F1',h:290,y:h.year}));
   p.alts.forEach(a=>{const d=K.alt_series.find(x=>x.name===a.name);if(d&&TROPHY[d.id])TI.push({k:d.id,h:215,y:a.year})});
-  p.jr.filter(j=>JR_LBL[j.series]).forEach(j=>TI.push({jr:j.series,h:125,y:j.year}));
+  p.jr.filter(j=>JR_LBL[j.series]).forEach(j=>TI.push(TROPHY[j.series]&&JR_TR[j.series]?{jr:j.series,k:j.series,h:Math.round(150*JR_TR[j.series]/.4),y:j.year}:{jr:j.series,h:125,y:j.year}));
   const mg=document.createElement('canvas').getContext('2d');let s=1,tot=0,rowH=0;
   if(TI.length){if(mg)mg.font=`700 34px ${F}`;
-    TI.forEach(x=>{x.w=x.pill?(mg?mg.measureText(x.pill).width:x.pill.length*30)+52:x.jr?x.h:(imOK(x.k)?x.h*TROPHY_IMG[x.k].naturalWidth/TROPHY_IMG[x.k].naturalHeight:x.h*.5)});
+    TI.forEach(x=>{x.w=x.pill?(mg?mg.measureText(x.pill).width:x.pill.length*30)+52:x.jr&&!imOK(x.k)?x.h:(imOK(x.k)?x.h*TROPHY_IMG[x.k].naturalWidth/TROPHY_IMG[x.k].naturalHeight:x.h*.5)});
     // one row if it fits; otherwise major trophies on top, junior ones below (each row shrinks only if it must)
     const wOf=R=>R.reduce((a,x)=>a+x.w,0)+14*(R.length-1),maj=TI.filter(x=>!x.jr),jr=TI.filter(x=>x.jr);
     const rows=wOf(TI)<=990||!maj.length||!jr.length?[TI]:[maj,jr];
@@ -3246,8 +3248,8 @@ function drawCard(){
       if(x.pill){g.font=`700 ${Math.round(34*s)}px ${F}`;g.strokeStyle='#8A6A1F';g.fillStyle='#2A2414';rr(g,tx,base-62*s,w,58*s,29*s);g.fill();g.stroke();g.fillStyle='#F2C14E';g.textAlign='center';g.fillText(x.pill,tx+w/2,base-21*s)}
       else{const h=x.h*s;
         if(x.k==='F1'){const gl=g.createRadialGradient(tx+w/2,base-h*.3,4,tx+w/2,base-h*.3,h*.8);gl.addColorStop(0,'rgba(242,193,78,.35)');gl.addColorStop(1,'rgba(242,193,78,0)');g.fillStyle=gl;g.beginPath();g.arc(tx+w/2,base-h*.3,h*.8,0,Math.PI*2);g.fill()}
-        if(x.jr)drawJr(g,x.jr,tx,base,h);
-        else if(imOK(x.k))g.drawImage(TROPHY_IMG[x.k],tx,base-h,w,h);
+        if(imOK(x.k))g.drawImage(TROPHY_IMG[x.k],tx,base-h,w,h);
+        else if(x.jr)drawJr(g,x.jr,tx,base,h);
         g.fillStyle=x.k==='F1'?'#F2C14E':'#C9CDD6';g.textAlign='center';g.font=`700 ${Math.round((x.k==='F1'?34:28)*Math.max(s,.75))}px ${N}`;g.fillText(String(x.y),tx+w/2,base+38)}
       });
     LINE(sep)}
@@ -3680,7 +3682,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.18-d3',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.18-d4',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -3922,7 +3924,7 @@ Y.YyyyyyyyyY.Y
 ...BBBBBBBB...`;
 const TROPHY_PAL={Y:'#F2C14E',y:'#FFE08A',w:'#FFFFFF',B:'#6B4A1B',b:'#8C6424'};
 const JR_LBL={KART:'KART',F4:'F4',FRECA:'FR',F3:'F3',F2:'F2'};
-function jrTrophy(s,w){return`<span class="jtro" style="width:${w}px">${px(TROPHY_MAP,TROPHY_PAL,w)}<b style="font-size:${Math.round(w*(JR_LBL[s]&&JR_LBL[s].length>2?.15:.2))}px">${JR_LBL[s]||s}</b></span>`}
+function jrTrophy(s,w){if(TROPHY[s]&&JR_TR[s])return`<img src="${TROPHY[s]}" alt="" style="height:${Math.round(w*1.2*JR_TR[s]/.4)}px;width:auto;display:block;margin:0 auto">`;return`<span class="jtro" style="width:${w}px">${px(TROPHY_MAP,TROPHY_PAL,w)}<b style="font-size:${Math.round(w*(JR_LBL[s]&&JR_LBL[s].length>2?.15:.2))}px">${JR_LBL[s]||s}</b></span>`}
 /* ---------- new-contract signing scene ---------- */
 const TEAM_EN={mercedes:'Mercedes',redbull:'Red Bull',ferrari:'Ferrari',mclaren:'McLaren',astonmartin:'Aston Martin',alpine:'Alpine',racingbulls:'Racing Bulls',williams:'Williams',haas:'Haas',audi:'Audi',cadillac:'Cadillac'};
 const SER_EN={KART:'Karting',F4:'Formula 4',FRECA:'Formula Regional',F3:'FIA Formula 3',F2:'FIA Formula 2',WEC:'WEC Hypercar',INDY:'IndyCar',FE:'Formula E',SF:'Super Formula',GT3:'DTM'};
