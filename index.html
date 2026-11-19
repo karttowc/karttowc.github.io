@@ -3628,7 +3628,12 @@ const GACHA=[
 // who can do which break: a 14-year-old karter doesn't play padel with F1 drivers
 const GA_REQ={boxing:{age:16},esports:{age:16},simnight:{age:15},kart:{min:'F3'},skydive:{min:'F2',age:18},rainold:{min:'F3'},padel:{min:'F1'},gt3:{min:'F2',age:18},rallyx:{age:17},cycle:{age:16},surf:{age:15},
   football:{maxAge:17},rentkart:{max:'F4'},gamenight:{maxAge:17},trampoline:{maxAge:17}};
-function gaOK(g,p){const q=GA_REQ[g.id];if(!q)return true;
+// a reward is wasted when every gain lands on something already at 99 (stats, fans, reputation)
+function deadEff(eff,p){if(!eff)return false;const g=[];
+  if(eff.stats)for(const k in eff.stats)if(eff.stats[k]>0)g.push(p.stats[k]);
+  if(eff.fans>0)g.push(p.fans);if(eff.rep>0)g.push(p.rep);
+  return g.length>0&&g.every(v=>v>=99)}
+function gaOK(g,p){if(deadEff(g.win,p))return false;const q=GA_REQ[g.id];if(!q)return true;
   if(q.min&&LVL(p.series)<LVL(q.min))return false;if(q.max&&LVL(p.series)>LVL(q.max))return false;
   if(q.age&&p.age<q.age)return false;if(q.maxAge&&p.age>q.maxAge)return false;return true}
 // how much stamina comes back at the next off-season (season drain included if it hasn't happened yet)
@@ -3773,7 +3778,7 @@ EVENTS.forEach(e=>{const f=EV_FIX[e.id];if(f)f.forEach((x,i)=>{if(e.choices[i])e
 const EV_REQ={sign:{fans:15},fanclub:{fans:25},kidfan:{fans:12},press:{min:'F3'},tvshow:{fans:30},helmetvote:{fans:20},hate:{fans:15},
   mechanic:{min:'F3'},coach:{min:'F4'},setup:{min:'F4'},legend:{min:'F3'},rally:{age:17},school:{maxAge:18},home:{min:'F4'},
   rookietest:{min:'F3'},rivalacad:{min:'F4'},paydriver:{min:'F4'},esports:{age:15},cycling:{age:15},heat:{min:'F4'}};
-function evOK(e,p){const q=EV_REQ[e.id];if(!q)return true;
+function evOK(e,p){if(e.choices.some(c=>deadEff(c.eff,p)))return false;const q=EV_REQ[e.id];if(!q)return true;
   if(q.fans&&p.fans<q.fans)return false;if(q.min&&LVL(p.series)<LVL(q.min))return false;
   if(q.age&&p.age<q.age)return false;if(q.maxAge&&p.age>q.maxAge)return false;return true}
 function genEvents(){
@@ -5094,7 +5099,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.17-d4',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.17-d5',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
