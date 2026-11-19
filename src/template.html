@@ -1206,9 +1206,17 @@ function startSeason(){
       L.forEach((x,i)=>{const o=mean+(x.lv-avg)*ALT_LV+gauss()*2.5,T=ALT_TS[x.t]||['',null];
         ents.push(entrant({key:'a'+i,name:x.name,no:x.c,cn:x.cn,team:T[0],color:T[1],car:altCarOf(p.alt,x.t)??carT[tierOf(x.t)],q:o+gauss()*2,d:o+gauss()*2,w:o+gauss()*3,cons:o,mental:o}))});
       {const sis=L.filter(x=>x.t===p.team.name).sort((a,b)=>b.lv-a.lv)[0];if(sis)mate=ents.find(e=>e.name===sis.name)||null}field=ents.length}
+    const JG=!isAlt&&(p.series==='F2'||p.series==='F3')&&JR_TIER[p.series];
+    if(JG){// F3/F2: real teams (F3 10x3, F2 11x2), every AI gets a seat and that team's car
+      const per=Math.ceil(field/Object.keys(JG).length),seat=[];for(const t in JG)for(let j=0;j<per;j++)seat.push(t);
+      const take=t=>{let i=seat.indexOf(t);if(i<0)i=ri(0,seat.length-1);return seat.splice(i,1)[0]};
+      if(seat.includes(me.team))take(me.team);
+      if(S.jr)S.jr.filter(d=>d.st==='on'&&d.series===p.series).forEach(d=>{if(ents.length<field&&seat.length){const t=take(d.team);d.team=t;d.tier=JG[t];
+        ents.push(entrant({key:d.id,name:d.name,team:t,car:carT[JG[t]]||carT.mid,...fromStats(d.stats)}))}});
+      for(let i=ents.length;i<field&&seat.length;i++){const o=mean+gauss()*5,t=take(null);
+        ents.push(entrant({key:'a'+i,name:genName(natPick()),team:t,car:carT[JG[t]]||carT.mid,q:o+gauss()*2,d:o+gauss()*2,w:o+gauss()*3,cons:o,mental:o}))}}
     for(let i=ents.length;i<field;i++){const o=mean+gauss()*5,tier=Math.random()<.3?'top':Math.random()<.57?'mid':'bottom';
       ents.push(entrant({key:'a'+i,name:genName(natPick()),team:'',car:carT[tier],q:o+gauss()*2,d:o+gauss()*2,w:o+gauss()*3,cons:o,mental:o}))}
-    if((p.series==='F2'||p.series==='F3')&&S.jr){let k=2;S.jr.filter(d=>d.st==='on'&&d.series===p.series).forEach(d=>{if(k<ents.length){ents[k]=entrant({key:d.id,name:d.name,team:d.team,car:carT[d.tier]||carT.mid,...fromStats(d.stats)});k++}})}
     const rv=S.rival;if(rv&&rv.st==='on'&&!rv.f1&&rv.series===p.series&&ents[1])ents[1]=entrant({key:'rival',name:rv.name,team:'',car:carT[pick(['top','mid','mid','bottom'])],...fromStats(rv.stats)});
   }
   const lk0=lgKey(p),firstLeague=p.role==='race'&&!p.history.some(h=>(h.lk||h.sid)===lk0&&h.role==='race'&&h.starts>0)
@@ -2942,7 +2950,7 @@ function readyCard(){
       :`<button class="tleave" type="button" data-sheet="leave"><span class="lt"><b>팀 떠나기</b><span>이적 요청 · 다른 리그로 전향</span></span><span class="la">선택지 보기<i>›</i></span></button>`):''}</section>`;
 }
 function standRows(){const st=S.last.standings;
-  return[...st,...(S.last.meRow?[S.last.meRow]:[])].map(e=>`<tr class="${e.me?'me':''}"><td class="num" style="width:28px">${e.pos}</td><td>${e.team&&S.last.rec&&S.last.rec.lk==='WEC'&&altW(e.team)?altLogo(altW(e.team),24):e.team&&teamByShort(e.team)?logo(teamByShort(e.team).id,24):JLOGO[e.team]?jLogo(e.team,24):altLogo(e.team,24)}${e.no?`<span class="cno">#${esc(e.no)}</span>`:''}${esc(e.name)}${e.crew?`<span class="crw">${esc(e.crew)}</span>`:''}</td><td class="muted">${esc(e.team||'')}</td><td class="r num">${e.tie?'<span class="tie">동점</span>':''}${e.pts}</td></tr>`).join('')}
+  return[...st,...(S.last.meRow?[S.last.meRow]:[])].map(e=>`<tr class="${e.me?'me':''}"><td class="num" style="width:28px">${e.pos}</td><td>${(e.team&&S.last.rec&&S.last.rec.lk==='WEC'&&altW(e.team)?altLogo(altW(e.team),24):e.team&&teamByShort(e.team)?logo(teamByShort(e.team).id,24):JLOGO[e.team]?jLogo(e.team,24):altLogo(e.team,24))||(e.team?'<span style="display:inline-block;width:24px;height:24px;margin-right:6px;vertical-align:middle"></span>':'')}${e.no?`<span class="cno">#${esc(e.no)}</span>`:''}${esc(e.name)}${e.crew?`<span class="crw">${esc(e.crew)}</span>`:''}</td><td class="muted">${esc(e.team||'')}</td><td class="r num">${e.tie?'<span class="tie">동점</span>':''}${e.pts}</td></tr>`).join('')}
 function resultBoard(){
   const R=S.last&&S.last.rec;if(!R)return'';
   const so=S.notice&&S.notice.so&&S.notice.so.year===R.year?S.notice.so:{year:R.year,sid:R.lk||R.sid,series:R.series,pos:R.pos,field:R.field,wins:R.wins,pod:R.podiums,poles:R.poles,pts:R.points,h2:R.h2h||null,prev:null};
@@ -3672,7 +3680,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.18-d2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.18-d3',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -4181,7 +4189,7 @@ function render(){
   tabsEl.hidden=false;
   tabsEl.querySelectorAll('button').forEach(b=>{b.setAttribute('aria-current',b.dataset.tab===tab?'page':'false');b.classList.toggle('new',b.dataset.tab==='react'&&S.react&&!S.react.seen&&tab!=='react')});
   root.innerHTML=(tab==='home'?homeTab():tab==='react'?reactTab():tab==='paddock'?paddockTab():tab==='driver'?driverTab():recordsTab())+(sheet?sheetView():'');
-  if(sheet==='stand'){const r=root.querySelector('#sheetBg tr.me'),c=r&&r.closest('.card');if(c){const y=r.getBoundingClientRect().top-c.getBoundingClientRect().top;if(y>c.clientHeight*.7)c.scrollTop=y-c.clientHeight/2}}
+  if(sheet==='stand'){const r=root.querySelector('#sheetBg tr.me');let c=r&&r.parentElement;while(c&&c.id!=='sheetBg'&&c.scrollHeight<=c.clientHeight+2)c=c.parentElement;if(c&&c.id!=='sheetBg'){const y=r.getBoundingClientRect().top-c.getBoundingClientRect().top;if(y>c.clientHeight*.7)c.scrollTop=y-c.clientHeight/2}}
 }
 function newsBody(N){const LIM=4;
   if(newsTab==='team'){const g=teamGroups(N);if(!g.length)return'<p class="muted" style="margin:0">올해는 팀 소식이 없어요.</p>';
