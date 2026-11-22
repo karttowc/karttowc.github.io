@@ -1,4 +1,4 @@
-"""Rebrand team logos (v1.7.20): data/logos_src/renault.jpg, toyota.webp -> skin reb_logos {renault, toyota} (128px, transparent).
+"""Rebrand team logos (v1.7.20): data/logos_src/renault.jpg, toyota.webp, hyundai.jpg -> skin reb_logos {renault, toyota, hyundai} (128px, transparent).
 Usage: python3 tools/reb_logos.py"""
 import json,base64,io,pathlib
 from PIL import Image,ImageDraw
@@ -26,5 +26,12 @@ for y in range(t.size[1]):
     for x in range(t.size[0]):
         rr,g,b=tp[x,y];al=255-min(g,b);op[x,y]=(235,10,30,max(0,min(255,al)))
 toy=fit(o)
-p=R/'data/skin_f1_2026.json';d=json.loads(p.read_text(encoding='utf-8'));d['reb_logos']={'renault':b64(ren),'toyota':b64(toy)}
+# Hyundai: the H oval only (no 'HYUNDAI MOTORSPORT'), white -> clear, alpha from how dark the pixel is
+h=Image.open(R/'data/logos_src/hyundai.jpg').convert('RGB');W,H=h.size;h=h.crop((0,0,W,int(H*.5)))
+o=Image.new('RGBA',h.size);hp=h.load();op=o.load()
+for y in range(h.size[1]):
+    for x in range(h.size[0]):
+        rr,g,b=hp[x,y];al=255-min(rr,g);op[x,y]=(30,80,205,max(0,min(255,al)))
+hyu=fit(o)
+p=R/'data/skin_f1_2026.json';d=json.loads(p.read_text(encoding='utf-8'));d['reb_logos']={'renault':b64(ren),'toyota':b64(toy),'hyundai':b64(hyu)}
 p.write_text(json.dumps(d,ensure_ascii=False,indent=1),encoding='utf-8');print('ok',ren.size,toy.size)

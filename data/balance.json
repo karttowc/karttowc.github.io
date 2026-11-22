@@ -296,7 +296,7 @@
   "minor_change_top": 2,
   "home": {"mercedes": "top", "ferrari": "top", "redbull": "top", "mclaren": "top", "astonmartin": "mid", "audi": "mid", "alpine": "mid", "racingbulls": "bottom", "haas": "bottom", "williams": "bottom", "cadillac": "bottom"},
   "home_pull": 0.2,
-  "rebrand": {"chance": 0.25, "min_year": 2029},
+  "rebrand": {"chance": {"haas": 0.25, "alpine": 0.25, "racingbulls": 0.1, "williams": 0.1, "cadillac": 0.1}, "min_year": 2029},
   "major_regulation": {
    "first_year": 2026,
    "swing": 8,
