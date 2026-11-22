@@ -71,7 +71,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .chip{background:var(--surface-2);border-radius:10px;padding:5px 10px;font-size:13px;color:var(--fg)}
 .altw{display:flex;flex-wrap:wrap;gap:6px}.altw .chip{border:1.5px solid transparent;cursor:pointer;font:inherit;font-size:13px}.altw .chip.on{border-color:var(--accent);font-weight:700}
 .chip.blue{background:var(--accent-soft);color:#8CB8FF}
-.chip.gold{background:#3A3018;color:var(--gold)}.arts{display:flex;flex-direction:column;gap:12px}.art{display:flex;flex-direction:column;gap:3px}.art+.art{border-top:1px solid var(--line,rgba(255,255,255,.08));padding-top:12px}.art span{font-size:11px;color:var(--dim)}.art b{font-size:15px;line-height:1.4;word-break:keep-all}.art p{margin:0;font-size:13px;line-height:1.5;color:var(--muted,#9aa3b2);word-break:keep-all}.chip.legb{font-size:10px;font-weight:700;padding:2px 7px;margin-left:6px;vertical-align:3px;white-space:nowrap}.chip.silver{background:#2A2F3A;color:#C9D1DE}.chip.f1{background:#3A1519;color:#FF8A8A;font-weight:700}
+.chip.gold{background:#3A3018;color:var(--gold)}.arts{display:flex;flex-direction:column;gap:12px}.art{display:flex;flex-direction:column;gap:3px}.art+.art{border-top:1px solid var(--line,rgba(255,255,255,.08));padding-top:12px}.art span{font-size:11px;color:var(--dim)}.art b{font-size:15px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.art p{margin:0;font-size:13px;line-height:1.5;color:var(--muted,#9aa3b2);word-break:keep-all}.chip.legb{font-size:10px;font-weight:700;padding:2px 7px;margin-left:6px;vertical-align:3px;white-space:nowrap}.chip.silver{background:#2A2F3A;color:#C9D1DE}.chip.f1{background:#3A1519;color:#FF8A8A;font-weight:700}
 .cx{position:fixed;inset:0;z-index:140;background:#07090F;display:flex;align-items:center;justify-content:center;animation:cxin .25s ease-out}
 .cx.bye{opacity:0;transition:opacity .2s}@keyframes cxin{from{opacity:0}}
 .cxst{position:relative;width:100%;height:100%;height:100dvh;max-width:480px;overflow:hidden;color:#fff}
@@ -3358,7 +3358,7 @@ function reactTab(){
   const X=S.react;if(X)X.seen=true;
   const N=S.news&&S.news.heads?S.news:null;
   return`<header class="top"><h1>반응</h1></header>
-  ${X&&X.news&&X.news.length?`<section class="card"><h3 class="h3">기사</h3><div class="arts">${X.news.map(a=>`<div class="art"><span>${esc(a.src)}</span><b>${withLogos(esc(a.t))}</b><p>${esc(a.b)}</p></div>`).join('')}</div></section>`:''}
+  ${X&&X.news&&X.news.length?`<section class="card"><h3 class="h3">기사</h3><div class="arts">${X.news.map(a=>`<div class="art"><b>${withLogos(esc(a.t))}</b></div>`).join('')}</div></section>`:''}
   ${X?`<section class="card"><div class="eyebrow">${X.year} ${sLogo(X.sid)}${esc(X.series)} · 패독 분석가 J</div><h3 class="h3">전문가 분석</h3>
     <div class="newslist">${X.expert.map((l,i)=>`<div${i===X.expert.length-1?' style="border-left:3px solid var(--accent)"':''}>${withLogos(esc(l)).replace(/\n/g,'<br>')}</div>`).join('')}</div>${whyCard()}</section>
   <section class="card"><h3 class="h3">팬 반응</h3><div class="list">${(fanMore?X.fans:X.fans.slice(0,3)).map(f=>`<div class="item" style="cursor:default;align-items:flex-start"><span class="dot g" style="border-radius:50%;width:40px;height:40px">${esc(f.nick[0])}</span>
@@ -3968,7 +3968,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.8',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.9-d1',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
