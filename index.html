@@ -241,14 +241,15 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .hzdim .hzmsg{position:absolute;inset:4px 0;display:grid;place-items:center;border-radius:14px;background:rgba(14,15,18,.55);border:1px solid var(--line);font-weight:700;font-size:16px}
 .hzbg{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;padding:12px}
 .hzbox{width:100%;max-width:440px;max-height:94vh;max-height:94dvh;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border-radius:22px;padding:14px 14px 16px;box-shadow:0 18px 50px rgba(0,0,0,.55);display:flex;flex-direction:column;gap:10px}
-.hzbox .lbl{margin:2px 0 0}.hzhead{display:flex;align-items:center;justify-content:space-between}.hzhead .h3{margin:0}
+.hzbox>*{flex-shrink:0}.hzbox .lbl{margin:2px 0 0}.hzhead{display:flex;align-items:center;justify-content:space-between}.hzhead .h3{margin:0}
 .hzpad{position:relative;width:100%;max-width:340px;margin:0 auto;touch-action:none;user-select:none;-webkit-user-select:none}
 .hzpad canvas{display:block;width:100%;height:auto;image-rendering:pixelated}.hzpad .hzgrid{position:absolute;inset:0;height:100%;touch-action:none}
-.hztools{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.hztools.hzsub{grid-template-columns:1fr 1fr}
+.hztools{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.hztools.hzsub{grid-template-columns:1fr 1fr 2fr}.hzsub [data-hz="undo"],.hzsub [data-hz="redo"]{font-size:20px;padding:5px 0}
 .hztools button,.hzpre button,.hzslot button{border:0;border-radius:10px;background:var(--surface-2);color:var(--fg);font-size:14px;font-weight:600;padding:9px 0}
 .hztools button[aria-pressed="true"]{background:var(--accent);color:#fff}.hztools button:disabled{opacity:.4}
 .hzsw{display:grid;grid-template-columns:repeat(12,1fr);gap:5px}.hzsw .sw{width:100%;height:auto;aspect-ratio:1;border-width:2px;box-shadow:inset 0 0 0 1px rgba(128,128,128,.35)}
-.hzpre{display:flex;flex-wrap:wrap;gap:6px}.hzpre button{padding:8px 12px}
+.hzpre{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}.hzpre::-webkit-scrollbar{display:none}
+.hzpre button{flex:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 6px 7px;width:72px}.hzpre img{width:52px;height:58px;object-fit:contain;image-rendering:pixelated}.hzpre span{font-size:12px;white-space:nowrap}
 .hzslots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.hzslot{display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--surface-2);border-radius:12px;padding:8px 6px}
 .hzslot img,.hzslot .hzempty{width:56px;height:62px;object-fit:contain;image-rendering:pixelated}.hzslot .hzempty{display:grid;place-items:center;color:var(--dim);font-size:13px}
 .hzslot button{width:100%;padding:7px 0;font-size:13px;background:var(--surface)}.hzslot button.warn{background:var(--bad);color:#fff}.hzslot .hzdel{background:none;color:var(--muted);padding:2px 0}
@@ -4421,23 +4422,23 @@ let HZ=null;
 function hzSlots(){try{const a=JSON.parse(lsGet(HZ_SLOTS)||'[]');return[0,1,2].map(i=>a[i]&&typeof a[i].dz==='string'?a[i]:null)}catch(e){return[null,null,null]}}
 function hzOpen(tgt){if(!tgt||!hzPrep()){toast('헬멧 그림을 불러오는 중이에요. 잠시 뒤 다시 눌러 주세요.');return}
   const h=normHelmet(tgt.helmet),H=helmOf({...h,dzOff:0});
-  HZ={tgt,h,base:H.base,grid:hzGrid(h.dz),col:HCOL.indexOf(H.sec)+1||1,tool:'pen',undo:[],ask:null,on:!!(h.dz&&!h.dzOff)};
+  HZ={tgt,h,base:H.base,grid:hzGrid(h.dz),col:HCOL.indexOf(H.sec)+1||1,tool:'pen',undo:[],redo:[],ask:null,on:!!(h.dz&&!h.dzOff)};
   const bg=document.createElement('div');bg.className='hzbg';bg.id='hzBg';bg.innerHTML='<section class="hzbox" role="dialog" aria-modal="true" aria-label="헬멧 커스텀"></section>';
   document.body.appendChild(bg);document.body.style.overflow='hidden';
   bg.addEventListener('click',hzClick);bg.addEventListener('pointerdown',hzDown);bg.addEventListener('pointermove',hzMove);
   ['pointerup','pointercancel'].forEach(e=>bg.addEventListener(e,()=>{if(HZ)HZ.drag=null}));hzUI()}
 function hzClose(){const b=document.getElementById('hzBg');if(b)b.remove();document.body.style.overflow='';HZ=null}
 const HZ_TOOLS=[['pen','붓'],['big','굵은 붓'],['fill','채우기'],['erase','지우개']];
-const HZ_PRE=[['center','센터 줄'],['check','체크 띠'],['star','별'],['two','반반'],['chin','턱 줄']];
+const HZ_PRE=[['crown','크라운 띠'],['center','센터 줄'],['three','레이싱 3줄'],['diag','사선 줄'],['chev','V자'],['check','체크 띠'],['bolt','번개'],['flame','불꽃'],['fade','도트 페이드'],['star','별'],['stars','별 여러 개'],['two','반반'],['chin','턱 줄']];
 function hzUI(){const box=document.querySelector('#hzBg .hzbox');if(!box||!HZ)return;const Z=HZ,sl=hzSlots(),vis=Z.h.vis;
   const sw=(k,sel)=>`<div class="hzsw">${HCOL.map((c,i)=>`<button class="sw" type="button" data-${k}="${i+1}" aria-label="${c}" aria-pressed="${sel===i+1}" style="background:${c}"></button>`).join('')}</div>`;
   box.innerHTML=`<div class="hzhead"><h3 class="h3">헬멧 커스텀</h3><button class="iconbtn" type="button" data-hz="cancel" aria-label="닫기">✕</button></div>
     <div class="hzpad"><canvas class="hzimg" width="${HZP.w}" height="${HZP.h}"></canvas><canvas class="hzgrid" width="${HZN*20}" height="${Math.round(HZN*20*HZP.h/HZP.w)}"></canvas></div>
     <div class="hztools">${HZ_TOOLS.map(([k,l])=>`<button type="button" data-hzt="${k}" aria-pressed="${Z.tool===k}">${l}</button>`).join('')}</div>
-    <div class="hztools hzsub"><button type="button" data-hz="undo"${Z.undo.length?'':' disabled'}>↶ 되돌리기</button><button type="button" data-hz="clear">전체 지우기</button></div>
+    <div class="hztools hzsub"><button type="button" data-hz="undo" aria-label="뒤로 가기"${Z.undo.length?'':' disabled'}>←</button><button type="button" data-hz="redo" aria-label="앞으로 가기"${Z.redo.length?'':' disabled'}>→</button><button type="button" data-hz="clear">전체 지우기</button></div>
     <div class="lbl">칠할 색</div>${sw('hzc',Z.col)}
     <div class="lbl">바탕색 <span class="muted">(안 칠한 곳)</span></div>${sw('hzb',HCOL.indexOf(Z.base)+1)}
-    <div class="lbl">프리셋 <span class="muted">(칠할 색으로 얹어요)</span></div><div class="hzpre">${HZ_PRE.map(([k,l])=>`<button type="button" data-hzp="${k}">${l}</button>`).join('')}</div>
+    <div class="lbl">기본 무늬 <span class="muted">(칠할 색 + 바탕색)</span></div><div class="hzpre">${HZ_PRE.map(([k,l])=>`<button type="button" data-hzp="${k}"><img src="${(hzCanvas({base:Z.base,sec:Z.base,vis,dz:hzStr(hzPat(k,Z.col))})||{}).url||HELMETS[1]}" alt=""><span>${l}</span></button>`).join('')}</div>
     <div class="lbl">내 디자인 보관함 <span class="muted">(이 기기에 저장)</span></div>
     <div class="hzslots">${sl.map((s,i)=>`<div class="hzslot">${s?`<img src="${(hzCanvas({base:s.b,sec:s.b,vis,dz:s.dz})||{}).url||HELMETS[1]}" alt="">`:'<div class="hzempty">빈칸</div>'}
       ${s?`<button type="button" data-hzl="${i}">불러오기</button>`:''}<button type="button" data-hzs="${i}"${Z.ask==='s'+i?' class="warn"':''}>${Z.ask==='s'+i?'덮어쓰기?':'여기 저장'}</button>
@@ -4450,25 +4451,45 @@ function hzDraw(){if(!HZ)return;const c=document.querySelector('#hzBg .hzimg'),g
   /* 격자 선은 안 그림(v1.7.20-d4, 찬우 결정). .hzgrid는 손가락 입력만 받는 투명 판 */}
 function hzCell(e){const gc=document.querySelector('#hzBg .hzgrid');if(!gc)return-1;const r=gc.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;
   if(x<0||y<0||x>=1||y>=1)return-1;return((y*HZN)|0)*HZN+((x*HZN)|0)}
-function hzPush(){HZ.undo.push(HZ.grid.slice());if(HZ.undo.length>40)HZ.undo.shift()}
+function hzPush(){HZ.undo.push(HZ.grid.slice());if(HZ.undo.length>40)HZ.undo.shift();HZ.redo=[]}
+function hzBtns(){const q=k=>document.querySelector(`#hzBg [data-hz="${k}"]`),u=q('undo'),r=q('redo');if(u)u.disabled=!HZ.undo.length;if(r)r.disabled=!HZ.redo.length}
 function hzSet(i){const Z=HZ,v=Z.tool==='erase'?0:Z.col,cx=i%HZN,cy=(i/HZN)|0,n=Z.tool==='big'?2:1;
   for(let dy=0;dy<n;dy++)for(let dx=0;dx<n;dx++){const x=cx+dx,y=cy+dy;if(x<HZN&&y<HZN&&HZP.cm[y*HZN+x])Z.grid[y*HZN+x]=v}}
 function hzFill(i){const g=HZ.grid,from=g[i],to=HZ.col;if(!HZP.cm[i]||from===to)return;const st=[i];
   while(st.length){const k=st.pop();if(!HZP.cm[k]||g[k]!==from)continue;g[k]=to;const x=k%HZN;if(x>0)st.push(k-1);if(x<HZN-1)st.push(k+1);if(k>=HZN)st.push(k-HZN);if(k<HZN*(HZN-1))st.push(k+HZN)}}
 let hzRaf=0;const hzLater=()=>{if(!hzRaf)hzRaf=requestAnimationFrame(()=>{hzRaf=0;hzDraw()})};
 function hzDown(e){if(!HZ||!e.target.classList.contains('hzgrid'))return;const i=hzCell(e);if(i<0)return;e.preventDefault();
-  const wasEmpty=!HZ.undo.length;hzPush();if(HZ.tool==='fill'){hzFill(i);hzDraw()}else{try{e.target.setPointerCapture(e.pointerId)}catch(x){}HZ.drag=i;hzSet(i);hzLater()}
-  if(wasEmpty){const u=document.querySelector('#hzBg [data-hz="undo"]');if(u)u.disabled=false}}
+  hzPush();if(HZ.tool==='fill'){hzFill(i);hzDraw()}else{try{e.target.setPointerCapture(e.pointerId)}catch(x){}HZ.drag=i;hzSet(i);hzLater()}
+  hzBtns()}
 function hzMove(e){if(!HZ||HZ.drag==null)return;const i=hzCell(e);if(i<0||i===HZ.drag)return;
   /* 빠르게 그어도 칸이 비지 않게 이전 칸과 이어 칠함 */
   let x0=HZ.drag%HZN,y0=(HZ.drag/HZN)|0;const x1=i%HZN,y1=(i/HZN)|0,n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0));
   for(let s=1;s<=n;s++)hzSet(Math.round(y0+(y1-y0)*s/n)*HZN+Math.round(x0+(x1-x0)*s/n));HZ.drag=i;hzLater()}
-function hzPreset(k){const Z=HZ,g=Z.grid,c=Z.col;hzPush();
-  /* 별: 손으로 찍은 11x9 도트(가운데 위) */
-  const STAR=['.....#.....','....###....','....###....','###########','.#########.','..#######..','..###.###..','.###...###.','.##.....##.'],star=(cx,cy)=>{const r=STAR[cy-3],c=cx-10;return!!r&&c>=0&&c<11&&r[c]==='#'};
-  for(let i=0;i<HZN*HZN;i++){if(!HZP.cm[i])continue;const cx=i%HZN,cy=(i/HZN)|0,x=(cx+.5)/HZN,y=(cy+.5)/HZN;
-    if(k==='center'&&cx>=14&&cx<=17&&cy<=13||k==='check'&&cy>=9&&cy<=12&&(cx+cy)%2===0||k==='star'&&star(cx,cy)||k==='two'&&cx<HZN/2||k==='chin'&&cy>=24&&cy<=25)g[i]=c}
-  hzUI()}
+/* 기본 무늬(v1.7.20-d5): 32칸 격자에서 칠할 칸 → 칠할 색 c, 나머지 0(바탕). 칠할 수 없는 칸(cm 0)은 빼고. 실제 선수 헬멧은 따라 하지 않음 */
+const HZ_STAR=['.....#.....','....###....','....###....','###########','.#########.','..#######..','..###.###..','.###...###.','.##.....##.'],
+  HZ_BOLT=['....##','...##.','..##..','.#####','...##.','..##..','.##...','##....'];
+function hzPat(k,c){const g=new Uint8Array(HZN*HZN),P=HZP;if(!P)return g;
+  const bm=(B,x0,y0,cx,cy,flip)=>{const r=B[cy-y0];if(!r)return false;const i=flip?x0+r.length-1-cx:cx-x0;return i>=0&&i<r.length&&r[i]==='#'},
+    plus=(cx,cy,x,y)=>Math.abs(cx-x)+Math.abs(cy-y)<=1;
+  for(let i=0;i<HZN*HZN;i++){if(!P.cm[i])continue;const cx=i%HZN,cy=(i/HZN)|0,ax=Math.abs(cx-15.5);let on=false;
+    switch(k){
+      case'crown':{const d=Math.hypot(cx-15.5,(cy-15)*1.05);on=cy<13&&d>=10.5&&d<13;break}
+      case'center':on=cx>=14&&cx<=17&&cy<=13;break;
+      case'three':on=cy<=13&&(cx===10||cx===11||cx===15||cx===16||cx===20||cx===21);break;
+      case'diag':{const v=cx+cy;on=cy<=13&&(v>=13&&v<=15||v>=18&&v<=20);break}
+      case'chev':{const y0=12-ax*.85;on=ax<12&&cy<=12&&cy>y0-3&&cy<=y0;break}
+      case'check':on=cy>=9&&cy<=12&&(cx+cy)%2===0;break;
+      case'bolt':on=bm(HZ_BOLT,3,4,cx,cy,false)||bm(HZ_BOLT,23,4,cx,cy,true);break;
+      case'flame':{const n=(cx+1)/6|0,p=(cx+1)%6,H=[4,6,8,9,8,6][n]||4,h=H*(1-Math.abs(p-2.5)/3.2);on=cy<=12&&cy>12-h;break}
+      case'fade':on=cy>=2&&cy<=12&&[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5][(cy%4)*4+cx%4]/16<(cy-1)/12;break;
+      case'star':on=bm(HZ_STAR,10,3,cx,cy,false);break;
+      case'stars':on=[[9,4],[22,5],[15,8],[6,10],[25,10],[13,2],[19,11]].some(([x,y])=>plus(cx,cy,x,y));break;
+      case'two':on=cx<HZN/2;break;
+      case'chin':on=cy>=24&&cy<=25;break}
+    if(on)g[i]=c}
+  return g}
+/* 기본 무늬는 통째로 바꿈(되돌리기로 돌아감) */
+function hzPreset(k){hzPush();HZ.grid=hzPat(k,HZ.col);hzUI()}
 function hzClick(e){const Z=HZ;if(!Z)return;const t=e.target.closest('button');if(!t)return;const d=t.dataset;
   if(d.hzt){Z.tool=d.hzt;Z.ask=null;hzUI();return}
   if(d.hzc){Z.col=+d.hzc;if(Z.tool==='erase')Z.tool='pen';Z.ask=null;hzUI();return}
@@ -4478,7 +4499,8 @@ function hzClick(e){const Z=HZ;if(!Z)return;const t=e.target.closest('button');i
   if(d.hzs!=null){const i=+d.hzs,sl=hzSlots();if(sl[i]&&Z.ask!=='s'+i){Z.ask='s'+i;hzUI();return}sl[i]={dz:hzStr(Z.grid),b:Z.base};lsSet(HZ_SLOTS,JSON.stringify(sl));Z.ask=null;hzUI();toast(`보관함 ${i+1}번에 저장했어요`);return}
   if(d.hzd!=null){const i=+d.hzd,sl=hzSlots();if(Z.ask!=='d'+i){Z.ask='d'+i;hzUI();return}sl[i]=null;lsSet(HZ_SLOTS,JSON.stringify(sl));Z.ask=null;hzUI();return}
   const a=d.hz;if(!a)return;
-  if(a==='undo'){if(Z.undo.length)Z.grid=Z.undo.pop();Z.ask=null;hzUI();return}
+  if(a==='undo'){if(Z.undo.length){Z.redo.push(Z.grid);Z.grid=Z.undo.pop()}Z.ask=null;hzUI();return}
+  if(a==='redo'){if(Z.redo.length){Z.undo.push(Z.grid);Z.grid=Z.redo.pop()}Z.ask=null;hzUI();return}
   if(a==='clear'){hzPush();Z.grid=new Uint8Array(HZN*HZN);Z.ask=null;hzUI();return}
   if(a==='cancel'){hzClose();return}
   if(a==='off'||a==='save'){const h={...normHelmet(Z.tgt.helmet)};if(a==='save'){h.hb=Z.base;if(!h.hs)h.hs=helmOf(h).sec;h.dz=hzStr(Z.grid);delete h.dzOff}else h.dzOff=1;
@@ -5282,7 +5304,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.20-d4',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.20-d5',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
