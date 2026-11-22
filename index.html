@@ -240,6 +240,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .hzbtn .himg{width:28px;height:28px;object-fit:contain;image-rendering:pixelated}
 .hzdim{position:relative}.hzdim .hzin{opacity:.25;pointer-events:none;filter:grayscale(.4)}
 .hzdim .hzmsg{position:absolute;inset:4px 0;display:grid;place-items:center;border-radius:14px;background:rgba(14,15,18,.55);border:1px solid var(--line);font-weight:700;font-size:16px}
+.hzsym{position:absolute;left:0;top:0;z-index:2;display:flex;align-items:center;gap:6px;border:0;border-radius:12px;background:rgba(27,29,34,.82);color:var(--fg);font-size:12px;font-weight:700;padding:5px 6px 5px 10px}
+.hzsym .tgl{transform:scale(.8);transform-origin:right center}
 .hzloupe{position:fixed;z-index:31;width:132px;height:132px;border-radius:50%;border:3px solid #fff;box-shadow:0 6px 20px rgba(0,0,0,.6);pointer-events:none}
 .hzbg{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;padding:12px}
 .hzbox{width:100%;max-width:440px;max-height:94vh;max-height:94dvh;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border-radius:22px;padding:14px 14px 16px;box-shadow:0 18px 50px rgba(0,0,0,.55);display:flex;flex-direction:column;gap:10px}
@@ -4488,7 +4490,7 @@ function hzUI(){const box=document.querySelector('#hzBg .hzbox');if(!box||!HZ)re
   const sx={};['.hzpre','.hzlogos'].forEach(s=>{const e=box.querySelector(s);if(e)sx[s]=e.scrollLeft});const sy=box.scrollTop;const Z=HZ,sl=hzSlots(),vis=Z.h.vis;
   const sw=(k,sel)=>`<div class="hzsw">${HCOL.map((c,i)=>`<button class="sw" type="button" data-${k}="${i+1}" aria-label="${c}" aria-pressed="${sel===i+1}" style="background:${c}"></button>`).join('')}</div>`;
   box.innerHTML=`<div class="hzhead"><h3 class="h3">헬멧 커스텀</h3><button class="iconbtn" type="button" data-hz="cancel" aria-label="닫기">✕</button></div>
-    <div class="hzpad"><canvas class="hzimg" width="${HZP.w*HZ_HI}" height="${HZP.h*HZ_HI}"></canvas><canvas class="hzgrid" width="${HZN*20}" height="${Math.round(HZN*20*HZP.h/HZP.w)}"></canvas></div>
+    <div class="hzpad"><button type="button" class="hzsym" data-hz="sym" aria-pressed="${!!Z.sym}"><span>좌우 대칭</span><i class="tgl${Z.sym?' on':''}"></i></button><canvas class="hzimg" width="${HZP.w*HZ_HI}" height="${HZP.h*HZ_HI}"></canvas><canvas class="hzgrid" width="${HZN*20}" height="${Math.round(HZN*20*HZP.h/HZP.w)}"></canvas></div>
     <div class="hztools${Z.lg?' hz5':''}">${HZ_TOOLS.concat(Z.lg?[['logo','로고 옮기기']]:[]).map(([k,l])=>`<button type="button" data-hzt="${k}" aria-pressed="${Z.tool===k}">${l}</button>`).join('')}</div>
     <div class="hztools hzsub"><button type="button" data-hz="undo" aria-label="뒤로 가기"${Z.undo.length?'':' disabled'}>←</button><button type="button" data-hz="redo" aria-label="앞으로 가기"${Z.redo.length?'':' disabled'}>→</button>${[1,2,3].map(n=>`<button type="button" class="hzbs" data-hzbs="${n}" aria-label="굵기 ${n}칸" aria-pressed="${Z.bs===n}"><i style="width:${3+n*4}px;height:${3+n*4}px"></i></button>`).join('')}<button type="button" data-hz="clear">전체 지우기</button></div>
     <div class="hzlgh"><div class="lbl">로고 <span class="muted">(끌어서 위치 조정)</span></div>${Z.lg?`<div class="hzsz"><span class="muted">크기</span><button type="button" data-hzz="-1" aria-label="로고 작게"${Z.ls<=HZ_LGMIN+1e-6?' disabled':''}>−</button><button type="button" data-hzz="1" aria-label="로고 크게"${Z.ls>=HZ_LGMAX-1e-6?' disabled':''}>+</button></div>`:''}</div><div class="hzlogos"><button type="button" data-hzg="" aria-pressed="${!Z.lg}">없음</button><button type="button" data-hzg="cur" aria-pressed="${Z.lg==='cur'}">지금 팀</button>${K.teams.filter(t=>t.logo).map(t=>`<button type="button" data-hzg="${t.id}" aria-pressed="${Z.lg===t.id}" aria-label="${esc(t.name)}"><img src="${t.logo}" alt=""></button>`).join('')}</div>
@@ -4512,7 +4514,9 @@ function hzCell(e){const gc=document.querySelector('#hzBg .hzgrid');if(!gc)retur
 function hzPush(){HZ.undo.push(HZ.grid.slice());if(HZ.undo.length>40)HZ.undo.shift();HZ.redo=[]}
 function hzBtns(){const q=k=>document.querySelector(`#hzBg [data-hz="${k}"]`),u=q('undo'),r=q('redo');if(u)u.disabled=!HZ.undo.length;if(r)r.disabled=!HZ.redo.length}
 function hzSet(i){const Z=HZ,v=Z.tool==='erase'?0:Z.col,n=Z.bs||1,cx=i%HZN-((n-1)>>1),cy=((i/HZN)|0)-((n-1)>>1);
-  for(let dy=0;dy<n;dy++)for(let dx=0;dx<n;dx++){const x=cx+dx,y=cy+dy;if(x<HZN&&y<HZN&&HZP.cm[y*HZN+x])Z.grid[y*HZN+x]=v}}
+  /* 좌우 대칭 켜면 반대쪽 같은 칸도(v1.8.2-d1) */
+  for(let dy=0;dy<n;dy++)for(let dx=0;dx<n;dx++){const x=cx+dx,y=cy+dy;if(x<0||y<0||x>=HZN||y>=HZN)continue;
+    for(const X of Z.sym?[x,HZN-1-x]:[x])if(HZP.cm[y*HZN+X])Z.grid[y*HZN+X]=v}}
 function hzFill(i){const g=HZ.grid,from=g[i],to=HZ.col;if(!HZP.cm[i]||from===to)return;const st=[i];
   while(st.length){const k=st.pop();if(!HZP.cm[k]||g[k]!==from)continue;g[k]=to;const x=k%HZN;if(x>0)st.push(k-1);if(x<HZN-1)st.push(k+1);if(k>=HZN)st.push(k-HZN);if(k<HZN*(HZN-1))st.push(k+HZN)}}
 let hzRaf=0;const hzLater=()=>{if(!hzRaf)hzRaf=requestAnimationFrame(()=>{hzRaf=0;hzDraw()})};
@@ -4522,7 +4526,7 @@ function hzLgPos(e){const gc=document.querySelector('#hzBg .hzgrid'),r=gc.getBou
 function hzDown(e){if(!HZ||!e.target.classList.contains('hzgrid'))return;
   if(HZ.tool==='logo'){e.preventDefault();try{e.target.setPointerCapture(e.pointerId)}catch(x){}HZ.drag='logo';HZ.lgA={x:e.clientX,y:e.clientY,lx:HZ.lx,ly:HZ.ly};return}
   const i=hzCell(e);if(i<0)return;e.preventDefault();if(HZ.tool!=='fill')HZ.lp={i,x:e.clientX,y:e.clientY};
-  hzPush();HZ.pat=null;if(HZ.tool==='fill'){hzFill(i);hzDraw()}else{try{e.target.setPointerCapture(e.pointerId)}catch(x){}HZ.drag=i;hzSet(i);hzLater()}
+  hzPush();HZ.pat=null;if(HZ.tool==='fill'){hzFill(i);if(HZ.sym)hzFill(((i/HZN)|0)*HZN+HZN-1-i%HZN);hzDraw()}else{try{e.target.setPointerCapture(e.pointerId)}catch(x){}HZ.drag=i;hzSet(i);hzLater()}
   hzBtns()}
 function hzMove(e){if(!HZ||HZ.drag==null)return;if(HZ.drag==='logo'){hzLgPos(e);return}const i=hzCell(e);if(i>=0)HZ.lp={i,x:e.clientX,y:e.clientY};if(i<0||i===HZ.drag)return;
   /* 빠르게 그어도 칸이 비지 않게 이전 칸과 이어 칠함 */
@@ -4577,6 +4581,7 @@ function hzClick(e){const Z=HZ;if(!Z)return;const t=e.target.closest('button');i
   if(d.hzs!=null){const i=+d.hzs,sl=hzSlots();if(sl[i]&&Z.ask!=='s'+i){Z.ask='s'+i;hzUI();return}sl[i]={dz:hzStr(Z.grid),b:Z.base,...(Z.lg?{lg:Z.lg,lx:Z.lx,ly:Z.ly,ls:Z.ls}:{})};lsSet(HZ_SLOTS,JSON.stringify(sl));Z.ask=null;hzUI();toast(`보관함 ${i+1}번에 저장했어요`);return}
   if(d.hzd!=null){const i=+d.hzd,sl=hzSlots();if(Z.ask!=='d'+i){Z.ask='d'+i;hzUI();return}sl[i]=null;lsSet(HZ_SLOTS,JSON.stringify(sl));Z.ask=null;hzUI();return}
   const a=d.hz;if(!a)return;
+  if(a==='sym'){Z.sym=!Z.sym;hzUI();return}
   if(a==='undo'){Z.pat=null;if(Z.undo.length){Z.redo.push(Z.grid);Z.grid=Z.undo.pop()}Z.ask=null;hzUI();return}
   if(a==='redo'){Z.pat=null;if(Z.redo.length){Z.undo.push(Z.grid);Z.grid=Z.redo.pop()}Z.ask=null;hzUI();return}
   if(a==='clear'){hzPush();Z.grid=new Uint8Array(HZN*HZN);Z.pat=null;Z.ask=null;hzUI();return}
@@ -5392,7 +5397,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.2-d1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.2-d2',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
