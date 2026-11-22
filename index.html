@@ -814,7 +814,6 @@ button.hc{all:unset;box-sizing:border-box;font-size:12px;font-weight:700;padding
   <button data-tab="driver" type="button"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5z"/></svg>드라이버</button>
   <button data-tab="records" type="button"><svg viewBox="0 0 24 24"><path d="M7 3h10v2h3v3a4 4 0 0 1-4 4h-.3A5 5 0 0 1 13 14.9V18h3v3H8v-3h3v-3.1A5 5 0 0 1 8.3 12H8a4 4 0 0 1-4-4V5h3V3zm0 4H6v1a2 2 0 0 0 1 1.7V7zm10 0v2.7A2 2 0 0 0 18 8V7h-1z"/></svg>기록</button>
 </nav>
-<input type="file" id="importFile" accept=".json,application/json" hidden>
 
 <script>(()=>{
 const B = {
@@ -5414,7 +5413,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.8-d2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.8-d3',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -6207,8 +6206,6 @@ function menuSheet(){
   const yn=(msg,no,go,lab,red)=>`<p style="margin:0">${msg}</p><div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" id="${no}">취소</button><button class="btn" type="button" id="${go}"${red?' style="background:var(--bad)"':''}>${lab}</button></div>`;
   return`<div class="sheet" id="sheetBg"><section class="card"><h3 class="h3">설정</h3>
     <div class="mgrp">게임</div>
-    ${DL?`<button class="btn ghost" type="button" id="exportBtn">저장 파일 내보내기</button>`:''}
-    <button class="btn ghost" type="button" id="importBtn">저장 파일 불러오기</button>
     <button class="btn ghost" type="button" id="toTitle">홈으로</button>
     ${sheet==='retire'?yn('지금 은퇴하고 커리어 카드를 받을까요? 되돌릴 수 없어요.','cancelNew','confirmRetire','은퇴하기'):S&&S.phase!=='progress'?'<button class="btn ghost" type="button" id="askRetire">은퇴하기</button>':''}
     <button class="btn ghost" type="button" id="fbOpen">의견 보내기</button>
@@ -6339,8 +6336,6 @@ root.addEventListener('click',e=>{
   if(id==='askNew'){sheet='confirm';render();return}
   if(id==='cancelNew'){sheet='menu';render();return}
   if(id==='confirmNew'){S=null;sheet=null;try{localStorage.removeItem(KEY)}catch(_){}ob=null;render();return}
-  if(id==='exportBtn'){saveFile(`kart-to-wc-${S.p.name}-${S.year}.json`,JSON.stringify(S));return}
-  if(id==='importBtn'){document.getElementById('importFile').click();return}
   if(id==='shareBtn'){doShare();return}
   if(id==='replayCer'){startCeremony();return}
   if(id==='saveImg'){const c=drawCard();c.toBlob(b=>b&&saveFile(`career-${S.p.name}.png`,b),'image/png');return}
@@ -6349,11 +6344,6 @@ root.addEventListener('click',e=>{
   if(id==='newLifeYes'){sheet=null;S=null;try{localStorage.removeItem(KEY)}catch(_){}ob=null;render();window.scrollTo(0,0);return}
 });
 tabsEl.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.tab;if(tab==='paddock')padLg=null;render();window.scrollTo(0,0)});
-document.getElementById('importFile').addEventListener('change',e=>{
-  const f=e.target.files[0];if(!f)return;const rd=new FileReader();
-  rd.onload=()=>{try{const s=JSON.parse(rd.result);if(!s||!s.p||!s.teams)throw 0;S=s;sheet=null;save();render();toast('커리어를 불러왔어요')}catch(_){toast('저장 파일을 읽지 못했어요. 이 게임에서 내보낸 파일인지 확인해 주세요.')}};
-  rd.readAsText(f);e.target.value='';
-});
 
 S=load();if(S){const p=S.p;applyReb();if(S.train!=='rest')S.train='focus';
   // saves from before training programs: take the closest program, open to change this preseason
