@@ -2111,6 +2111,7 @@ function applyOffer(o){
   const p=S.p,ev=[],stage0=stageKey(p);S.logPick={year:S.year,age:p.age,from:p.series==='ALT'?p.alt:p.series,...(o.lg&&o.lg!==o.series?{lg:o.lg}:{}),pick:o.kind+':'+(o.teamId||o.series||o.altId||'')+':'+(o.tier||(o.team&&o.team.tier)||(o.teamId?teamDef(o.teamId).tier:'')),
     offers:offAll().map(x=>x.kind+':'+(x.teamId||x.series||x.altId||'')),ovr:ovrOf(p.stats)};
   if(S.logPick&&o.dual)S.logPick.pick+=':dual';
+  if(!p.debutYear&&o.kind!=='f1'&&offAll().some(x=>x.kind==='f1'))p.f1No=(p.f1No||0)+1;// turned down an F1 race seat (retire screen)
   if(S.logPick&&o.kind==='f1'&&/루트|승격/.test(o.tag||''))S.logPick.tag=o.tag;
   p.dual=o.dual&&o.kind==='alt'?{team:o.dual}:null;
   const leavingF1Seat=p.series==='F1'&&p.role==='race'&&!(o.kind==='resign');
@@ -3706,7 +3707,7 @@ function cerPage(i){const p=S.p,D=cerData(),T=p.tot,s=similarDriver();
       <div class="cbye">${bye.map((b,j)=>`<div style="animation-delay:${.9+j*.35}s">💬 ${esc(b)}</div>`).join('')}</div></div>`}
   if(i===1)return`<div class="cp c1"><div class="ck">THE ROAD</div><h2>${p.debutYear?'카트에서 F1까지':'걸어온 길'}</h2>
       <div class="road">${D.steps.map((x,j)=>`<div class="rs${x.k==='F1'?' f1':''}" style="animation-delay:${.15+j*.18}s"><span class="rl">${sLogo(x.k,22)||'🏁'}</span><span class="rb"><b>${esc(x.name)}</b><span>${x.from}${x.to!==x.from?'–'+x.to:''} · ${x.ti?'<em>챔피언</em>':x.best?'최고 '+x.best+'위':'출전 없음'}</span></span></div>`).join('')}</div>
-      ${p.debutYear?`<p>${p.debutYear-S.startYear+B.driver.start_age}세에 F1 데뷔</p>`:(p.history.some(h=>h.sid==='F2'&&h.titled)?`<p>F2 챔피언까지 올랐지만<br>F1 시트는 끝내 오지 않았어요</p>`:altFeat(p).length?`<p>F1의 문은 열리지 않았지만<br><b style="color:var(--gold)">${esc(altFeat(p)[0])}</b>${joRo(altFeat(p)[0]).slice(altFeat(p)[0].length)}<br>이름을 남겼어요</p>`:Math.max(0,...p.history.map(h=>LVL(h.sid)))>=3||p.history.some(h=>h.sid==='ALT')?`<p>F1의 문은 끝내 열리지 않았어요</p>`:p.history.every(h=>h.sid==='KART')?`<p>다른 진로를 찾아 떠나요<br>카트는 취미로 남았어요</p>`:`<p>짧았지만 꿈을 향해 달린 시간이었어요</p>`)}</div>`;
+      ${p.debutYear?`<p>${p.debutYear-S.startYear+B.driver.start_age}세에 F1 데뷔</p>`:(p.f1No?`<p>F1 시트 제안을 ${p.f1No}번 받았지만<br>스스로 다른 길을 택했어요</p>`:p.history.some(h=>h.sid==='F2'&&h.titled)?`<p>F2 챔피언까지 올랐지만<br>F1 시트는 끝내 오지 않았어요</p>`:altFeat(p).length?`<p>F1의 문은 열리지 않았지만<br><b style="color:var(--gold)">${esc(altFeat(p)[0])}</b>${joRo(altFeat(p)[0]).slice(altFeat(p)[0].length)}<br>이름을 남겼어요</p>`:Math.max(0,...p.history.map(h=>LVL(h.sid)))>=3||p.history.some(h=>h.sid==='ALT')?`<p>F1의 문은 끝내 열리지 않았어요</p>`:p.history.every(h=>h.sid==='KART')?`<p>다른 진로를 찾아 떠나요<br>카트는 취미로 남았어요</p>`:`<p>짧았지만 꿈을 향해 달린 시간이었어요</p>`)}</div>`;
   if(i===2){const b=D.bestS;return`<div class="cp c2"><div class="ck">BY THE NUMBERS</div><h2>숫자로 보는 커리어</h2>
       ${(()=>{const A=p.history.filter(h=>h.sid==='ALT'&&h.starts>0);if(T.starts>0||!A.length)return`<div class="cnum"><div class="gold"><b data-n="${T.titles}">0</b><span>월드 챔피언</span></div><div><b data-n="${T.wins}">0</b><span>F1 우승</span></div><div><b data-n="${T.podiums}">0</b><span>포디움</span></div><div><b data-n="${T.poles}">0</b><span>폴</span></div><div><b data-n="${T.starts}">0</b><span>F1 출전</span></div><div><b data-n="${p.peak}">0</b><span>최고 OVR</span></div></div>`;
         const sm=k=>A.reduce((a,h)=>a+(h[k]||0),0),lk=[...new Set(A.map(h=>h.lk))],nm=lk.length===1?(lk[0]==='WEC'?'WEC':lk[0]==='INDY'?'인디카':altDef(lk[0]).name):'다른 무대',big=p.challenges.filter(c=>c.res==='우승'&&(c.id==='LEMANS'||c.id==='INDY500')).length;
@@ -3968,7 +3969,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.9-d1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.9-d2',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
