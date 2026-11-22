@@ -1,0 +1,30 @@
+"""Rebrand team logos (v1.7.20): data/logos_src/renault.jpg, toyota.webp -> skin reb_logos {renault, toyota} (128px, transparent).
+Usage: python3 tools/reb_logos.py"""
+import json,base64,io,pathlib
+from PIL import Image,ImageDraw
+R=pathlib.Path(__file__).resolve().parent.parent
+def fit(im):
+    im=im.crop(im.split()[3].getbbox());w,h=im.size;s=128/max(w,h);im=im.resize((max(1,round(w*s)),max(1,round(h*s))),Image.LANCZOS)
+    c=Image.new('RGBA',(128,128),(0,0,0,0));c.paste(im,((128-im.size[0])//2,(128-im.size[1])//2),im);return c
+def b64(im):
+    b=io.BytesIO();im.save(b,'PNG',optimize=True);return 'data:image/png;base64,'+base64.b64encode(b.getvalue()).decode()
+# Renault: white page around the diamond goes clear (flood from the corners, so the white facets inside stay)
+# (the source has a baked-in checkerboard: light low-colour pixels count as page, the black outline stops the flood)
+r=Image.open(R/'data/logos_src/renault.jpg').convert('RGB');W,H=r.size
+f=r.point(lambda v:255 if v>170 else v)
+for p in [(0,0),(W-1,0),(0,H-1),(W-1,H-1),(W//2,H//2)]:# corners + the hole in the middle
+    ImageDraw.floodfill(f,p,(255,0,255),thresh=40)
+px=f.load();a=r.convert('RGBA');ap=a.load()
+for y in range(H):
+    for x in range(W):
+        if px[x,y]==(255,0,255):ap[x,y]=(255,255,255,0)
+ren=fit(a)
+# Toyota: the emblem only (no word mark), white -> clear, alpha from how red the pixel is
+t=Image.open(R/'data/logos_src/toyota.webp').convert('RGBA');w=Image.new('RGBA',t.size,(255,255,255,255));w.alpha_composite(t);t=w.convert('RGB');t=t.crop((0,0,t.size[0],int(t.size[1]*.69)))
+o=Image.new('RGBA',t.size);tp=t.load();op=o.load()
+for y in range(t.size[1]):
+    for x in range(t.size[0]):
+        rr,g,b=tp[x,y];al=255-min(g,b);op[x,y]=(235,10,30,max(0,min(255,al)))
+toy=fit(o)
+p=R/'data/skin_f1_2026.json';d=json.loads(p.read_text(encoding='utf-8'));d['reb_logos']={'renault':b64(ren),'toyota':b64(toy)}
+p.write_text(json.dumps(d,ensure_ascii=False,indent=1),encoding='utf-8');print('ok',ren.size,toy.size)
