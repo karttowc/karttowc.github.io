@@ -293,13 +293,13 @@
    ]
   },
   "minor_change_per_year": 2,
-  "minor_change_top": 1,
+  "minor_change_top": 2,
   "home": {"mercedes": "top", "ferrari": "top", "redbull": "top", "mclaren": "top", "astonmartin": "mid", "audi": "mid", "alpine": "mid", "racingbulls": "bottom", "haas": "bottom", "williams": "bottom", "cadillac": "bottom"},
   "home_pull": 0.2,
   "major_regulation": {
    "first_year": 2026,
    "swing": 8,
-   "top_swing": 4,
+   "top_swing": 5,
    "top_max_drop": 1,
    "tier_reshuffle_chance": 0.15,
    "cycle_range": [

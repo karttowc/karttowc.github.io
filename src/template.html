@@ -1112,9 +1112,15 @@ function updateMachines(ev){
     const[a,b]=B.machine.tiers[tier],g=ts.slice(i,i+cnt),hi=g[0].machine,lo=g.at(-1).machine;
     g.forEach(t=>{t.tier=tier;t.machine=r1(hi!==lo?a+(t.machine-lo)/(hi-lo)*(b-a):(a+b)/2)});i+=cnt;
   }
+  // a top team falling or a team breaking into the top four is a headline; mid <-> bottom stays a plain line
+  const moves=[];
   S.teams.forEach(t=>{if(t.tier!==before[t.id]){
-    const up=['bottom','mid','top'].indexOf(t.tier)>['bottom','mid','top'].indexOf(before[t.id]);
-    ev.push(`${jo(t.name,'이','가')} ${TIER_LBL[t.tier].replace('팀','권')}으로 ${up?'올라섰어요':'내려갔어요'}.`)}});
+    const up=['bottom','mid','top'].indexOf(t.tier)>['bottom','mid','top'].indexOf(before[t.id]),n=t.name;
+    const h=before[t.id]==='top'?pick([`충격! ${n}, 머신 부진에 중위권 추락`,`${n} 휘청… 상위권에서 중위권으로 추락`,`이변! ${n}, 신차 부진 속 중위권 추락`,`${n}의 몰락? 머신 부진으로 중위권 추락`])
+      :t.tier==='top'?pick([`돌풍! ${n}, 상위권 진입`,`${n}의 반란, 상위권으로 도약`,`이변! ${jo(n,'이','가')} 빅팀들과 어깨 나란히… 상위권 진입`,`${n}, 비시즌 대약진으로 상위권 도약`])
+      :`${jo(n,'이','가')} ${TIER_LBL[t.tier].replace('팀','권')}으로 ${up?'올라섰어요':'내려갔어요'}.`;
+    moves.push({id:t.id,from:before[t.id],to:t.tier,h});ev.push(h)}});
+  return moves;
 }
 
 /* ---------- race simulation ---------- */
@@ -1382,11 +1388,11 @@ function finishSeason(){
   if(S.huntF1){const t=S.teams.find(x=>x.id===S.huntF1.id);if(t)t.machine=r1(t.machine+S.huntF1.d);S.huntF1=null}
   const prevM={};S.teams.forEach(t=>prevM[t.id]=t.machine);
   teamLead(rec,ev);
-  const tierLines=[];updateMachines(tierLines);ev.push(...tierLines);updateAltMachines(ev);Object.keys(ALT_DRV).forEach(altRoster);
+  const tierLines=[],tierMoves=updateMachines(tierLines);ev.push(...tierLines);updateAltMachines(ev);Object.keys(ALT_DRV).forEach(altRoster);
   if(p.series==='F1'&&p.role==='race')p.noSeat=0;else if(p.age>=24)p.noSeat++;
   if(p.series==='F1'&&p.role==='race'&&p.contract)p.contract.left=Math.max(0,p.contract.left-1);
   S.offers=makeOffers(pos,fieldN,h2h);
-  S.news=buildNews(tierLines,prevM);
+  S.news=buildNews(tierLines,prevM);S.news.moves=tierMoves;
   buildNotice();
   S.react=buildReact(rec,{inc:Z.incidents||[],gacha:Z.gacha||null,monacoWin:p.series==='F1'&&me.fp[7]===1,wetN,wetPod,prevCons:prevSum&&prevSum.cons,gap:pos>1&&p.role==='race'?st[0].pts-me.pts:null,champ:st[0]&&st[0].name,injured:ev.some(x=>x.includes('결장')),...(()=>{const f=me.fp.map(v=>v===99?fieldN:v).filter(v=>v>0);if(f.length<8)return{};const h=Math.floor(f.length/2),av=a=>Math.round(a.reduce((x,y)=>x+y,0)/a.length);return{h1:av(f.slice(0,h)),h2:av(f.slice(h))}})(),dnfAvg:(()=>{const f=me.fp.filter(x=>x&&x<99);return f.length?Math.round(f.reduce((a,b)=>a+b,0)/f.length):null})()});
   logSeason(rec);S.logPre=null;S.logPick=null;
@@ -2522,8 +2528,8 @@ const altLogoN=n=>{const T=ALT_TS[n];if(!T)return'';const w=(ALT_TEAMS.WEC||[]).
 /* ---------- news tone: green good, red bad, white neutral ---------- */
 const ME_BAD=['방출됐어요','아카데미 경고','조기 해지','부상으로','리타이어'];
 const ME_GOOD=['챔피언!','우승!','대타 콜업','탈출 조항 발동'];
-const T_GOOD=['올라섰','좋다는 소문','순조','영입 검토','월드 챔피언','컨스트럭터 챔피언십 우승','데뷔 확정'];
-const T_BAD=['내려갔','고전','떨어졌','시트를 잃','은퇴'];
+const T_GOOD=['올라섰','돌풍','도약','상위권 진입','좋다는 소문','순조','영입 검토','월드 챔피언','컨스트럭터 챔피언십 우승','데뷔 확정'];
+const T_BAD=['내려갔','추락','휘청','고전','떨어졌','시트를 잃','은퇴'];
 function tone(s,o={}){
   const p=S.p,my=o.team!==undefined?o.team:(p.series==='F1'?teamDef(p.team.id).name:null);
   if(ME_BAD.some(w=>s.includes(w)))return'tb';
@@ -2854,7 +2860,7 @@ function buildReact(R,x){
   // the first one is the best-liked, like a real thread
   {const L=fans.map(f=>f.lk).sort((a,b)=>b-a);fans.forEach((f,i)=>{f.likes=likeF(L[i]);delete f.lk})}
   S.fanSeen=[...(S.fanSeen||[]),...fans.map(f=>fanH(f.txt))].slice(-500);
-  return{year:R.year,series:R.series,sid:R.lk||R.sid,expert:E,news:buildArticles(R,diff),fans,seen:false};
+  return{year:R.year,series:R.series,sid:R.lk||R.sid,expert:E,news:[...buildArticles(R,diff),...tierArticle()],fans,seen:false};
 }
 function reactTransfer(o){if(!S.react)return;const t=o.teamId?teamDef(o.teamId):null;if(!t)return;
   const prev=S.p.series==='F1'&&S.p.team&&S.p.team.id?teamDef(S.p.team.id):null,up=!prev||['bottom','mid','top'].indexOf(t.tier)>=['bottom','mid','top'].indexOf(prev.tier);
@@ -3682,7 +3688,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.18',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.19-d1',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -3983,6 +3989,19 @@ function teamQuote(R,diff){const p=S.p,id=R.tid;if(R.sid!=='F1'||R.role!=='race'
   return L?{id,q:pick(L)}:null}
 const TP_SH={mercedes:'볼프',redbull:'메키스',ferrari:'바쇠르',mclaren:'스텔라',astonmartin:'뉴이',alpine:'브리아토레',racingbulls:'퍼메인',williams:'볼스',haas:'코마츠',audi:'휘틀리',cadillac:'라우던'};
 const NEWS_SRC=['F1 데일리','패독 인사이드','그리드 리포트','피트레인 뉴스','레이스 위크'];
+// the F1 pecking order in the press: a top team falling, a team breaking into the top four, or my own team moving
+function tierArticle(){const N=S.news,M=N&&N.moves;if(!M||!M.length)return[];
+  const p=S.p,my=p.series==='F1'&&p.team?p.team.id:null,mine=M.find(m=>m.id===my),big=M.filter(m=>m.to==='top'||m.from==='top');
+  if(!big.length&&!mine)return[];
+  const nm=m=>teamDef(m.id).name,dn=m=>['bottom','mid','top'].indexOf(m.to)<['bottom','mid','top'].indexOf(m.from),src=pick(NEWS_SRC),n=p.name;
+  const me=mine?(dn(mine)?` 소속 드라이버 ${n}에게도 쉽지 않은 시즌이 예고됐다.`:` ${n}에게는 기회의 시즌이 될 수 있다.`):'';
+  if(N.major&&big.length>=2){const fall=big.filter(dn).map(nm),rise=big.filter(m=>!dn(m)).map(nm),J=a=>a.join('·');
+    const fs=fall.length?` ${jo(J(fall),'이','가')} 중위권으로 밀려났다.`:'',rs=rise.length?` ${jo(J(rise),'이','가')} 상위권에 올라섰다.`:'';
+    return[{src,t:`[F1] 새 규정 첫해, 판도 대지각변동${fall.length?` … ${fall[0]} 추락`:''}${rise.length?`${fall.length?'·':' … '}${rise[0]} 돌풍`:''}`,b:`${N.year} 시즌 새 규정이 시행되면서 머신 판도가 크게 흔들렸다.${fs}${rs}${me}`}]}
+  const m=mine||big.find(dn)||big[0],t=nm(m);
+  if(m.from==='top')return[{src,t:'[F1] '+m.h,b:`${N.year} 시즌을 앞둔 비시즌 테스트에서 ${jo(t,'이','가')} 상위 팀들의 페이스를 따라가지 못했다. 패독에서는 ${N.major?'새 규정 해석':'개발 방향'}에서 길을 잃었다는 평가가 나온다.${me}`}];
+  if(m.to==='top')return[{src,t:'[F1] '+m.h,b:`${t}의 신차가 비시즌 테스트에서 상위 팀들과 대등한 페이스를 보였다. ${N.major?'새 규정을 가장 잘 읽어 낸 팀이라는 평가다.':'꾸준한 개발이 결실을 맺었다는 평가다.'}${me}`}];
+  return[{src,t:`[F1] ${t}, ${TIER_LBL[m.to].replace('팀','권')}${dn(m)?'으로 하락':'으로 도약'}`,b:`${N.year} 시즌을 앞두고 ${jo(t,'이','가')} ${TIER_LBL[m.to].replace('팀','권')}으로 ${dn(m)?'내려갔다':'올라섰다'}는 평가다.${me}`}]}
 // the season in the press: one story (made-up outlets)
 function buildArticles(R,diff){
   // below F1 only a successful season makes the news (F1 always does, good or bad)
