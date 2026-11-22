@@ -2256,7 +2256,7 @@ const LGD={F4:{s:'F4',n:'이탈리아 F4',d:'F4 중 가장 치열한 무대',f1:
   FRECA:{s:'FRECA',n:'포뮬러 리저널 유럽',d:'F1 아카데미가 가장 많이 지켜보는 무대'},
   EFO:{s:'FRECA',n:'유로포뮬러 오픈',d:'F3와 같은 급의 차 · F3 첫 시즌 적응 없음',races:24,field:16,ai:-1.5,sc:.85,f3:1,
     t:[['모토파크','top'],['반 아메르스포르트','top'],['RP 모터스포츠','mid'],['BVM 레이싱','mid'],['드라이벡스','bottom']],
-    cal:{t:['포르티망','스파','훙가로링','이몰라','레드불링','몬차','무젤로','카탈루냐'],n:3}},
+    cal:{t:['포르티망','스파','헝가로링','이몰라','레드불링','몬차','무젤로','카탈루냐'],n:3}},
   SFL:{s:'FRECA',n:'슈퍼포뮬러 라이츠',d:'일본 무대 · 3위 안이면 슈퍼포뮬러 제안',f1:['astonmartin','haas'],races:18,field:14,ai:-1,sc:.8,sf:1,
     t:[["TOM'S",'top'],['B-Max 레이싱','top'],['토다 레이싱','mid'],['Rn-스포츠','mid'],['PONOS 레이싱','bottom']],
     cal:{t:['스즈카','오토폴리스','스포츠랜드 SUGO','후지','오카야마','모테기'],n:3}},
@@ -4711,17 +4711,29 @@ function rr(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);
 /* ---------- similar real driver (career shape) ---------- */
 // t titles, w wins, p podiums, d debut age, s F1 seasons, m teams; d:null = never raced F1
 const REAL=[
+ {n:'후안 마누엘 판지오',t:5,w:24,p:35,d:38,s:8,m:4,tg:['late','old'],x:'5회 챔피언 · 38세 데뷔 · 4개 팀에서 챔피언'},
  {n:'미하엘 슈마허',t:7,w:91,p:155,d:22,s:19,m:4,tg:['rain','comeback','long'],x:'7회 챔피언 · 91승 · 은퇴 후 복귀까지'},
  {n:'루이스 해밀턴',t:7,w:105,p:202,d:22,s:20,m:3,tg:['rain','long'],x:'7회 챔피언 · 105승 · 데뷔 시즌부터 우승 경쟁'},
  {n:'막스 베르스타펜',t:4,w:71,p:127,d:17,s:11,m:2,tg:['young','rain'],x:'17세 데뷔 · 4회 챔피언'},
  {n:'제바스티안 페텔',t:4,w:53,p:122,d:19,s:16,m:5,tg:['young'],x:'4연속 챔피언 · 최연소 기록 제조기'},
  {n:'알랭 프로스트',t:4,w:51,p:106,d:25,s:13,m:4,tg:['tyre'],x:'4회 챔피언 · "교수"라 불린 운영의 달인'},
  {n:'아일톤 세나',t:3,w:41,p:80,d:24,s:10,m:4,tg:['rain','quali','monaco'],x:'3회 챔피언 · 모나코 6승 · 빗속의 천재'},
+ {n:'재키 스튜어트',t:3,w:27,p:43,d:25,s:9,m:3,tg:['rain','late'],x:'3회 챔피언 · 빗속 뉘르부르크링에서 4분 차 우승'},
+ {n:'넬슨 피케',t:3,w:23,p:60,d:25,s:14,m:6,tg:['late'],x:'3회 챔피언 · 브라밤·윌리엄스에서 정상'},
+ {n:'잭 브라브햄',t:3,w:14,p:31,d:29,s:16,m:3,tg:['late','old'],x:'3회 챔피언 · 자기 이름을 단 팀으로 챔피언'},
  {n:'니키 라우다',t:3,w:25,p:54,d:22,s:13,m:5,tg:['comeback'],x:'3회 챔피언 · 큰 사고를 딛고 복귀'},
  {n:'페르난도 알론소',t:2,w:32,p:106,d:19,s:22,m:6,tg:['long','old','young'],x:'2회 챔피언 · 6개 팀 · 40대에도 현역'},
  {n:'미카 하키넨',t:2,w:20,p:51,d:22,s:11,m:2,tg:[],x:'2회 챔피언 · 맥라렌의 플라잉 핀'},
+ {n:'짐 클라크',t:2,w:25,p:32,d:24,s:9,m:1,tg:['oneTeam','indy','late'],x:'2회 챔피언 · 로터스 한 팀 · 인디 500 우승'},
+ {n:'에메르송 피티팔디',t:2,w:14,p:35,d:23,s:11,m:3,tg:['indy','indycar'],x:'2회 챔피언 · 인디 500 2승 · 인디카 챔피언'},
+ {n:'알베르토 아스카리',t:2,w:13,p:17,d:31,s:6,m:2,tg:['late'],x:'2연속 챔피언 · 9연속 우승'},
  {n:'그레이엄 힐',t:2,w:14,p:36,d:29,s:18,m:5,tg:['monaco','lemans','indy','triple','late','long'],x:'역사상 유일한 트리플 크라운 달성자'},
  {n:'키미 라이코넨',t:1,w:21,p:103,d:21,s:19,m:5,tg:['comeback','long','old'],x:'1회 챔피언 · 랠리 갔다 복귀 · 42세까지 현역'},
+ {n:'마리오 안드레티',t:1,w:12,p:19,d:28,s:14,m:6,tg:['indy','indycar','late','old'],x:'1회 챔피언 · 인디 500 우승 · 인디카 챔피언'},
+ {n:'나이젤 만셀',t:1,w:31,p:59,d:26,s:15,m:4,tg:['indycar','late','comeback'],x:'1회 챔피언 · 바로 이듬해 인디카 챔피언'},
+ {n:'케케 로즈버그',t:1,w:5,p:17,d:29,s:9,m:5,tg:['late'],x:'1982년 단 1승으로 챔피언 · 니코 로즈버그의 아버지'},
+ {n:'제임스 헌트',t:1,w:10,p:23,d:25,s:7,m:3,tg:['late'],x:'1976년 라우다와 1점 차 챔피언 경쟁'},
+ {n:'존 서티스',t:1,w:6,p:24,d:26,s:13,m:6,tg:['late'],x:'오토바이와 F1 모두 월드 챔피언'},
  {n:'젠슨 버튼',t:1,w:15,p:50,d:20,s:17,m:6,tg:['tyre','long'],x:'데뷔 10년 차에 챔피언 · 타이어 관리의 달인'},
  {n:'니코 로즈버그',t:1,w:23,p:57,d:20,s:11,m:2,tg:[],x:'챔피언 등극 직후 바로 은퇴'},
  {n:'란도 노리스',t:1,w:11,p:44,d:19,s:7,m:1,tg:['oneTeam','young'],x:'한 팀에서 성장해 2025 월드 챔피언'},
@@ -4731,6 +4743,13 @@ const REAL=[
  {n:'오스카 피아스트리',t:0,w:9,p:26,d:21,s:3,m:1,tg:['f2champ','f3champ','oneTeam'],x:'F3·F2 연속 챔피언 후 데뷔'},
  {n:'조지 러셀',t:0,w:5,p:24,d:21,s:7,m:2,tg:['f2champ','f3champ','quali'],x:'F3·F2 챔피언 · 하위팀에서 3년 버틴 뒤 상위팀'},
  {n:'카를로스 사인츠',t:0,w:4,p:27,d:20,s:11,m:5,tg:[],x:'여러 팀을 거친 꾸준한 우승자'},
+ {n:'스털링 모스',t:0,w:16,p:24,d:21,s:11,m:6,tg:[],x:'16승 · 4년 연속 2위 · 챔피언 없는 최고의 드라이버'},
+ {n:'데이비드 쿨사드',t:0,w:13,p:62,d:23,s:15,m:3,tg:['monaco'],x:'13승 · 모나코 2승 · 레드불 첫 포디움'},
+ {n:'게르하르트 베르거',t:0,w:10,p:48,d:25,s:14,m:5,tg:['late'],x:'10승 · 페라리·맥라렌 · 세나의 팀메이트'},
+ {n:'질 빌뇌브',t:0,w:6,p:13,d:27,s:6,m:2,tg:['late'],x:'페라리 6승 · 무관의 전설'},
+ {n:'에디 어바인',t:0,w:4,p:26,d:27,s:10,m:3,tg:['late'],x:'1999년 2점 차로 놓친 챔피언 · 페라리 2인자'},
+ {n:'리카르도 파트레세',t:0,w:6,p:37,d:23,s:17,m:6,tg:['long'],x:'17시즌 256경기 롱런 · 6승'},
+ {n:'장 알레지',t:0,w:1,p:32,d:25,s:13,m:6,tg:['late'],x:'201경기 단 1승 · 캐나다 GP 우승'},
  {n:'발테리 보타스',t:0,w:10,p:67,d:24,s:13,m:3,tg:['late'],x:'10승 · 챔피언 팀의 든든한 2인자'},
  {n:'마크 웨버',t:0,w:9,p:42,d:25,s:12,m:4,tg:['late','wec'],x:'늦깎이 우승자 · 은퇴 후 WEC 챔피언'},
  {n:'다니엘 리카르도',t:0,w:8,p:32,d:22,s:14,m:6,tg:['monaco'],x:'늦은 브레이킹 추월왕 · 모나코 우승'},
@@ -4757,8 +4776,16 @@ const REAL=[
  {n:'브렌던 하틀리',t:0,w:0,p:0,d:27,s:2,m:1,tg:['wec','lemans','late'],x:'레드불 주니어 방출 → 르망 우승 → 27세 F1 데뷔'},
  {n:'고바야시 가무이',t:0,w:0,p:1,d:23,s:6,m:2,tg:['wec','lemans'],x:'스즈카 포디움 · 르망 우승 · WEC 챔피언'},
  {n:'알렉스 팔로우',t:0,w:0,p:0,d:null,s:0,m:0,tg:['indy','indycar'],x:'F1 대신 인디카에서 여러 번 챔피언'},
- {n:'안토니우 펠릭스 다 코스타',t:0,w:0,p:0,d:null,s:0,m:0,tg:['fe'],x:'레드불 주니어 출신 · F1 대신 포뮬러E 챔피언'},
- {n:'테오 푸르셰르',t:0,w:0,p:0,d:null,s:0,m:0,tg:['f2champ'],x:'F2 챔피언이 됐지만 F1 시트는 받지 못했어요'}
+ {n:'안토니우 펠릭스 다 코스타',t:0,w:0,p:0,d:null,s:0,m:0,st:4,tg:['fe'],x:'레드불 주니어 출신 · F1 대신 포뮬러E 챔피언'},
+ {n:'테오 푸르셰르',t:0,w:0,p:0,d:null,s:0,m:0,st:4,tg:['f2champ'],x:'F2 챔피언이 됐지만 F1 시트는 받지 못했어요'},
+ {n:'펠리페 드루고비치',t:0,w:0,p:0,d:null,s:0,m:0,st:5,tg:['f2champ'],x:'F2 챔피언 · 애스턴마틴 리저브로 기다린 시간'},
+ {n:'로베르트 시바르츠만',t:0,w:0,p:0,d:null,s:0,m:0,st:5,tg:['f3champ','indycar'],x:'F3 챔피언 · 페라리 리저브 · 인디카로 가서 인디 500 폴'},
+ {n:'캘럼 아일럿',t:0,w:0,p:0,d:null,s:0,m:0,st:5,tg:['wec','indycar'],x:'F2 준우승 · 페라리 리저브 · 인디카와 WEC로'},
+ {n:'데니스 하우거',t:0,w:0,p:0,d:null,s:0,m:0,st:4,tg:['f3champ'],x:'F3 챔피언 · 레드불 주니어 · F2 뒤 미국으로'},
+ {n:'프레데리크 베스티',t:0,w:0,p:0,d:null,s:0,m:0,st:5,tg:[],x:'F2 준우승 · 메르세데스 리저브 · FP1 출전'},
+ {n:'루카 기오토',t:0,w:0,p:0,d:null,s:0,m:0,st:4,tg:[],x:'F2 5시즌 · 여러 번 우승했지만 F1 시트는 오지 않음'},
+ {n:'제이미 채드윅',t:0,w:0,p:0,d:null,s:0,m:0,st:2,tg:[],x:'W 시리즈 3연속 챔피언 · 윌리엄스 개발 드라이버'},
+ {n:'마이크 윌슨',t:0,w:0,p:0,d:null,s:0,m:0,st:0,tg:[],x:'카트 월드 챔피언 6회 · F1에는 가지 않았어요'}
 ];
 const TAG_KO={rain:'빗속에 강함',quali:'퀄리파잉형',tyre:'타이어 관리형',monaco:'모나코 우승',lemans:'르망 우승',indy:'인디 500 우승',triple:'트리플 크라운',f2champ:'F2 챔피언',f3champ:'F3 챔피언',fe:'포뮬러E 경험',indycar:'인디카 경험',wec:'WEC 경험',sf:'슈퍼포뮬러 경험',long:'롱런 커리어',old:'40대 현역',young:'10대 데뷔',late:'늦은 데뷔',oneTeam:'원클럽맨',comeback:'F1 복귀'};
 function myShape(){const p=S.p,T=p.tot,H=p.history,f1=H.filter(h=>h.sid==='F1'&&h.role==='race'&&h.starts>0);
@@ -4770,19 +4797,27 @@ function myShape(){const p=S.p,T=p.tot,H=p.history,f1=H.filter(h=>h.sid==='F1'&&
   const d=p.debutYear?p.debutYear-S.startYear+B.driver.start_age:null,s=f1.length,m=Object.keys(p.f1Teams).length;
   if(s>=17)tg.push('long');if(p.age>=40&&s)tg.push('old');if(d!=null&&d<=19)tg.push('young');if(d!=null&&d>=24)tg.push('late');if(m===1&&s>=5)tg.push('oneTeam');
   if(yrs.some((y,i)=>i&&y-yrs[i-1]>1))tg.push('comeback');
-  return{t:T.titles,w:T.wins,p:T.podiums,d,s,m,tg}}
+  const STG={KART:0,F4:1,F4UK:1,F4ES:1,FRECA:2,EFO:2,F3:3,SFL:3,F2:4};
+  const st=Math.max(0,...H.map(h=>h.sid==='F1'?(h.role==='race'?6:5):STG[h.lk]??0));
+  return{t:T.titles,w:T.wins,p:T.podiums,d,s,m,tg,st}}
+const SIM_TIE=8,STG_KO=['카트에서 마무리','F4까지','지역 포뮬러까지','F3까지','F2까지','F1 리저브까지'];
 function similarDriver(){
   const me=myShape(),tc=x=>x>=6?4:x>=4?3:x>=2?2:x,wc=x=>x>=61?5:x>=31?4:x>=13?3:x>=4?2:x>=1?1:0,pc=x=>x>=121?5:x>=61?4:x>=26?3:x>=6?2:x>=1?1:0;
+  const SIG=['fe','indycar','wec','sf','lemans','indy','monaco','triple','comeback'];
   const sc=REAL.map(r=>{const sh=r.tg.filter(x=>me.tg.includes(x));
     let v=7*Math.abs(tc(me.t)-tc(r.t))+3*Math.abs(wc(me.w)-wc(r.w))+2*Math.abs(pc(me.p)-pc(r.p))+0.8*Math.min(Math.abs(me.m-r.m),4)+0.3*Math.min(Math.abs(me.s-r.s),15);
     if((me.d==null)!==(r.d==null))v+=60;else if(me.d!=null)v+=0.7*Math.min(Math.abs(me.d-r.d),8);
-    const SIG=['fe','indycar','wec','sf','lemans','indy','monaco','triple','comeback'];v+=2*r.tg.filter(x=>SIG.includes(x)&&!me.tg.includes(x)).length;
-    v-=2.5*sh.length;return{r,v,sh}}).sort((a,b)=>a.v-b.v);
-  const b=sc[0],r=b.r,why=[];
+    v+=2*r.tg.filter(x=>SIG.includes(x)&&!me.tg.includes(x)).length;
+    if(me.d==null&&r.d==null){v+=4*r.tg.filter(x=>SIG.includes(x)&&!me.tg.includes(x)).length;if(r.st!=null)v+=4*Math.abs(Math.min(me.st,5)-r.st);v+=10*r.tg.filter(x=>(x==='f2champ'||x==='f3champ')&&!me.tg.includes(x)).length}
+    v-=sh.reduce((a,x)=>a+(x==='long'||x==='old'?1:2.5),0);return{r,v,sh}}).sort((a,b)=>a.v-b.v);
+  // near-ties: pick one per career (same pick every time for this career)
+  const f=sc[0].r,near=sc.filter(x=>x.v<=sc[0].v+SIM_TIE&&tc(x.r.t)===tc(f.t)&&(x.r.d==null)===(f.d==null)&&x.r.st===f.st&&(x===sc[0]||x.r.tg.every(t=>t==='comeback'||!SIG.includes(t)||me.tg.includes(t)))),h=[...String(S.cid||S.p.name||'')].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
+  const b=near[h%near.length],r=b.r,why=[];
   if(tc(me.t)===tc(r.t))why.push(me.t?`챔피언 ${me.t}회`:'무관');
   if(me.d!=null&&r.d!=null&&Math.abs(me.d-r.d)<=1)why.push(`${me.d}세 데뷔`);
   if(me.s&&Math.abs(me.s-r.s)<=2)why.push(`F1 ${me.s}시즌`);
   if(me.m&&me.m===r.m)why.push(`${me.m}개 팀`);
+  if(me.d==null&&r.st!=null&&Math.min(me.st,5)===r.st)why.push(STG_KO[r.st]);
   b.sh.forEach(x=>why.push(TAG_KO[x]));
   return{r,why:why.slice(0,5)}}
 function wa(w){const c=w.charCodeAt(w.length-1)-0xAC00;return c>=0&&c<11172&&c%28?'과':'와'}
@@ -5125,7 +5160,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.19-d1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.19-d3',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
