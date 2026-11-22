@@ -1,4 +1,4 @@
-"""Rebrand team logos (v1.7.20): data/logos_src/renault.jpg, toyota.webp, hyundai.jpg -> skin reb_logos {renault, toyota, hyundai} (128px, transparent).
+"""Rebrand team logos (v1.7.20): data/logos_src/renault.jpg, toyota.webp, hyundai.jpg, bmw.jpg, porsche.jpg -> skin reb_logos {renault, toyota, hyundai, bmw, porsche} (128px, transparent).
 Usage: python3 tools/reb_logos.py"""
 import json,base64,io,pathlib
 from PIL import Image,ImageDraw
@@ -33,5 +33,15 @@ for y in range(h.size[1]):
     for x in range(h.size[0]):
         rr,g,b=hp[x,y];al=255-min(rr,g);op[x,y]=(30,80,205,max(0,min(255,al)))
 hyu=fit(o)
-p=R/'data/skin_f1_2026.json';d=json.loads(p.read_text(encoding='utf-8'));d['reb_logos']={'renault':b64(ren),'toyota':b64(toy),'hyundai':b64(hyu)}
+# BMW roundel, Porsche crest: white page clears by flooding from the corners (their own whites sit inside an outline)
+def page_clear(f,th=30):
+    im=Image.open(R/'data/logos_src'/f).convert('RGB');W,H=im.size;g=im.copy()
+    for q in [(0,0),(W-1,0),(0,H-1),(W-1,H-1)]:ImageDraw.floodfill(g,q,(255,0,255),thresh=th)
+    gp=g.load();a=im.convert('RGBA');ap=a.load()
+    for y in range(H):
+        for x in range(W):
+            if gp[x,y]==(255,0,255):ap[x,y]=(255,255,255,0)
+    return fit(a)
+bmw=page_clear('bmw.jpg');por=page_clear('porsche.jpg')
+p=R/'data/skin_f1_2026.json';d=json.loads(p.read_text(encoding='utf-8'));d['reb_logos']={'renault':b64(ren),'toyota':b64(toy),'hyundai':b64(hyu),'bmw':b64(bmw),'porsche':b64(por)}
 p.write_text(json.dumps(d,ensure_ascii=False,indent=1),encoding='utf-8');print('ok',ren.size,toy.size)
