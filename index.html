@@ -709,7 +709,7 @@ html,body{margin:0}
 .dhero .dhl{display:flex;align-items:center;gap:12px}.dhero .helmet{flex:none}
 .dhero .hn{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.dhero .hn b{font-size:18px}
 .dhero .hn span{font-size:13px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dhero .hn img{vertical-align:-2px}
-.dhero .hhel .helmet{background:none}.dhero .hhel{flex:none;margin:0 -6px}.dhero .hn span{white-space:normal;line-height:1.35}
+.dhero .hhel .helmet{background:none}.dhero .hhel{flex:none;margin:0 -6px}.dhero .hn span{white-space:normal;line-height:1.35}.dhero .hn .htm{font-style:normal;display:inline-block;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
 .flh{display:block;flex:none;line-height:0;position:relative;z-index:1;filter:drop-shadow(0 4px 4px rgba(0,0,0,.55))}.flh .himg{width:100%}
 /* 바닥 그림자(v1.8.3-d2): 몸과 헬멧 아래 납작한 타원 하나 */
 .gsh{position:absolute;left:-5%;bottom:-8px;width:110%;height:20px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.7),rgba(0,0,0,0));pointer-events:none;z-index:0}
@@ -4810,7 +4810,7 @@ function reactTab(){
 function gauges(c=''){const p=S.p;return`<div class="hg ${c}"><div><span>인기<button class="ibtn" type="button" data-sheet="st_fans" aria-label="인기 설명"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="currentColor" opacity=".18"/><circle cx="10" cy="10" r="8.25" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="6.2" r="1.25" fill="currentColor"/><rect x="9" y="8.6" width="2" height="6" rx="1" fill="currentColor"/></svg></button></span><b class="num">${p.fans}</b><div class="bar"><i class="fan" style="width:${p.fans}%"></i></div></div><div><span>평판<button class="ibtn" type="button" data-sheet="st_rep" aria-label="평판 설명"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="currentColor" opacity=".18"/><circle cx="10" cy="10" r="8.25" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="6.2" r="1.25" fill="currentColor"/><rect x="9" y="8.6" width="2" height="6" rx="1" fill="currentColor"/></svg></button></span><b class="num">${p.rep}</b><div class="bar"><i class="rep" style="width:${p.rep}%"></i></div></div><div><span>체력<button class="ibtn" type="button" data-sheet="st_morale" aria-label="체력 설명">${ISVG}</button></span><b class="num">${p.morale}</b><div class="bar"><i class="mor" style="width:${p.morale}%;${p.morale<40?'background:var(--bad)':''}"></i></div></div></div>`}
 const isProsp=()=>{const PR=B.career.prospect,p=S.p;return!!(PR&&p&&!p.retired&&p.age<=PR.max_age&&p.series==='F1')};
 function homeHero(){const p=S.p,c=currentLine();
-  return`<section class="dhero"><div class="dhl">${avatar(pAv(p),p.helmet,52)}<div class="hn"><b>${esc(p.name)}${c.teamId&&c.role!=='reserve'&&isLegend(c.teamId)?'<span class="chip gold legb">'+esc(c.team)+' 레전드</span>':''}</b><span>${p.age}세${isProsp()?' 유망주':''} · ${sLogo(c.sid||p.series,13)}${c.teamId?logo(c.teamId,18):''}${esc(c.team)}${c.role==='reserve'?' 리저브':''}</span></div>
+  return`<section class="dhero"><div class="dhl">${avatar(pAv(p),p.helmet,52)}<div class="hn"><b>${esc(p.name)}${c.teamId&&c.role!=='reserve'&&isLegend(c.teamId)?'<span class="chip gold legb">'+esc(c.team)+' 레전드</span>':''}</b><span>${p.age}세${isProsp()?' 유망주':''} · <i class="htm">${sLogo(c.sid||p.series,13)}${c.teamId?logo(c.teamId,18):''}${esc(c.team)}${c.role==='reserve'?' 리저브':''}</i></span></div>
     <div class="hhel">${helmet(p.helmet,null,40)}</div><div class="ho"><b class="num">${ovrOf(p.stats)}</b><span>OVR</span></div></div>
     ${heroLadder()}${gauges()}</section>`}
 // where we are on the road to F1, always on the home card (junior series and F1 only)
@@ -5408,7 +5408,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.3',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.4-d1',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
