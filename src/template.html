@@ -339,9 +339,9 @@ label.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--
 .mgrp{color:var(--muted);font-size:13px;font-weight:700;margin:10px 0 -4px 4px}
 .mgrp:empty{margin:6px 0 0}
 .btn.mtog{display:flex;align-items:center;justify-content:space-between;text-align:left;padding:16px 18px}
-.sw{position:relative;width:46px;height:28px;border-radius:14px;background:#4A4E57;flex:none;transition:background .15s}
-.sw::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .15s}
-.sw.on{background:var(--good)}.sw.on::after{transform:translateX(18px)}
+.tgl{position:relative;width:46px;height:28px;border-radius:14px;background:#4A4E57;flex:none;transition:background .15s}
+.tgl::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .15s}
+.tgl.on{background:var(--good)}.tgl.on::after{transform:translateX(18px)}
 .mlink{background:none;border:0;padding:2px 4px;color:var(--bad);font-size:14px;font-weight:600;align-self:flex-start;text-decoration:underline;text-underline-offset:3px}
 .sheet .stick{position:sticky;bottom:calc(-24px - env(safe-area-inset-bottom,0px));margin-bottom:calc(-24px - env(safe-area-inset-bottom,0px));padding:10px 0 calc(24px + env(safe-area-inset-bottom,0px));background:var(--surface);box-shadow:0 -14px 14px var(--surface)}
 .big{font-family:var(--num);font-weight:700;font-size:34px;line-height:1}
@@ -3723,7 +3723,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.19-d3',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.19-d4',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -4501,7 +4501,7 @@ function menuSheet(){
     ${sheet==='retire'?yn('지금 은퇴하고 커리어 카드를 받을까요? 되돌릴 수 없어요.','cancelNew','confirmRetire','은퇴하기'):S&&S.phase!=='progress'?'<button class="btn ghost" type="button" id="askRetire">은퇴하기</button>':''}
     <button class="btn ghost" type="button" id="fbOpen">의견 보내기</button>
     <div class="mgrp">플레이 기록</div>
-    <button class="btn ghost mtog" type="button" id="logToggle" aria-pressed="${!logOff()}"><span>익명 플레이 기록 보내기</span><i class="sw${logOff()?'':' on'}"></i></button>
+    <button class="btn ghost mtog" type="button" id="logToggle" aria-pressed="${!logOff()}"><span>익명 플레이 기록 보내기</span><i class="tgl${logOff()?'':' on'}"></i></button>
     ${logBtn()}
     <p class="muted" style="margin:0;font-size:12px">시즌 결과·선택 같은 플레이 기록을 이름 없이 익명으로 모아 밸런스 조정에 써요.<br>내 기록 ID <b class="num" style="user-select:all">${esc(logUid())}</b></p>
     ${sheet==='logdel'?yn('이 기기에서 보낸 플레이 기록과 의견을 모두 지울까요? 되돌릴 수 없어요. 랭킹 기록은 랭킹의 \'내 기록\'에서 따로 지워요.','cancelNew','logDelGo',logDelBusy?'지우는 중…':'지우기',1):
