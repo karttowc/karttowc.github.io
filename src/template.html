@@ -803,6 +803,11 @@ const B = __BALANCE__;
 const K = __SKIN__;
 // logo aliases in the skin ('=CODE' another alt logo, '=f1:id' an F1 team logo): DTM teams wear their car brand's mark
 for(const[k,v]of Object.entries(K.alt_logos||{}))if(typeof v==='string'&&v[0]==='=')K.alt_logos[k]=v.startsWith('=f1:')?(K.teams.find(t=>t.id===v.slice(4))||{}).logo:K.alt_logos[v.slice(1)];
+// team rebrands (v1.7.20): at a big regulation change a team can be taken over and renamed (power, contracts and interest stay).
+// logo: K.reb_logos[key] once Chanwoo's image is in the skin, else a stand-in (Toyota: the WEC mark) or the short-code tile
+const REBRAND={haas:{key:'toyota',name:'토요타',short:'TOY',color:'#EB0A1E',en:'Toyota',col:['#F3F3F1','#EB0A1E'],logo:'TOY'},
+  alpine:{key:'renault',name:'르노',short:'REN',color:'#FFD800',en:'Renault',col:['#FFD800','#1E1F23'],ac:'르노 스포츠 아카데미'}};
+const K_BASE={t:K.teams.map(t=>({name:t.name,short:t.short,color:t.color,logo:t.logo})),a:K.academies.map(a=>a.name)};
 
 /* ---------- utils ---------- */
 const ORDER=['KART','F4','FRECA','F3','F2'];
@@ -1091,6 +1096,7 @@ function rivalLine(){const rv=S.rival;if(!rv)return'';
   if(rv.st!=='on')return`<div class="rvline out"><span class="rvb">라이벌</span><b>${esc(rv.name)}</b> · 커리어 종료 <span>최종 맞대결 ${rv.h2h[0]}:${rv.h2h[1]}</span></div>`;
   return`<div class="rvline"><span class="rvb">라이벌</span><b>${esc(rv.name)}</b> · ${rv.f1&&rv.team?logo(rv.team,20)+esc(teamDef(rv.team).name):esc(rivalSeriesName(rv))} · OVR ${ovrOf(rv.stats)} <span>맞대결 ${rv.h2h[0]}:${rv.h2h[1]}</span></div>`}
 function newGame(o){
+  S=null;applyReb();
   const pot=Math.round(clamp(B.driver.potential.mean+gauss()*B.driver.potential.sd,B.driver.potential.min,B.driver.potential.max));
   S={v:1,startYear:K.start_year,year:K.start_year,phase:'ready',train:'focus',prog:STYLE_PROG[o.style]||'craft',progYear:K.start_year,progFree:'first',
     teams:K.teams.map(t=>({id:t.id,name:t.name,short:t.short,color:t.color,machine:t.machine_2026,tier:t.tier})),
@@ -1408,11 +1414,11 @@ function finishSeason(){
   if(S.huntF1){const t=S.teams.find(x=>x.id===S.huntF1.id);if(t)t.machine=r1(t.machine+S.huntF1.d);S.huntF1=null}
   const prevM={};S.teams.forEach(t=>prevM[t.id]=t.machine);
   teamLead(rec,ev);
-  const tierLines=[],tierMoves=updateMachines(tierLines);ev.push(...tierLines);updateAltMachines(ev);Object.keys(ALT_DRV).forEach(altRoster);
+  const tierLines=[],tierMoves=updateMachines(tierLines),reb=S.year===(S.majors||[]).at(-1)?rebrandTeams(ev):null;ev.push(...tierLines);updateAltMachines(ev);Object.keys(ALT_DRV).forEach(altRoster);
   if(p.series==='F1'&&p.role==='race')p.noSeat=0;else if(p.age>=24)p.noSeat++;
   if(p.series==='F1'&&p.role==='race'&&p.contract)p.contract.left=Math.max(0,p.contract.left-1);
   S.offers=makeOffers(pos,fieldN,h2h);
-  S.news=buildNews(tierLines,prevM);S.news.moves=tierMoves;
+  S.news=buildNews(tierLines,prevM);S.news.moves=tierMoves;if(reb){S.news.heads.splice(2,0,{t:reb.h,c:''});S.news.reb=reb}
   buildNotice();
   S.react=buildReact(rec,{inc:Z.incidents||[],gacha:Z.gacha||null,monacoWin:p.series==='F1'&&me.fp[7]===1,wetN,wetPod,prevCons:prevSum&&prevSum.cons,gap:pos>1&&p.role==='race'?st[0].pts-me.pts:null,champ:st[0]&&st[0].name,injured:ev.some(x=>x.includes('결장')),...(()=>{const f=me.fp.map(v=>v===99?fieldN:v).filter(v=>v>0);if(f.length<8)return{};const h=Math.floor(f.length/2),av=a=>Math.round(a.reduce((x,y)=>x+y,0)/a.length);return{h1:av(f.slice(0,h)),h2:av(f.slice(h))}})(),dnfAvg:(()=>{const f=me.fp.filter(x=>x&&x<99);return f.length?Math.round(f.reduce((a,b)=>a+b,0)/f.length):null})()});
   logSeason(rec);S.logPre=null;S.logPick=null;
@@ -3874,7 +3880,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.20-d9',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.20-d10',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -4119,6 +4125,20 @@ const JR_LBL={KART:'KART',F4:'F4',FRECA:'FR',F3:'F3',F2:'F2'};
 function jrTrophy(s,w){if(TROPHY[s]&&JR_TR[s])return`<img src="${TROPHY[s]}" alt="" style="height:${Math.round(w*1.2*JR_TR[s]/.4)}px;width:auto;display:block;margin:0 auto">`;return`<span class="jtro" style="width:${w}px">${px(TROPHY_MAP,TROPHY_PAL,w)}<b style="font-size:${Math.round(w*(JR_LBL[s]&&JR_LBL[s].length>2?.15:.2))}px">${JR_LBL[s]||s}</b></span>`}
 /* ---------- new-contract signing scene ---------- */
 const TEAM_EN={mercedes:'Mercedes',redbull:'Red Bull',ferrari:'Ferrari',mclaren:'McLaren',astonmartin:'Aston Martin',alpine:'Alpine',racingbulls:'Racing Bulls',williams:'Williams',haas:'Haas',audi:'Audi',cadillac:'Cadillac'};
+const EN_BASE={...TEAM_EN},COL_BASE={...TEAM_COL};
+// put the static team data (K) back to 2026 and lay this career's rebrands (S.reb {teamId: year}) on top; S.teams keeps its own copy
+function applyReb(){K.teams.forEach((t,i)=>Object.assign(t,K_BASE.t[i]));K.academies.forEach((a,i)=>a.name=K_BASE.a[i]);Object.assign(TEAM_EN,EN_BASE);Object.assign(TEAM_COL,COL_BASE);
+  for(const id of Object.keys(S&&S.reb||{})){const R=REBRAND[id],t=kTeam(id);if(!R||!t)continue;
+    Object.assign(t,{name:R.name,short:R.short,color:R.color,logo:(K.reb_logos||{})[R.key]||(R.logo&&(K.alt_logos||{})[R.logo])||null});
+    TEAM_EN[id]=R.en;TEAM_COL[id]=R.col;if(R.ac){const a=K.academies.find(x=>x.id===id);if(a)a.name=R.ac}}
+  K.teams.forEach(k=>{if(k.logo){if(!LOGO_IMG[k.id]||LOGO_IMG[k.id].src!==k.logo){const i=new Image();i.src=k.logo;LOGO_IMG[k.id]=i}}else delete LOGO_IMG[k.id]})}
+// big regulation year: at most one team changes hands (rebrand.chance each), from rebrand.min_year on
+function rebrandTeams(ev){const RB=B.machine.rebrand;if(!RB)return null;S.reb??={};
+  const c=Object.keys(REBRAND).filter(id=>!S.reb[id]&&S.year>=RB.min_year&&Math.random()<RB.chance);if(!c.length)return null;
+  const id=pick(c),R=REBRAND[id],t=S.teams.find(x=>x.id===id),old=t.name;S.reb[id]=S.year;
+  Object.assign(t,{name:R.name,short:R.short,color:R.color});applyReb();
+  const h=pick([`${old}, ${R.name} 팀으로 새 출발! ${S.year} 시즌부터 '${R.name}' 이름으로 달려요`,`${R.name}, ${old} 인수… ${S.year} 시즌부터 ${R.name} 팀으로`]);
+  ev.push(h);return{id,old,name:R.name,h}}
 const SER_EN={KART:'Karting',F4:'Formula 4',FRECA:'Formula Regional',F3:'FIA Formula 3',F2:'FIA Formula 2',WEC:'WEC Hypercar',INDY:'IndyCar',FE:'Formula E',SF:'Super Formula',GT3:'DTM'};
 function isNewContract(o){const p=S.p;
   if(o.kind==='f1')return true;
@@ -4383,7 +4403,8 @@ function showDecider(D,done){
 }
 function enterGame(){title=false;titleAsk=false;render();window.scrollTo(0,0)}
 const root=document.getElementById('root'),tabsEl=document.getElementById('tabs');
-function render(){
+let rebSig='0';
+function render(){{const rs=JSON.stringify(S&&S.reb||0);if(rs!==rebSig){rebSig=rs;applyReb()}}
   root.classList.toggle('bare',!!title);
   if(S&&S.p&&S.p.retired&&!arcS){hofAdd();arcAdd()}
   if(title){tabsEl.hidden=true;root.innerHTML=titleView()+(['fb','dev','notes','thx','prob'].includes(sheet)?sheetView():'');return}
@@ -4795,7 +4816,7 @@ document.getElementById('importFile').addEventListener('change',e=>{
   rd.readAsText(f);e.target.value='';
 });
 
-S=load();if(S){const p=S.p;if(S.train!=='rest')S.train='focus';
+S=load();if(S){const p=S.p;applyReb();if(S.train!=='rest')S.train='focus';
   // saves from before training programs: take the closest program, open to change this preseason
   if(!S.prog){const g=[...PROGS].sort((a,b)=>b.st.filter(k=>p.focus.includes(k)).length-a.st.filter(k=>p.focus.includes(k)).length)[0];setProg(g.id);S.progYear=S.year-PROG_LOCK;S.progFree=null}
   avatarCanvas(pAv(p),p.helmet,true);if(S.jr===undefined){if(S.year<=K.start_year+1&&!p.retired)initJrPool();else S.jr=[]}S.f1.forEach(d=>{if(d.name==='이삭 하자르')d.name='아이작 하자르'});if(S.rival&&!S.rival.nm2){const nn=genName(S.rival.nat);S.f1.forEach(d=>{if(d.id==='rival')d.name=nn});S.rival.name=nn;S.rival.nm2=1}
