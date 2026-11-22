@@ -240,7 +240,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .hzbtn .himg{width:28px;height:28px;object-fit:contain;image-rendering:pixelated}
 .hzdim{position:relative}.hzdim .hzin{opacity:.25;pointer-events:none;filter:grayscale(.4)}
 .hzdim .hzmsg{position:absolute;inset:4px 0;display:grid;place-items:center;border-radius:14px;background:rgba(14,15,18,.55);border:1px solid var(--line);font-weight:700;font-size:16px}
-.hzsym{position:absolute;left:0;top:0;z-index:2;display:flex;align-items:center;gap:6px;border:0;border-radius:12px;background:rgba(27,29,34,.82);color:var(--fg);font-size:12px;font-weight:700;padding:5px 6px 5px 10px}
+.hzhr{display:flex;align-items:center;gap:8px}.hzsym{display:flex;align-items:center;gap:6px;border:0;border-radius:12px;background:var(--surface-2);color:var(--fg);font-size:12px;font-weight:700;padding:5px 6px 5px 10px}
 .hzsym .tgl{transform:scale(.8);transform-origin:right center}
 .hzloupe{position:fixed;z-index:31;width:132px;height:132px;border-radius:50%;border:3px solid #fff;box-shadow:0 6px 20px rgba(0,0,0,.6);pointer-events:none}
 .hzbg{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;padding:12px}
@@ -3044,8 +3044,8 @@ function hzUI(){const box=document.querySelector('#hzBg .hzbox');if(!box||!HZ)re
   /* 다시 그려도 옆으로 넘긴 줄(무늬·로고) 위치는 그대로(v1.8.1-d7) */
   const sx={};['.hzpre','.hzlogos'].forEach(s=>{const e=box.querySelector(s);if(e)sx[s]=e.scrollLeft});const sy=box.scrollTop;const Z=HZ,sl=hzSlots(),vis=Z.h.vis;
   const sw=(k,sel)=>`<div class="hzsw">${HCOL.map((c,i)=>`<button class="sw" type="button" data-${k}="${i+1}" aria-label="${c}" aria-pressed="${sel===i+1}" style="background:${c}"></button>`).join('')}</div>`;
-  box.innerHTML=`<div class="hzhead"><h3 class="h3">헬멧 커스텀</h3><button class="iconbtn" type="button" data-hz="cancel" aria-label="닫기">✕</button></div>
-    <div class="hzpad"><button type="button" class="hzsym" data-hz="sym" aria-pressed="${!!Z.sym}"><span>좌우 대칭</span><i class="tgl${Z.sym?' on':''}"></i></button><canvas class="hzimg" width="${HZP.w*HZ_HI}" height="${HZP.h*HZ_HI}"></canvas><canvas class="hzgrid" width="${HZN*20}" height="${Math.round(HZN*20*HZP.h/HZP.w)}"></canvas></div>
+  box.innerHTML=`<div class="hzhead"><h3 class="h3">헬멧 커스텀</h3><div class="hzhr"><button type="button" class="hzsym" data-hz="sym" aria-pressed="${!!Z.sym}"><span>좌우 대칭</span><i class="tgl${Z.sym?' on':''}"></i></button><button class="iconbtn" type="button" data-hz="cancel" aria-label="닫기">✕</button></div></div>
+    <div class="hzpad"><canvas class="hzimg" width="${HZP.w*HZ_HI}" height="${HZP.h*HZ_HI}"></canvas><canvas class="hzgrid" width="${HZN*20}" height="${Math.round(HZN*20*HZP.h/HZP.w)}"></canvas></div>
     <div class="hztools${Z.lg?' hz5':''}">${HZ_TOOLS.concat(Z.lg?[['logo','로고 옮기기']]:[]).map(([k,l])=>`<button type="button" data-hzt="${k}" aria-pressed="${Z.tool===k}">${l}</button>`).join('')}</div>
     <div class="hztools hzsub"><button type="button" data-hz="undo" aria-label="뒤로 가기"${Z.undo.length?'':' disabled'}>←</button><button type="button" data-hz="redo" aria-label="앞으로 가기"${Z.redo.length?'':' disabled'}>→</button>${[1,2,3].map(n=>`<button type="button" class="hzbs" data-hzbs="${n}" aria-label="굵기 ${n}칸" aria-pressed="${Z.bs===n}"><i style="width:${3+n*4}px;height:${3+n*4}px"></i></button>`).join('')}<button type="button" data-hz="clear">전체 지우기</button></div>
     <div class="hzlgh"><div class="lbl">로고 <span class="muted">(끌어서 위치 조정)</span></div>${Z.lg?`<div class="hzsz"><span class="muted">크기</span><button type="button" data-hzz="-1" aria-label="로고 작게"${Z.ls<=HZ_LGMIN+1e-6?' disabled':''}>−</button><button type="button" data-hzz="1" aria-label="로고 크게"${Z.ls>=HZ_LGMAX-1e-6?' disabled':''}>+</button></div>`:''}</div><div class="hzlogos"><button type="button" data-hzg="" aria-pressed="${!Z.lg}">없음</button><button type="button" data-hzg="cur" aria-pressed="${Z.lg==='cur'}">지금 팀</button>${K.teams.filter(t=>t.logo).map(t=>`<button type="button" data-hzg="${t.id}" aria-pressed="${Z.lg===t.id}" aria-label="${esc(t.name)}"><img src="${t.logo}" alt=""></button>`).join('')}</div>
@@ -3952,7 +3952,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.2-d2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.2-d3',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
