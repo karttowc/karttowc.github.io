@@ -2986,7 +2986,7 @@ const keepDz=(n,o)=>{o=o&&typeof o==='object'?o:{};if(o.dz!=null){n.dz=o.dz;if(o
 /* '직접 고르기' 제목 줄 + 헬멧 커스텀 버튼 */
 function hedHead(h){return`<div class="hedhead"><div class="lbl">직접 고르기</div><button class="hzbtn" type="button" id="hzOpen">${helmetImg(h)}<span>헬멧 커스텀</span></button></div>`}
 /* ===== 헬멧 커스텀(v1.7.20-d1): 32x32 칸 도트. h.dz = 1024글자('.' 안 칠함, 'a'+HCOL 번호), h.dzOff = 끔(그림은 남김).
-   칠한 칸은 헬멧 메인색(초록)·줄무늬(자홍) 자리에만 보이고, 원래 그림의 명암은 그대로. 안 칠한 칸 = 헬멧 메인색. 랭킹엔 안 올림(rkHelm) */
+   칠한 칸은 헬멧 메인색(초록)·줄무늬(자홍) 자리에만 보이고, 원래 그림의 명암은 그대로. 안 칠한 칸 = 헬멧 메인색. 랭킹엔 v1.8.6-d4부터 같이 올림(rkHelm·rkDz) */
 const HZN=48,HZ_SLOTS='k2wc-hz-slots';
 let HZP=null,HCOL_HSL=null;
 /* 원본 헬멧 픽셀 분류(한 번만): cls 1 메인(초록) 2 줄무늬(자홍), l 밝기, cm 칸마다 칠할 수 있는 자리가 있는지 */
@@ -3023,7 +3023,10 @@ function hzCanvas(h){const k='z'+h.base+h.vis+h.dz+(h.lg?h.lg+(kTeam(h.lg)||{}).
   const c=document.createElement('canvas'),K=h.lg?HZ_HI:1;c.width=P.w*K;c.height=P.h*K;const g=c.getContext('2d');if(!hzPaintK(g,h,hzGrid(h.dz),K))return null;
   if(h.lg&&!hzLogo(g,h.lg,h.lx,h.ly,h.ls))return null;
   return HC[k]={canvas:c,url:c.toDataURL(),w:c.width,h:c.height}}
-const rkHelm=h=>{if(!h||typeof h!=='object')return h;const{dz,dzOff,lg,lx,ly,ls,...r}=h;return r};
+/* 랭킹에 올리는 헬멧(v1.8.6-d4): 커스텀이 켜져 있으면 그림·로고도 같이. dz는 '~'+같은 글자 묶음(글자+개수)으로 줄여 올리고 rkDz로 풂 */
+const rkHelm=h=>{if(!h||typeof h!=='object')return h;const{dz,dzOff,lg,lx,ly,ls,...r}=h,H=helmOf(h);if(!H.dz||!/[^.]/.test(H.dz))return r;
+  return{...r,dz:'~'+H.dz.replace(/(.)\1*/g,m=>m[0]+(m.length>1?m.length:'')),...(H.lg?{lg:h.lg,lx:H.lx,ly:H.ly,ls:H.ls}:{})}};
+const rkDz=h=>h&&typeof h==='object'&&typeof h.dz==='string'&&h.dz[0]==='~'?{...h,dz:h.dz.slice(1).replace(/([^0-9])(\d*)/g,(m,c,n)=>c.repeat(+n||1))}:h;
 /* 로고를 헬멧 위(헬멧 픽셀에만, source-atop)에 얹음. 크기 고정(그림 너비의 24%). 그림이 아직 안 왔으면 false */
 const HZ_LGW=.16,HZ_LGMIN=.12,HZ_LGMAX=.48,LGIMG={};
 function hzLogo(g,id,lx,ly,ls){const t=kTeam(id);if(!t||!t.logo)return true;let im=LGIMG[t.logo];
@@ -3964,7 +3967,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.6-d3',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.6-d4',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -4062,7 +4065,8 @@ function rkPush(){if(!rkNet())return;rkDelFlush();
     const dk=typeof crypto!=='undefined'&&crypto.subtle?rkDk(h.cid):null,
       body={cid:h.cid,name:h.name,num:h.num,nat:h.nat,helmet:rkHelm(h.helmet),start_year:h.start,end_year:h.end,age:h.age,titles:h.titles,wins:h.wins,podiums:h.podiums,starts:h.starts,
         peak:h.peak??null,top:h.top,tro:h.tro||0,jr:h.jr||0,trophies:h.trs||[],earn:h.earn||0,ver:RK_VER},
-      post=b=>fetch(SB_URL,{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(b)});
+      post0=b=>fetch(SB_URL,{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(b)}),
+      post=b=>post0(b).then(r=>!r.ok&&r.status===400&&b.helmet&&b.helmet.dz?post0({...b,helmet:{...b.helmet,dz:undefined,lg:undefined,lx:undefined,ly:undefined,ls:undefined}}):r);// server refusing the drawing: colours only
     (dk?rkHash(dk).catch(()=>null):Promise.resolve(null))
     .then(dh=>dh?post({...body,del_hash:dh}).then(r=>!r.ok&&r.status===400?post(body).then(r2=>{if(r2.ok)rkMark(h.cid,{dkNo:1});return r2}):r):post(body))// server without the del_hash column yet: send without it
     .then(r=>{if(!r.ok&&r.status!==409)return;rkMark(h.cid,{sent:1});rkD={};if(hofOpen&&rkOn(rkTab))rkLoad(rkKey())}).catch(()=>{})})}
@@ -4079,7 +4083,7 @@ function rkLoad(t){if(rkBusy[t]||!rkNet())return;rkBusy[t]=true;rkErr[t]=false;c
   const q=g?'&or='+encodeURIComponent(`(${[...rkCs(g),...(g.r?[g.r]:[])].map(t=>`trophies.cs."${JSON.stringify([t]).replace(/"/g,'\\"')}"`).join(',')})`)+'&order=tro.desc,created_at.asc&limit=500':'&order=titles.desc,wins.desc,tro.desc,podiums.desc,jr.desc,peak.desc.nullslast,created_at.asc&limit=100';
   fetch(SB_URL+'?select=*&created_at=gte.'+from+q,{headers:{apikey:SB_KEY}})
     .then(r=>r.ok?r.json():Promise.reject(r.status))
-    .then(d=>{rkD[t]={from,L:d.filter(r=>!badName(r.name)).map(r=>({cid:r.cid,name:r.name,num:r.num,nat:r.nat,helmet:r.helmet,start:r.start_year,end:r.end_year,age:r.age,titles:r.titles,wins:r.wins,podiums:r.podiums,starts:r.starts,peak:r.peak,top:r.top,tro:r.tro,jr:r.jr,trs:r.trophies||[],at:Date.parse(r.created_at)||0}))};if(g)rkD[t].L=rkLgSort(rkD[t].L,t.replace(/^(week|all)/,''))})
+    .then(d=>{rkD[t]={from,L:d.filter(r=>!badName(r.name)).map(r=>({cid:r.cid,name:r.name,num:r.num,nat:r.nat,helmet:rkDz(r.helmet),start:r.start_year,end:r.end_year,age:r.age,titles:r.titles,wins:r.wins,podiums:r.podiums,starts:r.starts,peak:r.peak,top:r.top,tro:r.tro,jr:r.jr,trs:r.trophies||[],at:Date.parse(r.created_at)||0}))};if(g)rkD[t].L=rkLgSort(rkD[t].L,t.replace(/^(week|all)/,''))})
     .catch(()=>{rkErr[t]=true}).finally(()=>{rkBusy[t]=false;if(hofOpen)render()})}
 function rkOpen(){hofOpen=true;rkTab='week';rkLg='f1';rkPush();if(rkNeed('week'))rkLoad('week')}
 setTimeout(rkPush,2000);
