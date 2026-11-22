@@ -3448,7 +3448,7 @@ function drawCard(){
   // base: deep navy → near-black, warm glow behind the photo, cool glow at the bottom, vignette
   const grd=g.createLinearGradient(0,0,W*.4,H);grd.addColorStop(0,'#161E36');grd.addColorStop(.55,'#0C1122');grd.addColorStop(1,'#07090F');g.fillStyle=grd;rr(g,0,0,W,H,56);g.fill();
   g.save();rr(g,0,0,W,H,56);g.clip();
-  let rg=g.createRadialGradient(725,300,20,725,300,560);rg.addColorStop(0,'rgba(242,193,78,.20)');rg.addColorStop(1,'rgba(242,193,78,0)');g.fillStyle=rg;g.fillRect(0,0,W,H);
+  let rg=g.createRadialGradient(829,300,20,829,300,560);rg.addColorStop(0,'rgba(242,193,78,.20)');rg.addColorStop(1,'rgba(242,193,78,0)');g.fillStyle=rg;g.fillRect(0,0,W,H);
   rg=g.createRadialGradient(W/2,H+120,40,W/2,H+120,760);rg.addColorStop(0,'rgba(80,120,220,.16)');rg.addColorStop(1,'rgba(80,120,220,0)');g.fillStyle=rg;g.fillRect(0,0,W,H);
   // fine carbon weave
   g.fillStyle='rgba(255,255,255,.022)';for(let y=0;y<H;y+=12)for(let x=(y/12%2)*6;x<W;x+=12)g.fillRect(x,y,6,6);
@@ -3469,13 +3469,13 @@ function drawCard(){
   g.fillStyle='#fff';g.font=`700 52px ${N}`;g.fillText('#'+p.num,84,450);g.fillStyle='#AEB4C2';g.font=`500 32px ${F}`;g.fillText(natName(p.nat),84,500);
   // driver ID photo (top of the standing sprite, like .avface); helmet only if the sprite isn't ready
   const av=avatarCanvas(pAv(p),p.helmet);
-  if(av){const bx=560,by=150,bs=330,iw=bs*.84,ih=iw*av.h/av.w;
+  if(av){const bx=664,by=150,bs=330,iw=bs*.84,ih=iw*av.h/av.w;
     g.save();g.shadowColor='rgba(0,0,0,.55)';g.shadowBlur=50;g.shadowOffsetY=18;rr(g,bx-6,by-6,bs+12,bs+12,50);g.fillStyle=GOLD(by,by+bs);g.fill();g.restore();
     g.save();rr(g,bx,by,bs,bs,44);const pb=g.createLinearGradient(0,by,0,by+bs);pb.addColorStop(0,'#2E3446');pb.addColorStop(1,'#161A26');g.fillStyle=pb;g.fill();g.clip();g.imageSmoothingQuality='high';g.drawImage(av.canvas,bx+(bs-iw)/2,by+bs*.05,iw,ih);
     const sh=g.createLinearGradient(bx,by,bx+bs,by+bs);sh.addColorStop(0,'rgba(255,255,255,.10)');sh.addColorStop(.4,'rgba(255,255,255,0)');g.fillStyle=sh;g.fillRect(bx,by,bs,bs);g.restore()}
   else{g.fillStyle='rgba(255,255,255,.06)';rr(g,500,150,420,330,40);g.fill();drawHelmet(g,p.helmet,p.num,530,180,15)}
   /* 사진 왼쪽 아래 모서리에 걸친 헬멧(v1.8.6-d1) */
-  {const hc=av&&helmetCanvas(p.helmet);if(hc){const hw=140,hh=hw*hc.h/hc.w;g.save();g.shadowColor='rgba(0,0,0,.7)';g.shadowBlur=28;g.shadowOffsetY=10;g.imageSmoothingQuality='high';g.drawImage(hc.canvas,580-hw/2,438-hh/2,hw,hh);g.restore()}}
+  {const hc=av&&helmetCanvas(p.helmet);if(hc){const hw=140,hh=hw*hc.h/hc.w;g.save();g.shadowColor='rgba(0,0,0,.7)';g.shadowBlur=28;g.shadowOffsetY=10;g.imageSmoothingQuality='high';g.drawImage(hc.canvas,684-hw/2,438-hh/2,hw,hh);g.restore()}}
   g.fillStyle='#fff';g.textAlign='center';
   g.save();g.shadowColor='rgba(0,0,0,.6)';g.shadowBlur=24;g.shadowOffsetY=6;g.font=`700 92px ${F}`;g.fillText(p.name,W/2,620);g.restore();
   g.fillStyle='#AEB4C2';g.font=`500 34px ${F}`;g.fillText(`${D.seasons}시즌 · F1 ${D.teams.length}개 팀 · ${p.age}세 은퇴 · 통산 수익 ${won(p.earn||0)}`,W/2,680);
@@ -3964,7 +3964,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.6-d1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.6-d2',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
