@@ -709,6 +709,11 @@ html,body{margin:0}
 .dhero .dhl{display:flex;align-items:center;gap:12px}.dhero .helmet{flex:none}
 .dhero .hn{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.dhero .hn b{font-size:18px}
 .dhero .hn span{font-size:13px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dhero .hn img{vertical-align:-2px}
+.dhero .hhel .helmet{background:none}.dhero .hhel{flex:none;margin:0 -6px}.dhero .hn span{white-space:normal;line-height:1.35}
+.flh{display:block;flex:none;line-height:0;filter:drop-shadow(0 4px 4px rgba(0,0,0,.55))}.flh .himg{width:100%}
+.cxw .drv{align-items:flex-end;gap:2px}.cxw .drv .flh{opacity:0;animation:cxrise .6s .95s cubic-bezier(.2,.8,.3,1) forwards;margin-bottom:2px}
+.cxa .hel{display:flex;align-items:flex-end;gap:2px}
+.avwin .flh{position:absolute;bottom:0;right:-28%}
 .dhero .ho{display:flex;flex-direction:column;align-items:flex-end;line-height:1}.dhero .ho b{font-size:40px;font-family:'Barlow Condensed',sans-serif}.dhero .ho span{font-size:11px;color:var(--dim);font-weight:700;letter-spacing:.1em}
 .hg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .hg>div{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px 6px;font-size:12px;color:var(--dim);min-width:0}.hg>div>span{display:flex;align-items:center;white-space:nowrap}.hg .bar{grid-column:1/-1}.hg .bar i.rep{background:#A78BFA}.regpin{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:rgba(240,180,41,.1);font-size:13px;color:var(--dim)}.regpin b{color:var(--gold)}.regpin em{margin-left:auto;font-style:normal;font-weight:700;color:var(--fg)}.hg.mini{margin:2px 0 4px;padding:10px 12px;border-radius:12px;background:var(--surface-2)}.hg.mini b{font-size:13px}.hg b{color:var(--fg);font-size:14px}
@@ -3988,8 +3993,8 @@ function trophyArt(k,th){return TROPHY[k]?`<img src="${TROPHY[k]}" alt="" style=
 const JR_TR={F2:.40,F3:.40,FRECA:.31,F4:.31,KART:.27};
 const trRatio=k=>JR_TR[k]||(k==='INDY'?.42:TROPHY[k]?.55:.42); // INDY base is wide: smaller so the gloves cover its edges
 /* full-body trophy pose; size = figure height. Trophy sits behind the gloves so they look like they grip it */
-function avatarWin(i,h,size,k,num){const th=Math.round(size*trRatio(k)),top=th-Math.round(size*.08);
-  return`<div class="avwin" style="width:${Math.round(size*.62)}px;height:${size+top}px"><span class="awt">${trophyArt(k,th)}</span><img class="avfull" ${avAttr(i,h,true,num)} alt="" style="height:${size}px"></div>`}
+function avatarWin(i,h,size,k,num,floor){const th=Math.round(size*trRatio(k)),top=th-Math.round(size*.08);
+  return`<div class="avwin" style="width:${Math.round(size*.62)}px;height:${size+top}px"><span class="awt">${trophyArt(k,th)}</span><img class="avfull" ${avAttr(i,h,true,num)} alt="" style="height:${size}px">${floor?floorHelm(h,Math.round(size*.3)):''}</div>`}
 function sLogo(sid,h=14){if(LGD[sid]&&LGD[sid].s==='F4')sid='F4';return SLOGO[sid]?`<img src="${SLOGO[sid]}" alt="" style="height:${h}px;width:auto;vertical-align:-2px;margin-right:6px">`:''}
 const TROPHY_IMG={};for(const k in TROPHY){const i=new Image();i.src=TROPHY[k];TROPHY_IMG[k]=i}
 const LOGO_IMG={};K.teams.forEach(k=>{if(k.logo){const i=new Image();i.src=k.logo;LOGO_IMG[k.id]=i}});
@@ -4398,6 +4403,8 @@ function helmetCanvas(h,side){h=helmOf(h);if(h.dz&&!side)return hzCanvas(h);cons
 function helmetSrc(h){const c=helmetCanvas(h);if(c)return c.url;return HELMETS[1]}
 function helmetImg(h){if(helmetCanvas(h))return`<img class="himg" src="${helmetSrc(h)}" alt="">`;h=helmOf(h);
   return`<img class="himg" src="${HELMETS[1]}" data-hb="${h.base}" data-hs="${h.sec}" data-hvi="${h.vis}"${h.dz?` data-hdz="${h.dz}"`:''} alt="">`}
+/* 바닥에 내려놓은 헬멧(v1.8.3-d1): 전신 그림 발 옆. 번호 없이 그림자만 */
+function floorHelm(h,size){return`<span class="flh" style="width:${size}px">${helmetImg(h)}</span>`}
 function helmet(h,num,size=56){return`<div class="helmet" style="width:${size}px;height:${size}px">${helmetImg(h)}${num!=null?`<b class="hnum" style="font-size:${Math.max(7,Math.round(size*.16))}px">${esc(num)}</b>`:''}</div>`}
 /* 번호: 보는 쪽 왼뺨(줄무늬 아래), 반시계로 기울이고 1의 자리가 아래로(곡면에 붙은 느낌). CSS .hnum과 같은 값 */
 const HNUM_M=[.886,.156,.174,.985];
@@ -4802,7 +4809,7 @@ function gauges(c=''){const p=S.p;return`<div class="hg ${c}"><div><span>인기<
 const isProsp=()=>{const PR=B.career.prospect,p=S.p;return!!(PR&&p&&!p.retired&&p.age<=PR.max_age&&p.series==='F1')};
 function homeHero(){const p=S.p,c=currentLine();
   return`<section class="dhero"><div class="dhl">${avatar(pAv(p),p.helmet,52)}<div class="hn"><b>${esc(p.name)}${c.teamId&&c.role!=='reserve'&&isLegend(c.teamId)?'<span class="chip gold legb">'+esc(c.team)+' 레전드</span>':''}</b><span>${p.age}세${isProsp()?' 유망주':''} · ${sLogo(c.sid||p.series,13)}${c.teamId?logo(c.teamId,18):''}${esc(c.team)}${c.role==='reserve'?' 리저브':''}</span></div>
-    <div class="ho"><b class="num">${ovrOf(p.stats)}</b><span>OVR</span></div></div>
+    <div class="hhel">${helmet(p.helmet,null,40)}</div><div class="ho"><b class="num">${ovrOf(p.stats)}</b><span>OVR</span></div></div>
     ${heroLadder()}${gauges()}</section>`}
 // where we are on the road to F1, always on the home card (junior series and F1 only)
 function heroLadder(){const L=[...ORDER,'F1'],cur=L.indexOf(S.p.series);if(cur<0)return'';
@@ -4909,6 +4916,8 @@ function drawCard(){
     g.save();rr(g,bx,by,bs,bs,44);const pb=g.createLinearGradient(0,by,0,by+bs);pb.addColorStop(0,'#2E3446');pb.addColorStop(1,'#161A26');g.fillStyle=pb;g.fill();g.clip();g.imageSmoothingQuality='high';g.drawImage(av.canvas,bx+(bs-iw)/2,by+bs*.05,iw,ih);
     const sh=g.createLinearGradient(bx,by,bx+bs,by+bs);sh.addColorStop(0,'rgba(255,255,255,.10)');sh.addColorStop(.4,'rgba(255,255,255,0)');g.fillStyle=sh;g.fillRect(bx,by,bs,bs);g.restore()}
   else{g.fillStyle='rgba(255,255,255,.06)';rr(g,500,150,420,330,40);g.fill();drawHelmet(g,p.helmet,p.num,530,180,15)}
+  /* 오버롤과 사진 사이 헬멧(v1.8.3-d1) */
+  {const hc=av&&helmetCanvas(p.helmet);if(hc){const hw=150,hh=hw*hc.h/hc.w;g.save();g.shadowColor='rgba(0,0,0,.55)';g.shadowBlur=30;g.shadowOffsetY=12;g.imageSmoothingQuality='high';g.drawImage(hc.canvas,468-hw/2,300-hh/2,hw,hh);g.restore()}}
   g.fillStyle='#fff';g.textAlign='center';
   g.save();g.shadowColor='rgba(0,0,0,.6)';g.shadowBlur=24;g.shadowOffsetY=6;g.font=`700 92px ${F}`;g.fillText(p.name,W/2,620);g.restore();
   g.fillStyle='#AEB4C2';g.font=`500 34px ${F}`;g.fillText(`${D.seasons}시즌 · F1 ${D.teams.length}개 팀 · ${p.age}세 은퇴 · 통산 수익 ${won(p.earn||0)}`,W/2,680);
@@ -5397,7 +5406,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.3-d1',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -5790,7 +5799,7 @@ function cxAlt(o,I,mark){const p=S.p,sid=o.altId,d=CXW[sid]||{},en=SER_EN[sid]||
     <div class="tag">${sLogo(sid,16)}<span>${esc(d.tag||en.toUpperCase())}</span></div>
     <div class="board"><b>${esc(p.num)}</b></div>
     <div class="lane">${Array.from({length:6},(_,i)=>`<i style="bottom:${8+i*13}px;animation-delay:${(1+i*.37+Math.random()*.3).toFixed(2)}s;animation-duration:${(.7+Math.random()*.5).toFixed(2)}s"></i>`).join('')}<div class="car">${car}</div></div>
-    <div class="drv">${avatar(pAv(p),p.helmet,250,true,p.num)}</div>
+    <div class="drv">${avatar(pAv(p),p.helmet,250,true,p.num)}${floorHelm(p.helmet,72)}</div>
     <div class="info"><div class="lg">${mark}</div><div class="nm">${esc(p.name)}</div><div class="ln">${esc(I.line)}</div><div class="tt">${esc(I.terms)}</div>${I.who?`<div class="rp">${esc(I.who)}</div>`:''}<div class="sgn">${sigSVG(p.sig,170,56,'#fff')}</div></div></div>`}
 function contractShow(o,done){
   const p=S.p,I=contractInfo(o),el=document.createElement('div');el.className='cx';el.style.setProperty('--tc',I.color);document.body.appendChild(el);
@@ -5813,7 +5822,7 @@ function contractShow(o,done){
       bk.innerHTML=I.big?`<div class="cxa">
           <div class="mq">${['o l','f r','o l','f r','o l'].map((c,i)=>{const w=i%2?I.en:I.debut?'F1 DEBUT':I.ret?'F1 RETURN':'BREAKING',s=Array(6).fill(w).join(' · ');return`<div class="${c}">${esc(s)} · ${esc(s)} · </div>`}).join('')}</div>
           <div class="brk${I.debut||I.ret?' db':''}"><b>${I.debut?'F1 DEBUT':I.ret?'F1 RETURN':'BREAKING'}</b><div class="tk"><span>${I.news}</span></div></div>
-          <div class="off">OFFICIAL</div><div class="duo"><div class="lg">${mark}</div><div class="hel">${avatar(pAv(p),p.helmet,150,true,p.num)}</div></div>
+          <div class="off">OFFICIAL</div><div class="duo"><div class="lg">${mark}</div><div class="hel">${avatar(pAv(p),p.helmet,150,true,p.num)}${floorHelm(p.helmet,46)}</div></div>
           <div class="nm">${esc(p.name)}</div><div class="ln">${esc(I.line)}</div><div class="tt">${esc(I.terms)}</div>${I.dline?`<div class="dbl">${esc(I.dline)}</div>`:''}${I.who?`<div class="rp">${esc(I.who)}</div>`:''}
           <div class="sgn">${sigSVG(p.sig,220,74,'#fff')}<div class="stp" style="--stc:#fff">${I.logo?`<img src="${I.logo}" alt="">`:''}SIGNED</div></div>
           <div class="wf"></div><div class="fl">${Array.from({length:11},(_,i)=>`<i style="left:${8+Math.random()*78}%;top:${10+Math.random()*70}%;animation-delay:${(3.05+i*.08+Math.random()*.08).toFixed(2)}s"></i>`).join('')}</div>
@@ -5834,7 +5843,7 @@ function celebrate(R,done){
   const cols=['#F2C14E','#E10600','#FFFFFF','#3182F6','#34C77B','#FF8A00'];
   const conf=Array.from({length:f1?70:40},(_,i)=>`<i style="left:${Math.random()*100}%;background:${cols[i%cols.length]};animation-delay:${(Math.random()*2.5).toFixed(2)}s;animation-duration:${(2.2+Math.random()*2).toFixed(2)}s;width:${f1?8:6}px;height:${f1?8:6}px"></i>`).join('');
   el.innerHTML=`<div class="conf">${conf}</div><div class="cin">
-    <div class="trophy">${avatarWin(pAv(p),p.helmet,f1?220:190,f1?'F1':R.sid==='ALT'?R.lk:R.sid,p.num)}</div>
+    <div class="trophy">${avatarWin(pAv(p),p.helmet,f1?220:190,f1?'F1':R.sid==='ALT'?R.lk:R.sid,p.num,true)}</div>
     <div class="wow">${f1?'와! 월드 챔피언이다!':`와! 챔피언이다!`}</div>
     ${f1?'<div class="wcen">WORLD CHAMPION</div>':''}
     <div class="csub">${R.year} ${sLogo(R.lk||R.sid,18)}${esc(R.series)} 챔피언 · <b>${esc(p.name)}</b></div>
