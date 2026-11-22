@@ -68,6 +68,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .kv .row > span:last-child{font-weight:500;text-align:right}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{background:var(--surface-2);border-radius:10px;padding:5px 10px;font-size:13px;color:var(--fg)}
+.altw{display:flex;flex-wrap:wrap;gap:6px}.altw .chip{border:1.5px solid transparent;cursor:pointer;font:inherit;font-size:13px}.altw .chip.on{border-color:var(--accent);font-weight:700}
 .chip.blue{background:var(--accent-soft);color:#8CB8FF}
 .chip.gold{background:#3A3018;color:var(--gold)}.arts{display:flex;flex-direction:column;gap:12px}.art{display:flex;flex-direction:column;gap:3px}.art+.art{border-top:1px solid var(--line,rgba(255,255,255,.08));padding-top:12px}.art span{font-size:11px;color:var(--dim)}.art b{font-size:15px;line-height:1.4;word-break:keep-all}.art p{margin:0;font-size:13px;line-height:1.5;color:var(--muted,#9aa3b2);word-break:keep-all}.chip.legb{font-size:10px;font-weight:700;padding:2px 7px;margin-left:6px;vertical-align:3px;white-space:nowrap}.chip.silver{background:#2A2F3A;color:#C9D1DE}.chip.f1{background:#3A1519;color:#FF8A8A;font-weight:700}
 .cx{position:fixed;inset:0;z-index:140;background:#07090F;display:flex;align-items:center;justify-content:center;animation:cxin .25s ease-out}
@@ -2352,7 +2353,7 @@ function rookie(team){
 }
 
 /* ---------- state ---------- */
-let padLg=null,newsTab='all',newsMore=false,hlMore=false,fanMore=false,chain=false,resMore=false,evPick=null;
+let altWnt='',padLg=null,newsTab='all',newsMore=false,hlMore=false,fanMore=false,chain=false,resMore=false,evPick=null;
 let S=null, tab='home', ob=null, sel=null, DL=null, sheet=null, cardURL=null;
 const KEY='k2wc-save-v1';
 let arcS=null; // 내 기록 다시 보기 중이면 진짜 세이브 {s,title}
@@ -2648,7 +2649,7 @@ function leaveRumors(evR,races){const p=S.p;if(p.series!=='F1'||p.role!=='race'|
   if(p.xfer===S.year){const cur=teamDef(p.team.id),up=S.teams.filter(t=>t.id!==cur.id&&t.machine>cur.machine).sort((a,b)=>scv(b.id)-scv(a.id)+rnd(-15,15));
     if(up.length){L.push(`이적 소문: ${jo(up[0].name,'이','가')} 나를 지켜보고 있대요.`);if(up[1]&&Math.random()<.6)L.push(`패독 소문: ${up[1].name} 쪽에서 내 계약 조건을 물어봤대요.`)}
     else L.push('이적 소문: 다른 팀들의 반응은 아직 조용해요.')}
-  if(p.altGo===S.year){const sids=['WEC','INDY'].sort(()=>Math.random()-.5),T=sid=>{const R=altRank(sid).sort((a,b)=>altScv(sid,b.n)-altScv(sid,a.n)+rnd(-20,20));return R[0]&&R[0].n};
+  if(p.altGo===S.year){const w=p.altWant&&altDef(p.altWant)?p.altWant:null,sids=w?[w,pick(['WEC','INDY'].filter(x=>x!==w))]:['WEC','INDY'].sort(()=>Math.random()-.5),T=sid=>{const R=altRank(sid).sort((a,b)=>altScv(sid,b.n)-altScv(sid,a.n)+rnd(-20,20));return R[0]&&R[0].n};
     const a=T(sids[0]);if(a)L.push(`전향 소문: ${altDef(sids[0]).name} ${a} 관계자가 패독에 왔어요.`);
     const b=T(sids[1]);if(b&&Math.random()<.6)L.push(`전향 소문: ${jo(b,'이','가')} 매니저에게 연락했대요.`)}
   const used=new Set();L.forEach(t=>{let r=at();for(let k=0;k<5&&used.has(r);k++)r=at();used.add(r);evR.push({t,r})})}
@@ -3473,8 +3474,9 @@ function makeOffers(pos,field,h2h){
   if(needAlt){
     // IndyCar straight after F2 only for the top 5 (the rest get the Indy NXT offer); in Indy NXT it comes through the top-3 rule
     const noIndy=p.series==='F2'&&!(pos&&pos<=5)||!!(lgOf(p)&&lgOf(p).ind);
-    const hotA=Object.keys(ALT_DRV).filter(id=>id!==p.alt&&!(noIndy&&id==='INDY')&&Math.max(0,...Object.values((p.altSc||{})[id]||{}))>=25).sort((x,y)=>Math.max(...Object.values(p.altSc[y]))-Math.max(...Object.values(p.altSc[x])));
-    const others=[...hotA.map(altDef),...K.alt_series.filter(a=>a.id!==p.alt&&!hotA.includes(a.id)&&!(noIndy&&a.id==='INDY')).sort(()=>Math.random()-.5)];
+    const myAlt=p.series==='ALT'?p.alt:null,hotA=Object.keys(ALT_DRV).filter(id=>id!==myAlt&&!(noIndy&&id==='INDY')&&Math.max(0,...Object.values((p.altSc||{})[id]||{}))>=25).sort((x,y)=>Math.max(...Object.values(p.altSc[y]))-Math.max(...Object.values(p.altSc[x])));
+    const others=[...hotA.map(altDef),...K.alt_series.filter(a=>a.id!==myAlt&&!hotA.includes(a.id)&&!(noIndy&&a.id==='INDY')).sort(()=>Math.random()-.5)];
+    const want=altReq&&p.altWant&&altDef(p.altWant)?p.altWant:null;if(want){const i=others.findIndex(a=>a.id===want);if(i>0)others.unshift(...others.splice(i,1))}
     const alts=p.series==='ALT'?[altDef(p.alt),...others.slice(0,1)]:others.slice(0,altYoung?1:2);
     // after F2, WEC or IndyCar always comes (the main second-chapter stages; F2 drivers often go to IndyCar)
     if((p.series==='F2'||altReq)&&!alts.some(a=>a.id==='WEC'||a.id==='INDY')){const w=(noIndy?['WEC']:['WEC','INDY']).sort((x,y)=>Math.max(0,...Object.values((p.altSc||{})[y]||{}))-Math.max(0,...Object.values((p.altSc||{})[x]||{}))||Math.random()-.5)[0];alts[alts.length?alts.length-1:0]=altDef(w)}
@@ -3487,7 +3489,7 @@ function makeOffers(pos,field,h2h){
       else if(stay&&cur){o.push(altO(a,cur,'잔류'));const up=ALT_DRV[a.id]?altPick(a.id,tier,cur.n):null;
         if(up&&TIER_I.indexOf(up.tier)>TIER_I.indexOf(cur.tier))o.push(altO(a,up,'이적'));else if(!ALT_DRV[a.id]&&TIER_I.indexOf(tier)>TIER_I.indexOf(cur.tier))o.push(altO(a,altTeam(a.id,tier,cur.n),'이적'))}
       else o.push(altO(a,(ALT_DRV[a.id]&&altPick(a.id,tier))||altTeam(a.id,tier),stay?'잔류':altReq?'전향':p.series==='F2'&&p.age>=23?'새 출발':'새 무대'))});
-    if(altReq){const got=o.filter(x=>x.kind==='alt');p.altGoDone={year:S.year-1,n:got.length};p.altGo=null;
+    if(altReq){const got=o.filter(x=>x.kind==='alt');p.altGoDone={year:S.year-1,n:got.length};p.altGo=null;p.altWant=null;
       evs.push(`전향 의사에 ${jo(got.map(x=>x.altTeam).join(', '),'이','가')} 응답했어요! 남을지 떠날지 골라요.`)}
   }
   // transfer request: better teams poach if I beat their weaker driver
@@ -4562,7 +4564,7 @@ function readyCard(){
       ${S.challenge?row('data-sheet="ch"','★',`${S.challenge.name} 출전 제안`,'선택 · 도전 이벤트',0):''}
     </div>
     <button class="btn" type="button" id="playBtn">${n?`결정하고 시즌 시작 (${n})`:`${S.year} 시즌 시작`}</button>
-    ${p.series==='F1'&&p.role==='race'?(p.xfer===S.year||p.altGo===S.year?`<div class="tleave on"><span class="lt"><b>${p.xfer===S.year?'이적 요청 중':'다른 리그로 전향 희망'}</b><span>시즌이 끝나면 제안이 와요 · 그때까지는 지금 팀에서 뛰어요</span></span></div>`
+    ${p.series==='F1'&&p.role==='race'?(p.xfer===S.year||p.altGo===S.year?`<div class="tleave on"><span class="lt"><b>${p.xfer===S.year?'이적 요청 중':`다른 리그로 전향 희망${p.altWant&&altDef(p.altWant)?` · ${altDef(p.altWant).name}`:''}`}</b><span>시즌이 끝나면 제안이 와요 · 그때까지는 지금 팀에서 뛰어요</span></span></div>`
       :`<button class="tleave" type="button" data-sheet="leave"><span class="lt"><b>팀 떠나기</b><span>이적 요청 · 다른 리그로 전향</span></span><span class="la">선택지 보기<i>›</i></span></button>`):''}</section>`;
 }
 function standRows(){const st=S.last.standings;
@@ -5340,7 +5342,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.20-d17',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.7.20-d18',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -5815,7 +5817,7 @@ function goSheet(){const p=S.p,picked=(S.evSeason||[]).map(e=>{const d=evDef(e.i
   return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">${S.year} 시즌</div><h3 class="h2">준비 완료!</h3>
     <div class="kv"><div class="row"><span>훈련</span><span style="text-align:right">${esc(trName())}${S.train!=='rest'?` <span class="muted" style="font-size:12px">(${progStats(progDef(S.prog))})</span>`:''}<button class="infobtn" type="button" data-sheet="train" style="margin-left:8px;font-size:12px">바꾸기</button><br><span class="muted" style="font-size:12px">${trWhen()}</span></span></div>${picked.length?row('결정',picked.map(esc).join('<br>')):''}
       ${S.chTxt?row('도전',esc(S.chTxt)):''}
-      ${p.series==='F1'&&p.role==='race'?row('팀 떠나기',p.xfer===S.year?'<span style="color:#FF8A94">이적 요청</span>':p.altGo===S.year?'<span style="color:#FF8A94">다른 리그로 전향</span>':'안 함'):''}
+      ${p.series==='F1'&&p.role==='race'?row('팀 떠나기',p.xfer===S.year?'<span style="color:#FF8A94">이적 요청</span>':p.altGo===S.year?`<span style="color:#FF8A94">다른 리그로 전향${p.altWant&&altDef(p.altWant)?` (${altDef(p.altWant).name})`:''}</span>`:'안 함'):''}
       ${row('체력',`<b class="num">${p.morale}</b>${p.morale<40?' <span style="color:var(--bad)">(지침 · 실수 위험)</span>':''}`)}</div>
     <button class="btn" type="button" id="goSeason">${S.year} 시즌 시작</button><button class="btn ghost" type="button" id="closeSheet">조금 더 준비하기</button></section></div>`}
 function enterGame_unused(){}
@@ -5996,9 +5998,12 @@ function sheetView(){
     <button class="btn ghost" type="button" id="closeSheet">그만두기</button></section></div>`}
   if(sheet==='altgo')return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">프리시즌 · 결단</div><h3 class="h2">다른 리그로 전향</h3>
     <p class="muted" style="margin:0">F1을 떠나 WEC·인디카 같은 다른 무대로 가고 싶다고 알려요. 시즌이 끝나면 다른 무대 팀들이 제안해요.</p>
+    <div class="eyebrow" style="margin-top:4px">가고 싶은 리그</div>
+    <div class="altw">${[['','상관없음'],...K.alt_series.map(a=>[a.id,a.name])].map(([id,n])=>`<button class="chip${altWnt===id?' on':''}" type="button" data-altw="${id}" aria-pressed="${altWnt===id}">${esc(n)}</button>`).join('')}</div>
+    <p class="muted" style="margin:0;font-size:12px">${altWnt?'고른 리그 팀은 꼭 제안해요. 다른 리그 제안도 1~2개 같이 와요.':'관심 보이는 리그부터 제안이 와요.'}</p>
     <div class="kv"><div class="row"><span>지금 바로</span>${hasClause()?'<span class="up">탈출 조항 · 손해 없음</span>':'<span class="down">F1 팀 관심도 -10</span>'}</div>
     <div class="row"><span>시즌 중</span>${hasClause()?'<span class="up">페이스 그대로</span>':'<span class="down">팀 지원이 줄어 페이스 조금 하락</span>'}</div>
-    <div class="row"><span>시즌 끝</span><span>다른 무대 제안 2개</span></div>
+    <div class="row"><span>시즌 끝</span><span>${altWnt?`${esc(altDef(altWnt).name)} 제안 포함 2~3개`:'다른 무대 제안 2~3개'}</span></div>
     <div class="row"><span>마음이 바뀌면</span><span>제안을 안 고르고 남을 수 있어요</span></div></div>
     <button class="btn" type="button" id="altgoYes">전향 의사를 밝힌다</button><button class="btn ghost" type="button" data-sheet="leave">뒤로</button></section></div>`;
   if(sheet==='xfer')return`<div class="sheet" id="sheetBg"><section class="card"><div class="eyebrow">프리시즌 · 결단</div><h3 class="h2">이적 요청하기</h3>
@@ -6230,12 +6235,13 @@ root.addEventListener('click',e=>{
   if(id==='confirmRetire'){sheet=null;retireNow();render();window.scrollTo(0,0);return}
   if(id==='skipProg'){const b=document.getElementById('pInc');if(b&&b.innerHTML.trim())return;finishProgress();return}
   if(id==='okBtn'){S.phase='offers';save();tab='home';render();window.scrollTo(0,0);return}
+  if(d.altw!=null){altWnt=d.altw;render();return}
   if(d.offer!=null){sel=+d.offer;render();return}
   if(d.cmode!=null){const[i,m]=d.cmode.split(':');const x=S.offers[+i];if(x&&x.kind==='combo'){x.mode=m;sel=+i;save()}render();return}
   if(id==='chooseBtn'&&sel!=null){const o=offerOf(S.offers[sel]),np=o.kind==='alt'&&!S.p.debutYear&&!S.p.npSeen&&!S.p.history.some(h=>h.sid==='ALT'),go=()=>{applyOffer(o);sel=null;if(np){S.p.npSeen=1;save();sheet={type:'newpath',sid:o.altId,year:S.year,dual:o.dual||null}}render();window.scrollTo(0,0)};if(isNewContract(o))contractShow(o,go);else go();return}
   if(id==='menuBtn'){sheet='menu';render();return}
   if(id==='tCont'){lightsGo(enterGame);return}
-  if(id==='altgoYes'){const p=S.p,cl=hasClause();p.altGo=S.year;p.xfer=null;if(!cl)for(const k of Object.keys(p.scout||{}))p.scout[k]=Math.max(0,p.scout[k]-10);save();toast(cl?'전향 의사를 밝혔어요 · 탈출 조항이라 손해 없음':'전향 의사를 밝혔어요 · F1 팀 관심도 -10');sheet=null;render();return}
+  if(id==='altgoYes'){const p=S.p,cl=hasClause();p.altGo=S.year;p.altWant=altWnt||null;p.xfer=null;if(!cl)for(const k of Object.keys(p.scout||{}))p.scout[k]=Math.max(0,p.scout[k]-10);save();toast(cl?'전향 의사를 밝혔어요 · 탈출 조항이라 손해 없음':'전향 의사를 밝혔어요 · F1 팀 관심도 -10');sheet=null;render();return}
   if(id==='xferYes'){const cl=hasClause();S.p.altGo=null;S.p.xfer=S.year;S.p.xferCl=cl||null;const m=cl?'':applyEff({rep:-6});save();toast(cl?'탈출 조항으로 이적을 요청했어요 · 손해 없음':`이적 요청을 공개했어요 · ${m}`);if(chain){nextStep();return}sheet=null;render();return}
   if(id==='tNew'){if(S&&S.p){titleAsk=true;render();return}lightsGo(()=>{S=null;try{localStorage.removeItem(KEY)}catch(_){}ob=null;enterGame()});return}
   if(id==='tYes'){lightsGo(()=>{S=null;try{localStorage.removeItem(KEY)}catch(_){}ob=null;enterGame()});return}
