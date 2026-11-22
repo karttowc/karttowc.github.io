@@ -1245,7 +1245,7 @@ function startSeason(){
   const incidents=[...cand].sort(()=>Math.random()-.5).slice(0,n).sort((a,b)=>a-b).map(r=>{const lead=orders[r].fin[0]==='me',pl=lead?pool.filter(x=>!x.ahead):pool;return{r,id:pick(pl.length?pl:pool).id,done:false}}); // P1 has nobody ahead to attack
   S.recentInc=[...(S.recentInc||[]),...incidents.map(x=>x.id)].slice(-6);
   let gacha=null;
-  if(p.role==='race'){const mid=Math.floor(races/2);if(orders[mid]&&!me.absent.has(mid)&&!incidents.some(x=>x.r===mid)){const rg=new Set(S.recentGa||[]);let pool=GACHA.filter(g=>gaOK(g,p)&&!rg.has(g.id));if(!pool.length)pool=GACHA.filter(g=>gaOK(g,p));gacha={r:mid,id:pick(pool).id,done:false};S.recentGa=[...(S.recentGa||[]),gacha.id].slice(-4)}}
+  if(p.role==='race'){const mid=Math.floor(races/2);if(orders[mid]&&!me.absent.has(mid)&&!incidents.some(x=>x.r===mid)){const rg=new Set(S.recentGa||[]);let pool=GACHA.filter(g=>gaOK(g,p)&&!rg.has(g.id));if(!pool.length)pool=GACHA.filter(g=>gaOK(g,p));if(pool.length){gacha={r:mid,id:pick(pool).id,done:false};S.recentGa=[...(S.recentGa||[]),gacha.id].slice(-4)}}}
   leaveRumors(evR,races);
   S.season={races,orders,meAbsent:[...me.absent],evR,mateKey:mate?mate.key:null,incidents,gacha,
     ents:ents.map(e=>({key:e.key,name:e.name,team:e.team,teamId:e.teamId||null,color:e.color||null,isPlayer:!!e.isPlayer,...(e.no?{no:e.no}:{}),...(e.cn?{cn:e.cn}:{}),...(e.cm?{cm:e.cm,crew:e.crew}:{})})),
