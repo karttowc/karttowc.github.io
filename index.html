@@ -4425,9 +4425,9 @@ let HZP=null,HCOL_HSL=null;
 /* 원본 헬멧 픽셀 분류(한 번만): cls 1 메인(초록) 2 줄무늬(자홍), l 밝기, cm 칸마다 칠할 수 있는 자리가 있는지 */
 function hzPrep(){if(HZP)return HZP;const im=spriteImg(HIMG,HELMETS,1);if(!im||!im.complete||!im.naturalWidth){spriteWait=true;return null}
   const c=document.createElement('canvas'),w=c.width=im.naturalWidth,ht=c.height=im.naturalHeight,g=c.getContext('2d');g.drawImage(im,0,0);
-  const a=g.getImageData(0,0,w,ht).data,cls=new Uint8Array(w*ht),L=new Float32Array(w*ht),cell=new Uint16Array(w*ht),cm=new Uint8Array(HZN*HZN);
+  const a=g.getImageData(0,0,w,ht).data,cls=new Uint8Array(w*ht),L=new Float32Array(w*ht),cell=new Uint16Array(w*ht),cm=new Uint8Array(HZN*HZN),st=new Uint16Array(HZN*HZN);
   for(let q=0;q<w*ht;q++){const j=q*4;if(!a[j+3])continue;const[hu,s,l]=hexHsl('#'+((1<<24)|(a[j]<<16)|(a[j+1]<<8)|a[j+2]).toString(16).slice(1));
-    const k=s>.2&&hu>.2&&hu<.45?1:s>.2&&hu>.75&&hu<.95?2:0;if(!k)continue;cls[q]=k;L[q]=l;
+    const k=s>.2&&hu>.2&&hu<.45?1:s>.2&&hu>.75&&hu<.95?2:0;if(!k)continue;cls[q]=k;L[q]=l;if(k===2)st[((((q/w)|0)*HZN/ht)|0)*HZN+(((q%w)*HZN/w)|0)]++;
     const x=q%w,y=(q/w)|0;cell[q]=((y*HZN/ht)|0)*HZN+((x*HZN/w)|0);cm[cell[q]]=1}
   /* 줄무늬·메인 경계에 섞인 회색 픽셀(채도 낮고 중간 밝기)도 칠하는 자리로. 안 그러면 칠한 위에 흐린 점이 남음. 광택(밝은 것)·외곽선(어두운 것)은 그대로 */
   const add=[];for(let q=0;q<w*ht;q++){const j=q*4;if(cls[q]||!a[j+3])continue;const[,s,l]=hexHsl('#'+((1<<24)|(a[j]<<16)|(a[j+1]<<8)|a[j+2]).toString(16).slice(1));
@@ -4435,7 +4435,7 @@ function hzPrep(){if(HZP)return HZP;const im=spriteImg(HIMG,HELMETS,1);if(!im||!
     for(let dy=-1;dy<=1&&!k;dy++)for(let dx=-1;dx<=1;dx++){const X=x+dx,Y=y+dy;if(X>=0&&Y>=0&&X<w&&Y<ht&&cls[Y*w+X]){k=cls[Y*w+X];break}}
     if(k)add.push([q,k,l,((y*HZN/ht)|0)*HZN+((x*HZN/w)|0)])}
   for(const[q,k,l,c]of add){cls[q]=k;L[q]=l;cell[q]=c}
-  HCOL_HSL=HCOL.map(hexHsl);return HZP={w,h:ht,cls,L,cell,cm}}
+  HCOL_HSL=HCOL.map(hexHsl);return HZP={w,h:ht,cls,L,cell,cm,st}}
 /* g(2d context, 그림 크기)에 dz 헬멧을 그림. 칠하는 중엔 이걸로만 다시 그림(toDataURL 없이) */
 function hzPaint(g,h,grid){const P=hzPrep();h=helmOf({...h,dz:''});const base=helmetCanvas(h);if(!P||!base)return false;
   const d=base.canvas.getContext('2d').getImageData(0,0,P.w,P.h),a=d.data,B=hexHsl(h.base);
@@ -4482,7 +4482,7 @@ function hzLoupe(){const Z=HZ,l=document.querySelector('#hzBg .hzloupe'),c=docum
   const n=Z.tool==='fill'?1:(Z.bs||1),o=(n-1)>>1,s=L/N;g.lineWidth=2;g.strokeStyle='#fff';g.strokeRect((5-o)*s+1,(5-o)*s+1,n*s-2,n*s-2);g.strokeStyle='rgba(0,0,0,.6)';g.lineWidth=1;g.strokeRect((5-o)*s+3,(5-o)*s+3,n*s-6,n*s-6)}
 function hzClose(){const b=document.getElementById('hzBg');if(b)b.remove();document.body.style.overflow='';HZ=null}
 const HZ_TOOLS=[['pen','붓'],['fill','채우기'],['erase','지우개']];
-const HZ_PRE=[['crown','크라운 띠'],['center','센터 줄'],['three','레이싱 3줄'],['chev','V자'],['check','체크 띠'],['bolt','번개'],['flame','불꽃'],['fade','도트 페이드'],['updown','위아래'],['star','별'],['stars','별 여러 개'],['two','반반'],['chin','턱 줄']];
+const HZ_PRE=[['orig','기본 줄무늬'],['crown','크라운 띠'],['center','센터 줄'],['three','레이싱 3줄'],['chev','V자'],['check','체크 띠'],['bolt','번개'],['flame','불꽃'],['fade','도트 페이드'],['updown','위아래'],['star','별'],['stars','별 여러 개'],['two','반반'],['chin','턱 줄']];
 function hzUI(){const box=document.querySelector('#hzBg .hzbox');if(!box||!HZ)return;const Z=HZ,sl=hzSlots(),vis=Z.h.vis;
   const sw=(k,sel)=>`<div class="hzsw">${HCOL.map((c,i)=>`<button class="sw" type="button" data-${k}="${i+1}" aria-label="${c}" aria-pressed="${sel===i+1}" style="background:${c}"></button>`).join('')}</div>`;
   box.innerHTML=`<div class="hzhead"><h3 class="h3">헬멧 커스텀</h3><button class="iconbtn" type="button" data-hz="cancel" aria-label="닫기">✕</button></div>
@@ -4548,6 +4548,7 @@ function hzPat(k,c){const g=new Uint8Array(HZN*HZN),P=HZP;if(!P)return g;
       case'updown':on=lat<.1;break;
       case'star':on=star(u,v);break;
       case'stars':on=[[9.5,4.5],[22.5,4.5],[16,8.5],[6.5,10.5],[25.5,10.5],[12.5,2.5],[19.5,2.5]].some(([x,y])=>plus(u,v,x,y));break;
+      case'orig':on=P.st[i]>=6;break; /* 원래 그림의 바이저 아래 줄무늬 자리(칸의 픽셀 6개 이상) */
       case'two':on=u<16;break;
       case'chin':on=!up&&lat<-.36&&lat>-.47;break}
     if(on)g[i]=c}
@@ -5386,7 +5387,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.1-d5',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.1-d6',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
