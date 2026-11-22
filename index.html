@@ -710,10 +710,12 @@ html,body{margin:0}
 .dhero .hn{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.dhero .hn b{font-size:18px}
 .dhero .hn span{font-size:13px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dhero .hn img{vertical-align:-2px}
 .dhero .hhel .helmet{background:none}.dhero .hhel{flex:none;margin:0 -6px}.dhero .hn span{white-space:normal;line-height:1.35}
-.flh{display:block;flex:none;line-height:0;filter:drop-shadow(0 4px 4px rgba(0,0,0,.55))}.flh .himg{width:100%}
-.cxw .drv{align-items:flex-end;gap:2px}.cxw .drv .flh{opacity:0;animation:cxrise .6s .95s cubic-bezier(.2,.8,.3,1) forwards;margin-bottom:2px}
-.cxa .hel{display:flex;align-items:flex-end;gap:2px}
-.avwin .flh{position:absolute;bottom:0;right:-28%}
+.flh{display:block;flex:none;line-height:0;position:relative;z-index:1;filter:drop-shadow(0 4px 4px rgba(0,0,0,.55))}.flh .himg{width:100%}
+/* 바닥 그림자(v1.8.3-d2): 몸과 헬멧 아래 납작한 타원 하나 */
+.gsh{position:absolute;left:-5%;bottom:-8px;width:110%;height:20px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.7),rgba(0,0,0,0));pointer-events:none;z-index:0}
+.cxw .drv{align-items:flex-end;gap:2px}.cxw .drv .gsh{width:260px;height:24px;bottom:-10px;left:calc(50% - 115px);opacity:0;animation:gshin .6s .75s forwards}@keyframes gshin{to{opacity:1}}.cxw .drv .flh{opacity:0;animation:cxrise .6s .95s cubic-bezier(.2,.8,.3,1) forwards;margin-bottom:2px}
+.cxa .hel{display:flex;align-items:flex-end;gap:2px;position:relative}.cxa .hel .avfull,.cxw .drv .avfull{position:relative;z-index:1}
+.avwin .flh{position:absolute;bottom:0;right:-28%}.avwin .gsh{width:150%;left:-10%;bottom:-10px;height:24px}.avwin .avfull{z-index:1}
 .dhero .ho{display:flex;flex-direction:column;align-items:flex-end;line-height:1}.dhero .ho b{font-size:40px;font-family:'Barlow Condensed',sans-serif}.dhero .ho span{font-size:11px;color:var(--dim);font-weight:700;letter-spacing:.1em}
 .hg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .hg>div{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px 6px;font-size:12px;color:var(--dim);min-width:0}.hg>div>span{display:flex;align-items:center;white-space:nowrap}.hg .bar{grid-column:1/-1}.hg .bar i.rep{background:#A78BFA}.regpin{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:rgba(240,180,41,.1);font-size:13px;color:var(--dim)}.regpin b{color:var(--gold)}.regpin em{margin-left:auto;font-style:normal;font-weight:700;color:var(--fg)}.hg.mini{margin:2px 0 4px;padding:10px 12px;border-radius:12px;background:var(--surface-2)}.hg.mini b{font-size:13px}.hg b{color:var(--fg);font-size:14px}
@@ -4404,7 +4406,7 @@ function helmetSrc(h){const c=helmetCanvas(h);if(c)return c.url;return HELMETS[1
 function helmetImg(h){if(helmetCanvas(h))return`<img class="himg" src="${helmetSrc(h)}" alt="">`;h=helmOf(h);
   return`<img class="himg" src="${HELMETS[1]}" data-hb="${h.base}" data-hs="${h.sec}" data-hvi="${h.vis}"${h.dz?` data-hdz="${h.dz}"`:''} alt="">`}
 /* 바닥에 내려놓은 헬멧(v1.8.3-d1): 전신 그림 발 옆. 번호 없이 그림자만 */
-function floorHelm(h,size){return`<span class="flh" style="width:${size}px">${helmetImg(h)}</span>`}
+function floorHelm(h,size){return`<span class="flh" style="width:${size}px">${helmetImg(h)}</span><span class="gsh" aria-hidden="true"></span>`}
 function helmet(h,num,size=56){return`<div class="helmet" style="width:${size}px;height:${size}px">${helmetImg(h)}${num!=null?`<b class="hnum" style="font-size:${Math.max(7,Math.round(size*.16))}px">${esc(num)}</b>`:''}</div>`}
 /* 번호: 보는 쪽 왼뺨(줄무늬 아래), 반시계로 기울이고 1의 자리가 아래로(곡면에 붙은 느낌). CSS .hnum과 같은 값 */
 const HNUM_M=[.886,.156,.174,.985];
@@ -5406,7 +5408,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.3-d1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.3-d2',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
