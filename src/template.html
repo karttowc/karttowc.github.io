@@ -3038,7 +3038,9 @@ function hzLoupe(){const Z=HZ,l=document.querySelector('#hzBg .hzloupe'),c=docum
 function hzClose(){const b=document.getElementById('hzBg');if(b)b.remove();document.body.style.overflow='';HZ=null}
 const HZ_TOOLS=[['pen','붓'],['fill','채우기'],['erase','지우개']];
 const HZ_PRE=[['orig','기본 줄무늬'],['crown','크라운 띠'],['center','센터 줄'],['three','레이싱 3줄'],['chev','V자'],['check','체크 띠'],['bolt','번개'],['flame','불꽃'],['fade','도트 페이드'],['updown','위아래'],['star','별'],['stars','별 여러 개'],['two','반반'],['chin','턱 줄']];
-function hzUI(){const box=document.querySelector('#hzBg .hzbox');if(!box||!HZ)return;const Z=HZ,sl=hzSlots(),vis=Z.h.vis;
+function hzUI(){const box=document.querySelector('#hzBg .hzbox');if(!box||!HZ)return;
+  /* 다시 그려도 옆으로 넘긴 줄(무늬·로고) 위치는 그대로(v1.8.1-d7) */
+  const sx={};['.hzpre','.hzlogos'].forEach(s=>{const e=box.querySelector(s);if(e)sx[s]=e.scrollLeft});const sy=box.scrollTop;const Z=HZ,sl=hzSlots(),vis=Z.h.vis;
   const sw=(k,sel)=>`<div class="hzsw">${HCOL.map((c,i)=>`<button class="sw" type="button" data-${k}="${i+1}" aria-label="${c}" aria-pressed="${sel===i+1}" style="background:${c}"></button>`).join('')}</div>`;
   box.innerHTML=`<div class="hzhead"><h3 class="h3">헬멧 커스텀</h3><button class="iconbtn" type="button" data-hz="cancel" aria-label="닫기">✕</button></div>
     <div class="hzpad"><canvas class="hzimg" width="${HZP.w*HZ_HI}" height="${HZP.h*HZ_HI}"></canvas><canvas class="hzgrid" width="${HZN*20}" height="${Math.round(HZN*20*HZP.h/HZP.w)}"></canvas></div>
@@ -3055,6 +3057,7 @@ function hzUI(){const box=document.querySelector('#hzBg .hzbox');if(!box||!HZ)re
       ${s?`<button type="button" class="hzdel${Z.ask==='d'+i?' warn':''}" data-hzd="${i}">${Z.ask==='d'+i?'지울까요?':'지우기'}</button>`:''}</div>`).join('')}</div>
     <div class="hzfoot">${Z.on?'<button class="btn ghost hzoff" type="button" data-hz="off">커스텀 끄기 (원래 줄무늬로)</button>':''}
       <div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" data-hz="cancel">취소</button><button class="btn" type="button" data-hz="save">저장</button></div></div>`;
+  for(const s in sx){const e=box.querySelector(s);if(e)e.scrollLeft=sx[s]}box.scrollTop=sy;
   hzDraw()}
 function hzDraw(){if(!HZ)return;const c=document.querySelector('#hzBg .hzimg'),gc=document.querySelector('#hzBg .hzgrid');if(!c)return;
   const g=c.getContext('2d');hzPaintK(g,{...HZ.h,hb:HZ.base},HZ.grid,HZ_HI);if(HZ.lp)setTimeout(hzLoupe);const id=hzLgId(HZ.lg);if(id)hzLogo(g,id,HZ.lx,HZ.ly,HZ.ls);
@@ -3942,7 +3945,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.1-d6',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.1-d7',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
