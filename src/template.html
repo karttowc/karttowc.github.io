@@ -2963,11 +2963,13 @@ function helmetImg(h){if(helmetCanvas(h))return`<img class="himg" src="${helmetS
   return`<img class="himg" src="${HELMETS[1]}" data-hb="${h.base}" data-hs="${h.sec}" data-hvi="${h.vis}"${h.dz?` data-hdz="${h.dz}"`:''} alt="">`}
 /* 바닥에 내려놓은 헬멧(v1.8.3-d1): 전신 그림 발 옆. 번호 없이 그림자만 */
 function floorHelm(h,size){return`<span class="flh" style="width:${size}px">${helmetImg(h)}</span><span class="gsh" aria-hidden="true"></span>`}
-function helmet(h,num,size=56){return`<div class="helmet" style="width:${size}px;height:${size}px">${helmetImg(h)}${num!=null?`<b class="hnum" style="font-size:${Math.max(7,Math.round(size*.16))}px">${esc(num)}</b>`:''}</div>`}
+/* 커스텀 헬멧(그림·로고)이 켜져 있으면 헬멧에 번호 안 붙임(v1.8.8-d1) */
+const hzOn=h=>{const H=helmOf(h);return!!(H.dz&&/[^.]/.test(H.dz)||H.lg)};
+function helmet(h,num,size=56){if(hzOn(h))num=null;return`<div class="helmet" style="width:${size}px;height:${size}px">${helmetImg(h)}${num!=null?`<b class="hnum" style="font-size:${Math.max(7,Math.round(size*.16))}px">${esc(num)}</b>`:''}</div>`}
 /* 번호: 보는 쪽 왼뺨(줄무늬 아래), 반시계로 기울이고 1의 자리가 아래로(곡면에 붙은 느낌). CSS .hnum과 같은 값 */
 const HNUM_M=[.886,.156,.174,.985];
 function drawHelmet(g,h,num,x0,y0,sc){const W0=24*sc,c=helmetCanvas(h);if(!c)return;const ht=W0*.92,w=ht*c.w/c.h;x0+=(W0-w)/2;y0+=(W0*.75-ht)/2+sc*2;
-  g.drawImage(c.canvas,x0,y0,w,ht);
+  g.drawImage(c.canvas,x0,y0,w,ht);if(hzOn(h))return;
   g.save();g.translate(x0+w*.278,y0+ht*.83);g.transform(...HNUM_M,0,0);g.font=`700 ${ht*.17}px "Barlow Condensed",sans-serif`;g.textAlign='center';g.textBaseline='middle';
   g.lineWidth=ht*.016;g.lineJoin='round';g.strokeStyle='#000';g.strokeText(String(num),0,0);g.fillStyle='#fff';g.fillText(String(num),0,0);g.restore()}
 let hedTab='helm',hcustOpen=false;
@@ -3478,7 +3480,7 @@ function drawCard(){
     const sh=g.createLinearGradient(bx,by,bx+bs,by+bs);sh.addColorStop(0,'rgba(255,255,255,.10)');sh.addColorStop(.4,'rgba(255,255,255,0)');g.fillStyle=sh;g.fillRect(bx,by,bs,bs);g.restore()}
   else{g.fillStyle='rgba(255,255,255,.06)';rr(g,500,150,420,330,40);g.fill();drawHelmet(g,p.helmet,p.num,530,180,15)}
   /* 사진 왼쪽 아래 모서리에 걸친 헬멧(v1.8.6-d1), 헬멧 커스텀을 켰을 때만(d3) */
-  {const HH=helmOf(p.helmet),hc=av&&(/[^.]/.test(HH.dz)||HH.lg)&&helmetCanvas(p.helmet);if(hc){const hw=140,hh=hw*hc.h/hc.w;g.save();g.shadowColor='rgba(0,0,0,.7)';g.shadowBlur=28;g.shadowOffsetY=10;g.imageSmoothingQuality='high';g.drawImage(hc.canvas,684-hw/2,438-hh/2,hw,hh);g.restore()}}
+  {const hc=av&&hzOn(p.helmet)&&helmetCanvas(p.helmet);if(hc){const hw=140,hh=hw*hc.h/hc.w;g.save();g.shadowColor='rgba(0,0,0,.7)';g.shadowBlur=28;g.shadowOffsetY=10;g.imageSmoothingQuality='high';g.drawImage(hc.canvas,684-hw/2,438-hh/2,hw,hh);g.restore()}}
   g.fillStyle='#fff';g.textAlign='center';
   g.save();g.shadowColor='rgba(0,0,0,.6)';g.shadowBlur=24;g.shadowOffsetY=6;g.font=`700 92px ${F}`;g.fillText(p.name,W/2,620);g.restore();
   g.fillStyle='#AEB4C2';g.font=`500 34px ${F}`;g.fillText(`${D.seasons}시즌 · F1 ${D.teams.length}개 팀 · ${p.age}세 은퇴 · 통산 수익 ${won(p.earn||0)}`,W/2,680);
@@ -3967,7 +3969,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.7',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.8-d1',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
