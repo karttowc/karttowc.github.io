@@ -474,6 +474,7 @@ label.lbl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--
 .btc .pos{color:#FF6B76}.btc .neg{color:#6AA6FF}
 .incmeta{display:flex;gap:6px;align-items:center;margin-top:4px}
 .toast.big{background:var(--gold);color:#16120A;font-weight:800;font-size:16px;padding:14px 20px;animation:incbig .9s ease-out}@keyframes incbig{0%{transform:translateX(-50%) scale(.4);opacity:0}35%{transform:translateX(-50%) scale(1.15);opacity:1}55%{transform:translateX(-50%) scale(.96)}100%{transform:translateX(-50%) scale(1)}}
+.abBg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:130;display:flex;align-items:center;justify-content:center;padding:16px}.abBox{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px 18px 16px;max-width:340px;width:100%;text-align:center;font-size:15px;line-height:1.5;box-shadow:0 10px 30px rgba(0,0,0,.5)}.abBox .btn{margin-top:16px;padding:13px}
 .toast{top:calc(14px + env(safe-area-inset-top,0px));bottom:auto;position:fixed;left:50%;transform:translateX(-50%);background:var(--surface-2);padding:10px 16px;border-radius:12px;font-size:14px;z-index:120;box-shadow:0 6px 20px rgba(0,0,0,.4)}
 @media (prefers-reduced-motion:no-preference){.card,.choice{transition:border-color .15s}}
 
@@ -3974,7 +3975,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.10-d2',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.10-d3',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -4786,6 +4787,7 @@ function bigToast(title,msg,risk){const old=document.getElementById('btoast');if
   const parts=String(msg||'').split(' · ').filter(Boolean),d=document.createElement('div');d.id='btoast';
   d.innerHTML=`<div class="bt">${risk?`<div class="btr">${esc(risk)}</div>`:''}<b>${esc(title)}</b><div class="btc">${parts.map(s=>{const m=s.match(/^(.*?)\s([+-]\d+)$/);return m?`<span class="${m[2][0]==='+'?'pos':'neg'}"><i>${esc(m[1])}</i>${m[2]}</span>`:`<span>${esc(s)}</span>`}).join('')}</div></div>`;
   document.body.appendChild(d);const close=()=>{d.classList.add('bye');setTimeout(()=>d.remove(),200)};setTimeout(close,2200)}
+function alertBox(t){const b=document.createElement('div');b.className='abBg';const x=document.createElement('div');x.className='abBox';const m=document.createElement('div');m.textContent=t;const k=document.createElement('button');k.className='btn';k.textContent='확인';k.onclick=()=>b.remove();x.append(m,k);b.appendChild(x);document.body.appendChild(b)}
 function toast(t,big){const d=document.createElement('div');d.className='toast'+(big?' big':'');d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),big?3000:2200)}
 async function saveFile(filename,data){
   if(!DL)return;try{await DL.save({filename,data});toast('저장했어요')}catch(e){if(e&&e.code!=='declined')toast('저장하지 못했어요. 잠시 후 다시 시도해 주세요.')}
@@ -4821,7 +4823,7 @@ root.addEventListener('click',e=>{
     if(d.hb)h.base=d.hb;if(d.hs)h.sec=d.hs;if(d.hp)h.pat=d.hp;if(d.hv)h.vis=d.hv;tgt.helmet=h;hcustOpen=true;if(S)save();render();return}
   if(id==='hRandom'&&S){S.p.helmet=keepDz(randomHelmet(),S.p.helmet);save();render();return}
   if(id==='obNext1'){ob.step=2;ob.avPick=true;render();window.scrollTo(0,0);return}
-  if(id==='obNext2'){ob.step=3;render();window.scrollTo(0,0);if(badName(ob.name))toast('이 이름은 랭킹에 올라가지 않아요. 게임은 그대로 할 수 있어요.');return}
+  if(id==='obNext2'){ob.step=3;render();window.scrollTo(0,0);if(badName(ob.name))alertBox('이 이름은 랭킹에 올라가지 않아요. 게임은 그대로 할 수 있어요.');return}
   if(id==='obBack'){ob.step--;render();window.scrollTo(0,0);return}
   if(d.style){ob.style=d.style;render();return}
   if(id==='obDone'){newGame({name:ob.name.trim(),num:ob.num,nat:ob.nat,avatar:ob.av,helmet:ob.helmet,style:ob.style,stats:ob.cands[ob.style]});ob=null;tab='home';render();window.scrollTo(0,0);return}
