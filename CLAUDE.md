@@ -51,6 +51,7 @@ tools/logsheet.gs        플레이 기록 시트의 Apps Script (찬우가 시�
 tools/rk_helmet.sql       Supabase 함수 rk_helmet(내 기록 헬멧 칸만 고침). 찬우가 SQL Editor에서 실행
 tools/logs.py            익명 플레이 기록 받아서 요약 (LOG_KEY 환경변수 = Apps Script 비밀키, 저장소에 넣지 말 것. 인자로 받은 기록 파일도 합침)
                          끝에 '점검': 지난번 뒤 새 의견만 + 보낸 사람의 그때 상황(시즌·팀·순위·나이·OVR·경로·능력치·제안), 새 조작 표시 커리어. 본 위치는 play_logs_state.json(fbSeen·xSeen). --fb N은 최근 N개(본 위치 안 바꿈). 시트 설정은 그대로
+docs/name_filter.md      랭킹 이름 필터 단어·우회 규칙·일부러 뺀 말 (BADW_C를 바꾸면 같이 고칠 것)
 privacy.html             개인정보 처리방침 (정적, 직접 고침. 기록·랭킹에 보내는 항목이 바뀌면 맞출 것)
 guide.html               검색 노출용 게임 가이드 글 페이지 (정적, 직접 고침. 게임 바뀌면 내용 맞출 것)
 guides/                  공략 모음 (정적, 직접 고침. index.html 목록 + 글, 공통 guides.css. 새 글은 목록·sitemap.xml에도 추가.
