@@ -244,7 +244,9 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .hzhr{display:flex;align-items:center;gap:8px}.hzsym{display:flex;align-items:center;gap:6px;border:0;border-radius:12px;background:var(--surface-2);color:var(--fg);font-size:12px;font-weight:700;padding:5px 6px 5px 10px}
 .hzsym .tgl{transform:scale(.8);transform-origin:right center}
 .hzloupe{position:fixed;z-index:31;width:132px;height:132px;border-radius:50%;border:3px solid #fff;box-shadow:0 6px 20px rgba(0,0,0,.6);pointer-events:none}
-.hof .rkhz{flex:none;cursor:zoom-in;border-radius:16px}.hof .rkhz:active{opacity:.7}
+.hof .rkhz{flex:none;cursor:zoom-in;border-radius:16px;position:relative}
+.hof .rkzm{position:absolute;right:-3px;bottom:-3px;width:16px;height:16px;border-radius:50%;background:rgba(14,16,22,.85);display:grid;place-items:center;pointer-events:none}
+.hof .rkzm svg{width:10px;height:10px;fill:none;stroke:rgba(255,255,255,.75);stroke-width:2.2;stroke-linecap:round}.hof .rkhz:active{opacity:.7}
 .rkhzv{z-index:40;cursor:pointer}.rkhzbox{display:flex;flex-direction:column;align-items:center;gap:6px;padding:22px 26px;border-radius:20px;background:var(--surface-2);max-width:92vw}
 .rkhzbox img{width:min(260px,70vw);height:auto;filter:drop-shadow(0 10px 22px rgba(0,0,0,.6))}.rkhzbox b{font-size:18px;margin-top:6px}.rkhzx{font-size:12px;margin-top:4px}
 .hzbg{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;padding:12px}
@@ -5432,7 +5434,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.14-d1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.14-d2',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -5639,7 +5641,7 @@ function hofSheet(H){
       :g?((c,r)=>c||r?`<span class="rkwc">${c?`<span class="t alt" aria-label="${g.cn} ${c}회"><img src="${TROPHY[g.tro]}" alt=""><b>${c}</b></span>`:''}${r?`<span class="w">${g.rn} ${r}승</span>`:''}</span>`:'')(rkCnt(h,g.c),rkCnt(h,g.r))
       :h.titles||h.wins?`<span class="rkwc">${h.titles?`<span class="t" aria-label="월드 챔피언 ${h.titles}회"><img src="${TROPHY.F1}" alt=""><b>${h.titles}</b></span>`:''}${h.wins?`<span class="w">우승 ${h.wins}</span>`:''}</span>`:'';
     const av=mine.has(h.cid)&&arc.has(h.cid);
-    return`<div class="row2${i<3?' p'+i:''}${all&&mine.has(h.cid)?' me':''}${av?' arc':''}"${av?` data-arc="${esc(h.cid)}" role="button" tabindex="0" aria-label="${esc(h.name)} 커리어 결산 보기"`:''}><span class="rk${i<3?' m'+i:''}">${i+1}</span>${hzOn(h.helmet)?`<span class="rkhz" data-hzv="${i}" role="button" tabindex="0" aria-label="${esc(h.name)} 헬멧 크게 보기">${helmet(h.helmet,h.num,40)}</span>`:helmet(h.helmet,h.num,40)}
+    return`<div class="row2${i<3?' p'+i:''}${all&&mine.has(h.cid)?' me':''}${av?' arc':''}"${av?` data-arc="${esc(h.cid)}" role="button" tabindex="0" aria-label="${esc(h.name)} 커리어 결산 보기"`:''}><span class="rk${i<3?' m'+i:''}">${i+1}</span>${hzOn(h.helmet)?`<span class="rkhz" data-hzv="${i}" role="button" tabindex="0" aria-label="${esc(h.name)} 헬멧 크게 보기">${helmet(h.helmet,h.num,40)}<i class="rkzm" aria-hidden="true"><svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.2"/><path d="M9.7 9.7 14 14"/></svg></i></span>`:helmet(h.helmet,h.num,40)}
       <span style="flex:1;min-width:0"><span class="rkn"><b>${esc(h.name)}</b>${h.at?`<i>${rkAgo(h.at)}</i>`:''}</span>
       <span class="muted rkmeta">${esc(ser)}${h.top==='포뮬러 1'||h.podiums?` · 포디움 ${h.podiums}`:''}${h.peak?` · OVR ${h.peak}`:''} · ${h.age}세</span>
       ${tr.length||g&&h.titles?`<div class="chips rkch">${g&&h.titles?`<span class="chip f1">F1 월챔${h.titles>1?` ×${h.titles}`:''}</span>`:''}${tr.map(([t,n])=>`<span class="chip ${t==='트리플 크라운'?'gold':'silver'}">${esc(rkShort(t))}${n>1?` ×${n}`:''}</span>`).join('')}</div>`:''}</span>${side}${all?'':`<button class="rkdel" type="button" data-rkdel="${esc(h.cid)}" aria-label="${esc(h.name)} 기록 삭제">삭제</button>`}</div>${!all&&rkDel===h.cid?`<div class="rkdelc"><span>${esc(h.name)} 기록을 지울까요? ${h.sent&&!rkSrvDel(h)?'예전에 올린 기록이라 전체 랭킹에서는 지워지지 않고, 이 기기에서만 지워져요.':h.sent?'전체 랭킹에서도 지워지고, 되돌릴 수 없어요.':'되돌릴 수 없어요.'}</span><span class="rkdelb"><button class="btn ghost" type="button" id="rkDelNo">취소</button><button class="btn" type="button" id="rkDelYes" style="background:var(--bad)">삭제</button></span></div>`:''}`};
