@@ -244,6 +244,9 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .hzhr{display:flex;align-items:center;gap:8px}.hzsym{display:flex;align-items:center;gap:6px;border:0;border-radius:12px;background:var(--surface-2);color:var(--fg);font-size:12px;font-weight:700;padding:5px 6px 5px 10px}
 .hzsym .tgl{transform:scale(.8);transform-origin:right center}
 .hzloupe{position:fixed;z-index:31;width:132px;height:132px;border-radius:50%;border:3px solid #fff;box-shadow:0 6px 20px rgba(0,0,0,.6);pointer-events:none}
+.hof .rkhz{flex:none;cursor:zoom-in;border-radius:16px}.hof .rkhz:active{opacity:.7}
+.rkhzv{z-index:40;cursor:pointer}.rkhzbox{display:flex;flex-direction:column;align-items:center;gap:6px;padding:22px 26px;border-radius:20px;background:var(--surface-2);max-width:92vw}
+.rkhzbox img{width:min(260px,70vw);height:auto;filter:drop-shadow(0 10px 22px rgba(0,0,0,.6))}.rkhzbox b{font-size:18px;margin-top:6px}.rkhzx{font-size:12px;margin-top:4px}
 .hzbg{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;padding:12px}
 .hzbox{width:100%;max-width:440px;max-height:94vh;max-height:94dvh;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border-radius:22px;padding:14px 14px 16px;box-shadow:0 18px 50px rgba(0,0,0,.55);display:flex;flex-direction:column;gap:10px}
 .hzbox>*{flex-shrink:0}.hzbox .lbl{margin:2px 0 0}.hzhead{display:flex;align-items:center;justify-content:space-between}.hzhead .h3{margin:0}
@@ -3060,6 +3063,13 @@ function hzLoupe(){const Z=HZ,l=document.querySelector('#hzBg .hzloupe'),c=docum
   l.hidden=false;l.style.left=Math.max(6,Math.min(innerWidth-L-6,x-L/2))+'px';l.style.top=Math.max(6,y-L-56)+'px';
   g.fillStyle='#1B1D22';g.fillRect(0,0,L,L);g.imageSmoothingEnabled=false;g.drawImage(c,(cx-5)*cw,(cy-5)*ch,N*cw,N*ch,0,0,L,L);
   const n=Z.tool==='fill'?1:(Z.bs||1),o=(n-1)>>1,s=L/N;g.lineWidth=2;g.strokeStyle='#fff';g.strokeRect((5-o)*s+1,(5-o)*s+1,n*s-2,n*s-2);g.strokeStyle='rgba(0,0,0,.6)';g.lineWidth=1;g.strokeRect((5-o)*s+3,(5-o)*s+3,n*s-6,n*s-6)}
+/* 랭킹 커스텀 헬멧 크게 보기(v1.8.14-d1): 헬멧 아이콘을 누르면 render() 밖 DOM으로 띄우고, 아무 데나 누르면 닫힘 */
+let rkShown=[];
+function rkHzView(h){if(!h||!hzOn(h.helmet))return;const c=helmetCanvas(h.helmet);if(!c)return;
+  const bg=document.createElement('div');bg.className='hzbg rkhzv';bg.setAttribute('role','dialog');bg.setAttribute('aria-modal','true');bg.setAttribute('aria-label',`${h.name} 헬멧`);
+  bg.innerHTML=`<div class="rkhzbox"><img src="${c.url}" alt=""><b>${esc(h.name)}</b>${h.num!=null?`<span class="muted">#${esc(h.num)}</span>`:''}<span class="muted rkhzx">눌러서 닫기</span></div>`;
+  const close=()=>{bg.remove();document.removeEventListener('keydown',k)},k=e=>{if(e.key==='Escape')close()};
+  bg.addEventListener('click',close);document.addEventListener('keydown',k);document.body.appendChild(bg)}
 function hzClose(){const b=document.getElementById('hzBg');if(b)b.remove();document.body.style.overflow='';HZ=null}
 const HZ_TOOLS=[['pen','붓'],['fill','채우기'],['erase','지우개']];
 const HZ_PRE=[['orig','기본 줄무늬'],['crown','크라운 띠'],['center','센터 줄'],['three','레이싱 3줄'],['chev','V자'],['check','체크 띠'],['bolt','번개'],['flame','불꽃'],['fade','도트 페이드'],['updown','위아래'],['star','별'],['stars','별 여러 개'],['two','반반'],['chin','턱 줄']];
@@ -3977,7 +3987,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.13',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.14-d1',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -4184,14 +4194,14 @@ function hofSheet(H){
       :g?((c,r)=>c||r?`<span class="rkwc">${c?`<span class="t alt" aria-label="${g.cn} ${c}회"><img src="${TROPHY[g.tro]}" alt=""><b>${c}</b></span>`:''}${r?`<span class="w">${g.rn} ${r}승</span>`:''}</span>`:'')(rkCnt(h,g.c),rkCnt(h,g.r))
       :h.titles||h.wins?`<span class="rkwc">${h.titles?`<span class="t" aria-label="월드 챔피언 ${h.titles}회"><img src="${TROPHY.F1}" alt=""><b>${h.titles}</b></span>`:''}${h.wins?`<span class="w">우승 ${h.wins}</span>`:''}</span>`:'';
     const av=mine.has(h.cid)&&arc.has(h.cid);
-    return`<div class="row2${i<3?' p'+i:''}${all&&mine.has(h.cid)?' me':''}${av?' arc':''}"${av?` data-arc="${esc(h.cid)}" role="button" tabindex="0" aria-label="${esc(h.name)} 커리어 결산 보기"`:''}><span class="rk${i<3?' m'+i:''}">${i+1}</span>${helmet(h.helmet,h.num,40)}
+    return`<div class="row2${i<3?' p'+i:''}${all&&mine.has(h.cid)?' me':''}${av?' arc':''}"${av?` data-arc="${esc(h.cid)}" role="button" tabindex="0" aria-label="${esc(h.name)} 커리어 결산 보기"`:''}><span class="rk${i<3?' m'+i:''}">${i+1}</span>${hzOn(h.helmet)?`<span class="rkhz" data-hzv="${i}" role="button" tabindex="0" aria-label="${esc(h.name)} 헬멧 크게 보기">${helmet(h.helmet,h.num,40)}</span>`:helmet(h.helmet,h.num,40)}
       <span style="flex:1;min-width:0"><span class="rkn"><b>${esc(h.name)}</b>${h.at?`<i>${rkAgo(h.at)}</i>`:''}</span>
       <span class="muted rkmeta">${esc(ser)}${h.top==='포뮬러 1'||h.podiums?` · 포디움 ${h.podiums}`:''}${h.peak?` · OVR ${h.peak}`:''} · ${h.age}세</span>
       ${tr.length||g&&h.titles?`<div class="chips rkch">${g&&h.titles?`<span class="chip f1">F1 월챔${h.titles>1?` ×${h.titles}`:''}</span>`:''}${tr.map(([t,n])=>`<span class="chip ${t==='트리플 크라운'?'gold':'silver'}">${esc(rkShort(t))}${n>1?` ×${n}`:''}</span>`).join('')}</div>`:''}</span>${side}${all?'':`<button class="rkdel" type="button" data-rkdel="${esc(h.cid)}" aria-label="${esc(h.name)} 기록 삭제">삭제</button>`}</div>${!all&&rkDel===h.cid?`<div class="rkdelc"><span>${esc(h.name)} 기록을 지울까요? ${h.sent&&!rkSrvDel(h)?'예전에 올린 기록이라 전체 랭킹에서는 지워지지 않고, 이 기기에서만 지워져요.':h.sent?'전체 랭킹에서도 지워지고, 되돌릴 수 없어요.':'되돌릴 수 없어요.'}</span><span class="rkdelb"><button class="btn ghost" type="button" id="rkDelNo">취소</button><button class="btn" type="button" id="rkDelYes" style="background:var(--bad)">삭제</button></span></div>`:''}`};
   const body=all&&!rkNet()?`<p class="muted" style="margin:0">전체 랭킹은 인터넷에 연결된 게임 사이트에서 볼 수 있어요.</p>`:
     all&&rkErr[k]?`<p class="muted" style="margin:0">랭킹을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.</p><button class="btn ghost" type="button" id="rkRetry">다시 불러오기</button>`:
     all&&!L?`<p class="muted" style="margin:0">랭킹을 불러오는 중이에요…</p>`:
-    L.length?L.slice(0,100).map(row).join(''):
+    L.length?(rkShown=L.slice(0,100)).map(row).join(''):
     g?`<p class="muted" style="margin:0">${all?`아직 ${g.lbl} 랭킹에 오른 드라이버가 없어요.${g.m?' 첫 주인공이 되어 보세요.':''}`:`${g.lbl}에서 트로피를 딴 은퇴 드라이버가 아직 없어요.`}</p>`:
     `<p class="muted" style="margin:0">${wk?'이번 주엔 아직 랭킹에 오른 드라이버가 없어요. 첫 번째 이름을 남겨 보세요.':all?'아직 랭킹에 오른 드라이버가 없어요. 첫 번째 이름을 남겨 보세요.':'아직 은퇴한 드라이버가 없어요. 커리어를 마치면 여기에 이름이 남아요.'}</p>`;
   return`<div class="sheet" id="hofBg"><section class="card hof" style="max-height:85vh;overflow:auto"><div class="rkhd"><h3 class="h2">랭킹</h3><button type="button" class="ibtn" id="rkInfo" aria-label="순위 정하는 법" aria-expanded="${rkInfo}">${ISVG}</button>${rkInfo?`<div class="rkhow" role="tooltip"><b>순위 정하는 법</b><ol>${g?`<li>${g.cn} 횟수</li>${g.rn?`<li>${g.rn} 우승 수</li>`:''}<li>최고 OVR</li>`:`<li>F1 월드 챔피언 횟수</li><li>F1 우승 수</li><li>다른 무대 트로피(르망·인디 500 등)</li><li>포디움 수</li><li>주니어 챔피언 수</li><li>최고 OVR</li>`}</ol><span>앞 기준이 같을 때만 다음 기준으로 비교해요.</span></div>`:''}</div>
@@ -4816,10 +4826,11 @@ root.addEventListener('change',e=>{if(e.target.id==='obNat'){ob.nat=e.target.val
 root.addEventListener('click',e=>{
   {const ib=e.target.closest('span.ibtn[data-sheet]');if(ib){openSheet(ib.dataset.sheet);return}}
   if(rkInfo&&!e.target.closest('#rkInfo')){rkInfo=false;render();return}
-  const t=e.target.closest('button,[data-arc],#sheetBg,#hofBg');if(!t)return;
+  const t=e.target.closest('button,[data-hzv],[data-arc],#sheetBg,#hofBg');if(!t)return;
   if(t.dataset&&t.dataset.rkdel){rkDel=rkDel===t.dataset.rkdel?null:t.dataset.rkdel;render();return}
   if(t.id==='rkDelNo'){rkDel=null;render();return}
   if(t.id==='rkDelYes'){if(rkDel)hofRemove(rkDel);render();return}
+  if(t.dataset&&t.dataset.hzv!=null){rkHzView(rkShown[+t.dataset.hzv]);return}
   if(t.dataset&&t.dataset.arc){arcOpen(t.dataset.arc);return}
   if(t.id==='hofBg'){if(e.target===t){hofOpen=false;render()}return}
   if(t.id==='sheetBg'&&e.target===t){if(sheetBack){sheet=sheetBack;sheetBack=null;render();return}if(PRE(sheet)||sheet&&(sheet.type==='chres'||sheet.type==='num1'||sheet.type==='legend'))return;sheet=null;chain=false;evPick=null;render();return}
