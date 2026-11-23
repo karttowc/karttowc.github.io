@@ -2315,7 +2315,7 @@ function showGacha(){
   const pct=Math.round(gachaP(g)*100),f1=Z.ctx.f1;
   box.innerHTML=`<div class="sheet"><section class="card"><div class="eyebrow">${f1?'여름 휴식기':'시즌 중반 휴식기'} · 한 번의 도전</div><h3 class="h2">${esc(g.title)}</h3>
     <div class="kv"><div class="row"><span>성공 확률</span><span class="num" style="font-size:22px;color:var(--gold)">${pct}%</span></div>
-    <div class="row" style="align-items:flex-start"><span style="flex:none">성공하면</span><span style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;text-align:right">${effChips(g.win)}<span class="muted" style="font-size:12px">다음 레이스 컨디션 최고${gachaPace(g)>=.2?' · 남은 레이스 페이스 ↑':''}</span></span></div>
+    <div class="row" style="align-items:flex-start"><span style="flex:none">성공하면</span><span style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;text-align:right">${effChips(g.win)}<span class="up" style="font-size:12px">다음 레이스 컨디션 최고${gachaPace(g)>=.2?' · 남은 레이스 페이스 ↑':''}</span></span></div>
     <div class="row"><span>실패하면</span><span class="down">${g.slump?`다음 레이스 부진 · 체력 -${g.fm||10}`:`부상 ${g.inj[0]===g.inj[1]?g.inj[0]:g.inj[0]+'~'+g.inj[1]}경기 결장 · 체력 -${g.fm||11}`}</span></div></div>${g.slump?'':awakeHint()}
     <button class="btn" type="button" data-gacha="go">도전한다</button><button class="btn ghost" type="button" data-gacha="rest">안전하게 쉰다</button></section></div>`;
 }
@@ -3977,7 +3977,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.11-d1',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.11-d2',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -4821,7 +4821,7 @@ root.addEventListener('click',e=>{
     const box=document.getElementById('pInc');const go=d.gacha==='go';
     if(go)box.querySelector('.card').innerHTML='<div class="eyebrow">결과를 기다리는 중</div><h3 class="h2">두근두근…</h3>';
     setTimeout(()=>{if(!S||!S.season||S.season.gacha.done||S.phase!=='progress')return;const res=resolveGacha(go);
-      box.innerHTML=`<div class="sheet"><section class="card"><div class="eyebrow">휴식기 결과</div><h3 class="h2" style="color:${res.ok===true?'var(--gold)':res.ok===false?'#FF6B78':'var(--fg)'}">${res.ok===true?'성공!':res.ok===false?'실패…':'휴식'}</h3><div style="display:flex;flex-wrap:wrap;gap:6px">${effChips(res.eff||{})}</div><p class="muted" style="margin:0;font-size:13px">${esc(res.sub||'')}</p><button class="btn" type="button" id="gachaOk">시즌 이어가기</button></section></div>`;
+      box.innerHTML=`<div class="sheet"><section class="card"><div class="eyebrow">휴식기 결과</div><h3 class="h2" style="color:${res.ok===true?'var(--gold)':res.ok===false?'#FF6B78':'var(--fg)'}">${res.ok===true?'성공!':res.ok===false?'실패…':'휴식'}</h3><div style="display:flex;flex-wrap:wrap;gap:6px">${effChips(res.eff||{})}</div><p class="${res.ok===true?'up':'muted'}" style="margin:0;font-size:13px">${esc(res.sub||'')}</p><button class="btn" type="button" id="gachaOk">시즌 이어가기</button></section></div>`;
       feed.unshift({t:`휴식기 ${res.t}`,c:res.ok===true?'gold':res.ok===false?'bad':'blue'});paintFeed()},go?900:0);return}
   if(id==='gachaOk'){document.getElementById('pInc').innerHTML='';progTimer=setTimeout(stepProgress,400);return}
   if(d.inc!=null&&S.phase==='progress'){const inc=S.season.incidents.find(x=>x.r===progI&&!x.done);if(!inc)return;const res=applyIncident(inc,+d.inc);document.getElementById('pInc').innerHTML='';feed.unshift({t:`${roundName(inc.r)} · ${res.t}`,c:res.c});paintFeed();toast(res.t,res.big);progTimer=setTimeout(stepProgress,res.big?1400:600);return}
