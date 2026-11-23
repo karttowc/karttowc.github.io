@@ -51,6 +51,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .app{max-width:480px;margin:0 auto;padding-inline:16px;padding-block:20px 110px;display:flex;flex-direction:column;gap:14px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
 .top h1{font-size:24px;margin:0;font-weight:700;letter-spacing:-.02em}
+.obtop{display:grid;grid-template-columns:1fr auto 1fr}.obtop>:first-child{justify-self:start}.obtop>:last-child{justify-self:end}.obh{display:flex;align-items:center;justify-content:space-between;gap:10px}.obh .iconbtn{flex:none}
 .iconbtn{background:var(--surface-2);border:0;border-radius:12px;padding:8px 14px;color:var(--muted);font-size:14px}
 .card{background:var(--surface);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
 .eyebrow{color:var(--muted);font-size:14px}
@@ -3886,20 +3887,20 @@ function obView(){
   const tag=`<div class="obtag"><div class="obmeta"><b class="num">#${esc(ob.num)}</b><em>${esc(K.nationalities[ob.nat]||'')}</em></div><span class="obname">${esc(ob.name.trim()||'이름 없음')}</span></div>`;
   const hero=`<section class="obhero"><div class="obstage"><div class="hsuit">${helmet(ob.helmet,ob.num,64)}${avatar(ob.av,ob.helmet,118,true,ob.num)}</div></div>${tag}</section>`;
   const note=`<p class="muted" style="margin:4px 0 0;font-size:12px;text-align:center">비공식 팬 게임이에요. 수익을 내지 않으며 F1·FIA·각 팀과 관련이 없어요. 팀명·로고·선수명 등 상표는 각 소유자의 것이에요.</p>`;
-  if(ob.step===1)return`<header class="top"><span style="width:56px"></span>${steps}<button class="iconbtn" type="button" id="obRandom">랜덤</button></header>
-    <div><h2 class="h2">나만의 드라이버를 꾸며요</h2></div>
+  if(ob.step===1)return`<header class="top obtop"><span class="obtl"></span>${steps}<button class="iconbtn" type="button" id="toTitle">홈으로</button></header>
+    <div class="obh"><h2 class="h2">나만의 드라이버를 꾸며요</h2><button class="iconbtn" type="button" id="obRandom">랜덤</button></div>
     <section class="card obsuit"><div class="obworn">${avatarWorn(ob.av,ob.helmet,240)}</div><div class="obteams"><div class="lbl">팀 컬러</div>${teamColors(ob.helmet)}</div></section>
     <section class="card">${hedHead(ob.helmet)}${helmetEditor(ob.helmet)}</section>
     <button class="btn" type="button" id="obNext1">다음</button>${note}`;
-  if(ob.step===2)return`<header class="top"><button class="iconbtn" type="button" id="obBack">이전</button>${steps}<button class="iconbtn" type="button" id="obRandom">랜덤</button></header>
-    <div><h2 class="h2">얼굴·이름·국적을 정해요</h2></div>
+  if(ob.step===2)return`<header class="top obtop"><button class="iconbtn" type="button" id="obBack">이전</button>${steps}<button class="iconbtn" type="button" id="toTitle">홈으로</button></header>
+    <div class="obh"><h2 class="h2">얼굴·이름·국적을 정해요</h2><button class="iconbtn" type="button" id="obRandom">랜덤</button></div>
     ${hero}
     <section class="card"><div class="lbl" style="margin-bottom:8px">얼굴</div><div class="avgrid">${AVATAR.map((_,i)=>`<button class="avopt" type="button" data-av="${i}" aria-pressed="${i===ob.av}" aria-label="드라이버 ${i+1}">${avatar(i,ob.helmet,64)}</button>`).join('')}</div></section>
     <section class="card"><div class="grid2"><label class="lbl" for="obName">이름<input class="field" id="obName" maxlength="12" placeholder="이름" value="${esc(ob.name)}"></label>
       <label class="lbl" for="obNum">차량 번호<input class="field num" id="obNum" type="number" min="2" max="99" value="${ob.num}"></label></div>
       <label class="lbl" for="obNat" style="margin-top:10px">국적<select class="field" id="obNat">${Object.entries(K.nationalities).map(([k,v])=>`<option value="${k}"${k===ob.nat?' selected':''}>${v}</option>`).join('')}</select></label></section>
     <button class="btn" type="button" id="obNext2" ${ob.name.trim()?'':'disabled'}>다음</button>`;
-  return`<header class="top"><button class="iconbtn" type="button" id="obBack">이전</button>${steps}<span style="width:56px"></span></header>
+  return`<header class="top obtop"><button class="iconbtn" type="button" id="obBack">이전</button>${steps}<button class="iconbtn" type="button" id="toTitle">홈으로</button></header>
     <div><div class="eyebrow">네 후보 모두 능력치 합은 ${B.driver.start_stat_sum}이고, 분포만 달라요.</div><h2 class="h2">드라이버 스타일을 골라 주세요</h2></div>
     ${B.styles.map(s=>{const st=ob.cands[s.id],top=[...STATS].sort((a,b)=>st[b]-st[a]).slice(0,2);return`<button class="choice" type="button" data-style="${s.id}" aria-pressed="${ob.style===s.id}">
       <span class="row"><span class="h3">${s.name}</span><span class="tick">✓</span></span><span class="muted" style="font-size:14px">${s.desc}</span>
@@ -3991,7 +3992,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.16',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.17-d1',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
