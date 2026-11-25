@@ -275,7 +275,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .hzglist{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.hzgitem{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--surface-2);border-radius:12px;padding:8px 6px;min-width:0}
 .hzgitem img{width:64px;height:70px;object-fit:contain;image-rendering:pixelated}.hzgitem b{font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hzgitem button{width:100%;border:0;border-radius:10px;padding:7px 0;font-size:13px;font-weight:600;background:var(--surface);color:var(--fg)}
-.hedbtns{display:flex;gap:6px}.hzgb{padding:5px 12px}
+.hedbtns{display:flex;gap:6px}.hzgsle{opacity:.5}.hzgb{padding:5px 12px}
 .hzgitem button.hzguse{background:var(--accent);color:#fff}.hzgslb{border:0;color:var(--fg);font:inherit;font-size:13px;font-weight:600;cursor:pointer}.hzgslb img{width:56px;height:62px;object-fit:contain;image-rendering:pixelated}
 .hzgitem .hzglink{background:none;color:var(--muted);padding:2px 0;font-size:12px;font-weight:500}.hzgitem button.warn{background:var(--bad);color:#fff}
 .hzfoot{display:flex;flex-direction:column;gap:8px;margin-top:4px}.hzoff{padding:12px;font-size:15px}
@@ -4541,15 +4541,17 @@ function hzgOk(r){if(!r||typeof r!=='object')return null;const d=rkDz({dz:r.dz})
   return{id:r.id,name:String(r.name||'').slice(0,24),dz:d,b:r.b.toUpperCase(),lg,lx:f(r.lx)??.5,ly:f(r.ly)??.2,ls:f(r.ls)??HZ_LGW}}
 const hzgImg=(r,vis)=>(hzCanvas({base:r.b,sec:r.b,vis,dz:r.dz,...(r.lg?{lg:r.lg,lx:r.lx,ly:r.ly,ls:r.ls}:{})})||{}).url||HELMETS[1];
 /* 올리기 전 검사: 그림·같은 그림·하루 개수. 통과하면 압축한 dz */
-function hzgPre(){const Z=HZ;if(!rkNet()){toast('인터넷에 연결된 곳에서만 올릴 수 있어요');return null}
-  const dz=hzStr(Z.grid);if(!/[^.]/.test(dz)){toast('먼저 헬멧에 그림을 그려 주세요');return null}
+/* 올릴 것(v1.8.19-d1): 편집 창 그림 또는 보관함 칸. {dz(풀어 쓴 글자), b, lg(팀 id), lx, ly, ls, name, img} */
+function hzgSrcEd(){const Z=HZ,c=document.querySelector('#hzBg .hzimg');return{dz:hzStr(Z.grid),b:Z.base,lg:hzLgId(Z.lg)||'',lx:Z.lx,ly:Z.ly,ls:Z.ls,name:Z.tgt.name,img:c?c.toDataURL():''}}
+function hzgPre(src){if(!rkNet()){toast('인터넷에 연결된 곳에서만 올릴 수 있어요');return null}
+  const dz=src.dz;if(!/[^.]/.test(dz)){toast('먼저 헬멧에 그림을 그려 주세요');return null}
   const pk=hzPack(dz),mine=lsJ(HZG_MINE,[]),day=Date.now()-864e5;
   if(mine.some(m=>m.pk===pk)){toast('이미 올린 그림이에요');return null}
   if(mine.filter(m=>m.t>day).length>=HZG_DAY){toast(`갤러리에는 하루 ${HZG_DAY}개까지 올릴 수 있어요`);return null}
   return pk}
 /* 헬멧 이름 창(v1.8.18-d4, d6에 '올릴 이름' → '헬멧 이름'): 드라이버 이름을 미리 채운 이름 칸. 욕설 이름은 못 올림 */
-function hzgName(){const Z=HZ;if(!Z||!hzgPre())return;const old=document.getElementById('hzgNm');if(old)old.remove();
-  const nm=String(Z.tgt.name||'').trim().slice(0,12),pre=nm&&!badName(nm)?nm:'',c=document.querySelector('#hzBg .hzimg');
+function hzgName(src){if(!src||!hzgPre(src))return;const old=document.getElementById('hzgNm');if(old)old.remove();
+  const nm=String(src.name||'').trim().slice(0,12),pre=nm&&!badName(nm)?nm:'',c=src.img?{toDataURL:()=>src.img}:null;
   const bg=document.createElement('div');bg.className='hzbg hzgbg';bg.id='hzgNm';
   bg.innerHTML=`<section class="hzbox hzgnm" role="dialog" aria-modal="true" aria-label="갤러리에 올리기"><h3 class="h3">갤러리에 올리기</h3>${c?`<img src="${c.toDataURL()}" alt="">`:''}
     <label class="lbl" for="hzgNmIn">헬멧 이름<input class="field" id="hzgNmIn" maxlength="12" placeholder="헬멧 이름" value="${esc(pre)}"></label>
@@ -4558,15 +4560,15 @@ function hzgName(){const Z=HZ;if(!Z||!hzgPre())return;const old=document.getElem
   const inp=bg.querySelector('input'),ok=bg.querySelector('[data-n="ok"]');
   inp.addEventListener('input',()=>{ok.disabled=!inp.value.trim()});
   bg.addEventListener('click',e=>{const t=e.target.closest('button');if(e.target===bg||t&&t.dataset.n==='x'){bg.remove();return}
-    if(t&&t.dataset.n==='ok'){const n=inp.value.trim().slice(0,12);if(!n)return;if(badName(n)){toast('이 이름은 쓸 수 없어요');return}bg.remove();hzgUp(n)}});
+    if(t&&t.dataset.n==='ok'){const n=inp.value.trim().slice(0,12);if(!n)return;if(badName(n)){toast('이 이름은 쓸 수 없어요');return}bg.remove();hzgUp(n,src)}});
   document.body.appendChild(bg);if(!pre)setTimeout(()=>inp.focus(),50)}
-async function hzgUp(name){const Z=HZ;if(!Z)return;const pk=hzgPre();if(!pk)return;const mine=lsJ(HZG_MINE,[]),lg=hzLgId(Z.lg)||null;
+async function hzgUp(name,src){const pk=hzgPre(src);if(!pk)return;const mine=lsJ(HZG_MINE,[]),lg=src.lg&&kTeam(src.lg)?src.lg:null;
   let dk=null,dh=null;try{const u=new Uint8Array(16);crypto.getRandomValues(u);dk=rkHex(u);dh=await rkHash(dk)}catch(e){dk=dh=null}
-  const body={name,dz:pk,b:Z.base,lg,lx:lg?+Z.lx.toFixed(3):null,ly:lg?+Z.ly.toFixed(3):null,ls:lg?Z.ls:null,del_hash:dh};
+  const body={name,dz:pk,b:src.b,lg,lx:lg?+(+src.lx).toFixed(3):null,ly:lg?+(+src.ly).toFixed(3):null,ls:lg?src.ls:null,del_hash:dh};
   try{const r=await fetch(hzgU('hz_gallery')+'?select=id',{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(body)});
     if(r.status===404){toast('갤러리를 준비하고 있어요. 조금만 기다려 주세요');return}
     if(!r.ok){toast('올리지 못했어요. 잠시 뒤 다시 해 주세요');return}
-    const id=((await r.json())[0]||{}).id;mine.push({id,dk,pk,t:Date.now()});lsW(HZG_MINE,mine.slice(-200));toast('갤러리에 올렸어요');if(HZG)hzgLoad(true)}
+    const id=((await r.json())[0]||{}).id;mine.push({id,dk,pk,t:Date.now()});lsW(HZG_MINE,mine.slice(-200));alertBox('갤러리에 올라갔어요');if(HZG)hzgLoad(true)}
   catch(e){toast('올리지 못했어요. 잠시 뒤 다시 해 주세요')}}
 /* mode 'edit' = 편집 창에서(가져오기), 'out' = 첫 화면·꾸미기 창에서(사용하기·보관함에 담기, v1.8.18-d7) */
 const hzgTgt=()=>ob||(S&&S.p&&!S.p.retired?S.p:null);
@@ -4600,6 +4602,20 @@ function hzgUse2(r,t){hzgClose();
   if(t){t.helmet=hzgApply(t.helmet,r);if(t===ob){ob.step=1;title=false;render();window.scrollTo(0,0)}else{save();title=false;titleAsk=false;tab='driver';sheet='helmet';render()}
     toast('헬멧을 바꿨어요. 팀 컬러로 슈트를 맞춰 보세요');return}
   obPend=hzgApply(null,r);if(S&&S.p){titleAsk=true;title=true;render();return}ob=null;enterGame()}
+/* 내 디자인 올리기(v1.8.19-d1): 보관함 칸을 골라 헬멧 이름 창으로 */
+function hzgSlotUp(){const sl=hzSlots(),vis=HZG?HZG.vis:'smoke';if(!sl.some(Boolean)){toast('보관함이 비어 있어요. 만들기로 먼저 그려서 보관함에 저장해 주세요');return}
+  const old=document.getElementById('hzgSl');if(old)old.remove();
+  const im=x=>(hzCanvas({base:x.b,sec:x.b,vis,dz:x.dz,...(x.lg&&hzLgId(x.lg)?{lg:hzLgId(x.lg),lx:x.lx,ly:x.ly,ls:x.ls??HZ_LGW}:{})})||{}).url||HELMETS[1];
+  const bg=document.createElement('div');bg.className='hzbg hzgbg';bg.id='hzgSl';
+  bg.innerHTML=`<section class="hzbox hzgnm" role="dialog" aria-modal="true" aria-label="올릴 디자인 고르기"><h3 class="h3">올릴 디자인을 골라 주세요</h3><p class="muted hzgnote">내 디자인 보관함에 저장한 헬멧이에요.</p>
+    <div class="hzslots">${sl.map((x,k)=>x?`<button type="button" class="hzslot hzgslb" data-k="${k}"><img src="${im(x)}" alt=""><span>${k+1}번</span></button>`:`<div class="hzslot hzgslb hzgsle"><div class="hzempty">빈칸</div><span>${k+1}번</span></div>`).join('')}</div>
+    <button class="btn ghost" type="button" data-k="x">취소</button></section>`;
+  bg.addEventListener('click',e=>{const b=e.target.closest('button');if(e.target===bg||b&&b.dataset.k==='x'){bg.remove();return}
+    if(b&&b.dataset.k!=null){const x=hzSlots()[+b.dataset.k];if(!x)return;bg.remove();const t=hzgTgt(),lg=x.lg?hzLgId(x.lg):'';
+      hzgName({dz:hzNorm(x.dz),b:x.b,lg,lx:x.lx??.5,ly:x.ly??.2,ls:x.ls??HZ_LGW,name:t?t.name:'',img:im(x)})}});
+  document.body.appendChild(bg)}
+/* 만들기: 헬멧 커스텀을 엶. 커리어가 없으면 연습 헬멧(저장하면 보관함으로) */
+function hzgMake(){const t=hzgTgt()||{name:'',helmet:lastHelm()||randomHelmet(),tmp:1};hzgClose();hzOpen(t)}
 /* 보관함에 담기: 빈 칸 첫 번째에, 다 차 있으면 덮어쓸 칸을 고름 */
 function hzgKeep(r,after){const sl=hzSlots(),it={dz:r.dz,b:r.b,...(r.lg?{lg:r.lg,lx:r.lx,ly:r.ly,ls:r.ls}:{})},i=sl.findIndex(x=>!x);
   const put=k=>{const a=hzSlots();a[k]=it;lsSet(HZ_SLOTS,JSON.stringify(a));toast(`보관함 ${k+1}번에 담았어요`);if(HZ)hzUI();if(after)after()};
@@ -4621,6 +4637,7 @@ async function hzgLoad(fresh){const G=HZG;if(!G||G.busy)return;G.busy=true;G.err
 function hzgUI(){const box=document.querySelector('#hzgBg .hzbox'),G=HZG;if(!box||!G)return;const sy=box.scrollTop,vis=G.vis,
     mine=new Set(lsJ(HZG_MINE,[]).map(m=>m.id)),rep=new Set(lsJ(HZG_REP,[]));
   box.innerHTML=`<div class="hzhead"><h3 class="h3">헬멧 갤러리</h3><button class="iconbtn" type="button" data-hzg="close" aria-label="닫기">✕</button></div>
+    ${G.mode==='edit'?'':'<div class="hzgrow"><button type="button" class="hzgup" data-hzg="slot">내 디자인 올리기</button><button type="button" data-hzg="make">만들기</button></div>'}
     <p class="muted hzgnote">다른 사람이 올린 헬멧을 ${G.mode==='edit'?'가져와 고쳐':'내 헬멧으로'} 쓸 수 있어요. 이상한 그림은 신고해 주세요.</p>
     ${G.list.length?`<div class="hzglist">${G.list.map(r=>{const me=mine.has(r.id);return`<div class="hzgitem"><img src="${hzgImg(r,vis)}" alt=""><b>${esc(r.name)}</b>
       ${G.mode==='edit'?`<button type="button" data-hzgl="${r.id}">가져오기</button>`:`<button type="button" class="hzguse" data-hzgu="${r.id}">사용하기</button><button type="button" class="hzglink" data-hzgk="${r.id}">보관함에 담기</button>`}
@@ -4632,6 +4649,8 @@ function hzgUI(){const box=document.querySelector('#hzgBg .hzbox'),G=HZG;if(!box
 async function hzgClick(e){const G=HZG,Z=HZ;if(!G)return;if(e.target===e.currentTarget){hzgClose();return}const t=e.target.closest('button');if(!t)return;const d=t.dataset;
   if(d.hzg==='close'){hzgClose();return}
   if(d.hzg==='more'){hzgLoad(false);return}
+  if(d.hzg==='slot'){hzgSlotUp();return}
+  if(d.hzg==='make'){hzgMake();return}
   if(d.hzgu){const r=G.list.find(x=>x.id==d.hzgu);if(r)hzgUse(r);return}
   if(d.hzgk){const r=G.list.find(x=>x.id==d.hzgk);if(r)hzgKeep(r);return}
   if(d.hzgl){const r=G.list.find(x=>x.id==d.hzgl);if(!r||!Z)return;hzPush();Z.pat=null;Z.fromG=1;Z.grid=hzGrid(r.dz);Z.base=HCOL.includes(r.b)?r.b:Z.base;Z.lg=r.lg;Z.lx=r.lx;Z.ly=r.ly;Z.ls=r.ls;
@@ -4665,8 +4684,8 @@ function hzUI(){const box=document.querySelector('#hzBg .hzbox');if(!box||!HZ)re
       ${s?`<button type="button" class="hzdel${Z.ask==='d'+i?' warn':''}" data-hzd="${i}">${Z.ask==='d'+i?'지울까요?':'지우기'}</button>`:''}</div>`).join('')}</div>
     <div class="lbl">헬멧 갤러리 <span class="muted">(모두와 나누기)</span></div>
     <div class="hzgrow"><button type="button" data-hz="gup">지금 그림 올리기</button><button type="button" data-hz="gal">갤러리 보기</button></div>
-    <div class="hzfoot">${Z.on?'<button class="btn ghost hzoff" type="button" data-hz="off">커스텀 끄기 (원래 줄무늬로)</button>':''}
-      <div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" data-hz="cancel">취소</button><button class="btn" type="button" data-hz="save">저장</button></div></div>`;
+    <div class="hzfoot">${Z.on&&!Z.tgt.tmp?'<button class="btn ghost hzoff" type="button" data-hz="off">커스텀 끄기 (원래 줄무늬로)</button>':''}
+      <div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" data-hz="cancel">취소</button><button class="btn" type="button" data-hz="save">${Z.tgt.tmp?'보관함에 저장':'저장'}</button></div></div>`;
   for(const s in sx){const e=box.querySelector(s);if(e)e.scrollLeft=sx[s]}box.scrollTop=sy;
   hzDraw()}
 function hzDraw(){if(!HZ)return;const c=document.querySelector('#hzBg .hzimg'),gc=document.querySelector('#hzBg .hzgrid');if(!c)return;
@@ -4744,13 +4763,14 @@ function hzClick(e){const Z=HZ;if(!Z)return;const t=e.target.closest('button');i
   if(d.hzs!=null){const i=+d.hzs,sl=hzSlots();if(sl[i]&&Z.ask!=='s'+i){Z.ask='s'+i;hzUI();return}sl[i]={dz:hzStr(Z.grid),b:Z.base,...(Z.lg?{lg:Z.lg,lx:Z.lx,ly:Z.ly,ls:Z.ls}:{})};lsSet(HZ_SLOTS,JSON.stringify(sl));Z.ask=null;hzUI();toast(`보관함 ${i+1}번에 저장했어요`);return}
   if(d.hzd!=null){const i=+d.hzd,sl=hzSlots();if(Z.ask!=='d'+i){Z.ask='d'+i;hzUI();return}sl[i]=null;lsSet(HZ_SLOTS,JSON.stringify(sl));Z.ask=null;hzUI();return}
   const a=d.hz;if(!a)return;
-  if(a==='gup'){Z.ask=null;hzUI();hzgName();return}
+  if(a==='gup'){Z.ask=null;hzUI();hzgName(hzgSrcEd());return}
   if(a==='gal'){Z.ask=null;hzUI();hzgOpen('edit');return}
   if(a==='sym'){Z.sym=!Z.sym;hzUI();return}
   if(a==='undo'){Z.pat=null;if(Z.undo.length){Z.redo.push(Z.grid);Z.grid=Z.undo.pop()}Z.ask=null;hzUI();return}
   if(a==='redo'){Z.pat=null;if(Z.redo.length){Z.undo.push(Z.grid);Z.grid=Z.redo.pop()}Z.ask=null;hzUI();return}
   if(a==='clear'){hzPush();Z.grid=new Uint8Array(HZN*HZN);Z.pat=null;Z.ask=null;hzUI();return}
   if(a==='cancel'){hzClose();return}
+  if(a==='save'&&Z.tgt.tmp){hzgKeep({dz:hzStr(Z.grid),b:Z.base,...(Z.lg?{lg:Z.lg,lx:+Z.lx.toFixed(3),ly:+Z.ly.toFixed(3),ls:Z.ls}:{})},()=>{if(HZ===Z)hzClose()});return}
   if(a==='save'&&Z.fromG&&!Z.guarded){hzgGuard(Z.tgt.helmet,hzStr(Z.grid),()=>{if(HZ===Z){Z.guarded=1;hzClick({target:t})}});return}
   if(a==='off'||a==='save'){const h={...normHelmet(Z.tgt.helmet)};if(a==='save'){h.hb=Z.base;if(!h.hs)h.hs=helmOf(h).sec;h.dz=hzStr(Z.grid);delete h.dzOff;if(Z.lg){h.lg=Z.lg;h.lx=+Z.lx.toFixed(3);h.ly=+Z.ly.toFixed(3);h.ls=Z.ls}else{delete h.lg;delete h.lx;delete h.ly;delete h.ls}}else h.dzOff=1;
     Z.tgt.helmet=h;hzClose();if(S&&!ob)save();render();return}}
@@ -5542,6 +5562,7 @@ const FUEL_URL='https://qr.kakaopay.com/FR5iI9U5C';
 // 선택지 확률 정확도 공지 표: [구간, 표시 평균, 실제] (11-15 플레이 기록)
 const PROB=[[10,15.6,15.3],[20,24.4,24.3],[30,34.7,34.8],[40,44.1,43.9],[50,53.9,54.2],[60,62.9,62.8],[70,73.9,73.4],[80,84.0,84.0]].map(r=>[r[0],r[1].toFixed(1),r[2].toFixed(1)]);
 const NOTES=[
+ {v:'1.8.19',d:'2026.11.25',hot:true,t:'헬멧 갤러리',go:'hzg',gl:'헬멧 갤러리 바로가기',items:['헬멧 갤러리가 생겼습니다. 첫 화면의 \'헬멧 갤러리\'나 헬멧 꾸미기의 \'갤러리\' 버튼으로 들어갈 수 있습니다','내가 그린 헬멧에 이름을 붙여 갤러리에 올릴 수 있습니다. 보관함에 저장한 디자인은 \'내 디자인 올리기\'로 바로 올릴 수 있습니다','다른 사람의 헬멧을 \'사용하기\'로 바로 쓰거나 \'보관함에 담기\'로 모아 둘 수 있습니다']},
  {v:'1.8.0',d:'2026.11.22',hot:true,t:'헬멧 커스텀, F1 팀 인수',items:['헬멧을 직접 그릴 수 있습니다. 헬멧 색의 \'직접 고르기\' 옆 버튼을 누르면 32×32 칸 도트로 칠할 수 있고, 기본 무늬 13개에서 시작할 수도 있습니다','그린 헬멧은 이 기기의 보관함에 저장해 두고 다시 불러올 수 있습니다','대규정이 바뀌는 해에 F1 팀이 자동차 회사에 인수되어 이름이 바뀔 수 있습니다(토요타, 르노, 포르쉐, BMW, 현대). 팀 이름·색·로고는 바뀌지만 전력과 계약은 그대로입니다','다른 리그로 전향할 때 가고 싶은 리그를 고를 수 있습니다. 고른 리그의 팀은 꼭 제안합니다','보내 주신 의견이 이번 업데이트에 반영됐습니다. 감사합니다']},
  {v:'1.7.14',d:'2026.11.17',t:'내 기록 삭제',items:['랭킹의 내 기록을 직접 삭제할 수 있습니다. 랭킹 \'내 기록\' 줄의 [삭제]를 누르면 됩니다','설정에서 \'내 기록 ID\'를 확인할 수 있습니다. 보낸 플레이 기록을 지우고 싶으면 이 ID를 의견으로 보내 주세요','보내 주신 의견이 이번 업데이트에 반영됐습니다. 감사합니다']},
  {v:'1.7.13',d:'2026.11.17',t:'공략 모음 개설',info:true,url:'guides/',ul:'📒 공략 보러 가기',items:['공략 모음을 열었습니다. 첫 화면 맨 아래 \'공략\'에서도 볼 수 있습니다','첫 커리어, 세 게이지, 성장·훈련, 주니어 사다리, 팀별 F1 데뷔 루트, 이적 시장, 다른 무대, 월드 챔피언, 은퇴·랭킹까지 9편이 있습니다','레드불·페라리·메르세데스·맥라렌 루트는 \'F1 데뷔 루트\' 글에서 자세히 볼 수 있습니다']},
@@ -5566,7 +5587,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.18',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.19',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -6358,7 +6379,7 @@ function sheetView(){
       <div class="ptab1 num">예상 67.0% · 실제 67.2%</div>
       <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`;
   if(sheet==='notes')return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">지금 버전 v${LOG_VER}</div><h3 class="h2">게임 소식</h3>
-      ${NOTES.map(n=>`<details class="note${n.hot?' hot':''}${n.info?' info':''}"><summary><span class="nt"><b>${esc(n.t||'v'+n.v)}</b><span class="muted num">${n.v?`v${n.v} · `:''}${n.d}</span></span><i>›</i></summary>${n.dev?`<div class="devnote nbody">${DEV_NOTE}</div>`:`<ul>${n.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${n.card?`<button type="button" class="dlink ncard" data-sheet="${n.card}">${n.cl||'축하 카드 보기'} ›</button>`:''}${n.url?`<a class="dlink ncard" href="${n.url}">${n.ul} ›</a>`:''}`}</details>`).join('')}
+      ${NOTES.map(n=>`<details class="note${n.hot?' hot':''}${n.info?' info':''}"><summary><span class="nt"><b>${esc(n.t||'v'+n.v)}</b><span class="muted num">${n.v?`v${n.v} · `:''}${n.d}</span></span><i>›</i></summary>${n.dev?`<div class="devnote nbody">${DEV_NOTE}</div>`:`<ul>${n.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${n.card?`<button type="button" class="dlink ncard" data-sheet="${n.card}">${n.cl||'축하 카드 보기'} ›</button>`:''}${n.url?`<a class="dlink ncard" href="${n.url}">${n.ul} ›</a>`:''}${n.go==='hzg'?`<button type="button" class="dlink ncard" id="nGoHzg">${n.gl||'바로가기'} ›</button>`:''}`}</details>`).join('')}
       <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`;
   if(sheet==='fb')return`<div class="sheet" id="sheetBg"><section class="card"><h3 class="h3">의견 보내기</h3>
       <textarea class="field" id="fbText" maxlength="300" rows="5" placeholder="불편한 점, 어려운 구간, 바랐던 기능 등 뭐든 좋아요" style="resize:none">${esc(fbText)}</textarea>
@@ -6485,6 +6506,7 @@ root.addEventListener('click',e=>{
   if(id==='tNo'){titleAsk=false;obPend=null;render();return}
   if(id==='tHof'){rkOpen();render();return}
   if(id==='tHzg'||id==='hzgOpenB'){hzgOpen('out');return}
+  if(id==='nGoHzg'){sheet=null;render();hzgOpen('out');return}
   if(id==='thxGo'){sheet=null;const p=S&&S.p;if(p&&!p.retired){lightsGo(enterGame);return}if(p){titleAsk=true;render();return}lightsGo(()=>{S=null;ob=null;enterGame()});return}
   if(d.rk||d.rklg){if(d.rk)rkTab=d.rk;if(d.rklg)rkLg=d.rklg;if(rkOn(rkTab)&&rkNeed(rkKey()))rkLoad(rkKey());render();return}
   if(id==='rkRetry'){rkLoad(rkKey());render();return}
