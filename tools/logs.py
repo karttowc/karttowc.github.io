@@ -212,4 +212,21 @@ MS=[d for d in R if not d.get('x') and (d.get('pot',0)>101 or (isinstance(NP.get
 if MS:
     print(f"\nsuspicious careers not flagged in game {len(MS)} (check the ranking, delete by cid in Supabase)")
     for d in MS:print(f"  [{kst(d['t'])}] cid {d['cid']} v{d.get('v')} · 월챔 {d['titles']} · 우승 {d['wins']}/{d['starts']} · pot {NP.get(d['cid'])}→{d['pot']}")
+# helmet gallery reports (v1.8.18-d3): new or increased since the last check, with the drawing as text. delete in Supabase: delete from hz_gallery where id = N;
+def hz_reports():
+    import urllib.request,re
+    rq=urllib.request.Request('https://nylfktkmicqqlgkjfvyg.supabase.co/rest/v1/rpc/hz_reported',data=b'{}',method='POST',
+        headers={'apikey':'sb_publishable_oIyy0JrrciMA_g_iX70j_A_coEepIDF','Content-Type':'application/json'})
+    try:A=json.load(urllib.request.urlopen(rq,timeout=20))
+    except Exception as e:return
+    seen=st.get('hzSeen',{});new=[r for r in A if r['reports']>seen.get(str(r['id']),0)]
+    print(f"\nhelmet gallery reports: {len(A)} reported · new {len(new)}")
+    for r in new:
+        d=''.join(c*int(n or 1) for c,n in re.findall(r'([^0-9])(\d*)',r['dz'][1:]));w=int(round(len(d)**.5)) or 1
+        print(f"  id {r['id']} · {r['name']} · 신고 {r['reports']} · {r['created_at'][:16]}")
+        rows=[d[i:i+w].replace('.',' ') for i in range(0,len(d),w)]
+        for x in rows:
+            if x.strip():print('    |'+''.join('#' if c!=' ' else ' ' for c in x)+'|')
+    st['hzSeen']={str(r['id']):r['reports'] for r in A}
+hz_reports()
 json.dump(st,open(ST,'w'))
