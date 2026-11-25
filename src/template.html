@@ -4117,6 +4117,7 @@ const FUEL_URL='https://qr.kakaopay.com/FR5iI9U5C';
 // 선택지 확률 정확도 공지 표: [구간, 표시 평균, 실제] (11-15 플레이 기록)
 const PROB=[[10,15.6,15.3],[20,24.4,24.3],[30,34.7,34.8],[40,44.1,43.9],[50,53.9,54.2],[60,62.9,62.8],[70,73.9,73.4],[80,84.0,84.0]].map(r=>[r[0],r[1].toFixed(1),r[2].toFixed(1)]);
 const NOTES=[
+ {v:'1.8.19',d:'2026.11.25',hot:true,t:'헬멧 갤러리',go:'hzg',gl:'헬멧 갤러리 바로가기',items:['헬멧 갤러리가 생겼습니다. 첫 화면의 \'헬멧 갤러리\'나 헬멧 꾸미기의 \'갤러리\' 버튼으로 들어갈 수 있습니다','내가 그린 헬멧에 이름을 붙여 갤러리에 올릴 수 있습니다. 보관함에 저장한 디자인은 \'내 디자인 올리기\'로 바로 올릴 수 있습니다','다른 사람의 헬멧을 \'사용하기\'로 바로 쓰거나 \'보관함에 담기\'로 모아 둘 수 있습니다']},
  {v:'1.8.0',d:'2026.11.22',hot:true,t:'헬멧 커스텀, F1 팀 인수',items:['헬멧을 직접 그릴 수 있습니다. 헬멧 색의 \'직접 고르기\' 옆 버튼을 누르면 32×32 칸 도트로 칠할 수 있고, 기본 무늬 13개에서 시작할 수도 있습니다','그린 헬멧은 이 기기의 보관함에 저장해 두고 다시 불러올 수 있습니다','대규정이 바뀌는 해에 F1 팀이 자동차 회사에 인수되어 이름이 바뀔 수 있습니다(토요타, 르노, 포르쉐, BMW, 현대). 팀 이름·색·로고는 바뀌지만 전력과 계약은 그대로입니다','다른 리그로 전향할 때 가고 싶은 리그를 고를 수 있습니다. 고른 리그의 팀은 꼭 제안합니다','보내 주신 의견이 이번 업데이트에 반영됐습니다. 감사합니다']},
  {v:'1.7.14',d:'2026.11.17',t:'내 기록 삭제',items:['랭킹의 내 기록을 직접 삭제할 수 있습니다. 랭킹 \'내 기록\' 줄의 [삭제]를 누르면 됩니다','설정에서 \'내 기록 ID\'를 확인할 수 있습니다. 보낸 플레이 기록을 지우고 싶으면 이 ID를 의견으로 보내 주세요','보내 주신 의견이 이번 업데이트에 반영됐습니다. 감사합니다']},
  {v:'1.7.13',d:'2026.11.17',t:'공략 모음 개설',info:true,url:'guides/',ul:'📒 공략 보러 가기',items:['공략 모음을 열었습니다. 첫 화면 맨 아래 \'공략\'에서도 볼 수 있습니다','첫 커리어, 세 게이지, 성장·훈련, 주니어 사다리, 팀별 F1 데뷔 루트, 이적 시장, 다른 무대, 월드 챔피언, 은퇴·랭킹까지 9편이 있습니다','레드불·페라리·메르세데스·맥라렌 루트는 \'F1 데뷔 루트\' 글에서 자세히 볼 수 있습니다']},
@@ -4141,7 +4142,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.19-d4',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.19',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -4933,7 +4934,7 @@ function sheetView(){
       <div class="ptab1 num">예상 67.0% · 실제 67.2%</div>
       <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`;
   if(sheet==='notes')return`<div class="sheet" id="sheetBg"><section class="card" style="max-height:85vh;overflow:auto"><div class="eyebrow">지금 버전 v${LOG_VER}</div><h3 class="h2">게임 소식</h3>
-      ${NOTES.map(n=>`<details class="note${n.hot?' hot':''}${n.info?' info':''}"><summary><span class="nt"><b>${esc(n.t||'v'+n.v)}</b><span class="muted num">${n.v?`v${n.v} · `:''}${n.d}</span></span><i>›</i></summary>${n.dev?`<div class="devnote nbody">${DEV_NOTE}</div>`:`<ul>${n.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${n.card?`<button type="button" class="dlink ncard" data-sheet="${n.card}">${n.cl||'축하 카드 보기'} ›</button>`:''}${n.url?`<a class="dlink ncard" href="${n.url}">${n.ul} ›</a>`:''}`}</details>`).join('')}
+      ${NOTES.map(n=>`<details class="note${n.hot?' hot':''}${n.info?' info':''}"><summary><span class="nt"><b>${esc(n.t||'v'+n.v)}</b><span class="muted num">${n.v?`v${n.v} · `:''}${n.d}</span></span><i>›</i></summary>${n.dev?`<div class="devnote nbody">${DEV_NOTE}</div>`:`<ul>${n.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${n.card?`<button type="button" class="dlink ncard" data-sheet="${n.card}">${n.cl||'축하 카드 보기'} ›</button>`:''}${n.url?`<a class="dlink ncard" href="${n.url}">${n.ul} ›</a>`:''}${n.go==='hzg'?`<button type="button" class="dlink ncard" id="nGoHzg">${n.gl||'바로가기'} ›</button>`:''}`}</details>`).join('')}
       <button class="btn" type="button" id="closeSheet">닫기</button></section></div>`;
   if(sheet==='fb')return`<div class="sheet" id="sheetBg"><section class="card"><h3 class="h3">의견 보내기</h3>
       <textarea class="field" id="fbText" maxlength="300" rows="5" placeholder="불편한 점, 어려운 구간, 바랐던 기능 등 뭐든 좋아요" style="resize:none">${esc(fbText)}</textarea>
@@ -5060,6 +5061,7 @@ root.addEventListener('click',e=>{
   if(id==='tNo'){titleAsk=false;obPend=null;render();return}
   if(id==='tHof'){rkOpen();render();return}
   if(id==='tHzg'||id==='hzgOpenB'){hzgOpen('out');return}
+  if(id==='nGoHzg'){sheet=null;render();hzgOpen('out');return}
   if(id==='thxGo'){sheet=null;const p=S&&S.p;if(p&&!p.retired){lightsGo(enterGame);return}if(p){titleAsk=true;render();return}lightsGo(()=>{S=null;ob=null;enterGame()});return}
   if(d.rk||d.rklg){if(d.rk)rkTab=d.rk;if(d.rklg)rkLg=d.rklg;if(rkOn(rkTab)&&rkNeed(rkKey()))rkLoad(rkKey());render();return}
   if(id==='rkRetry'){rkLoad(rkKey());render();return}
