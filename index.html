@@ -271,7 +271,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .hzslot img,.hzslot .hzempty{width:56px;height:62px;object-fit:contain;image-rendering:pixelated}.hzslot .hzempty{display:grid;place-items:center;color:var(--dim);font-size:13px}
 .hzslot button{width:100%;padding:7px 0;font-size:13px;background:var(--surface)}.hzslot button.warn{background:var(--bad);color:#fff}.hzslot .hzdel{background:none;color:var(--muted);padding:2px 0}
 .hzgrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}.hzgrow button{border:0;border-radius:10px;background:var(--surface-2);color:var(--fg);font-size:14px;font-weight:600;padding:10px 0}.hzgrow button.warn{background:var(--bad);color:#fff}
-.hzgbg{z-index:35}.hzgnote{font-size:13px;margin:0;text-align:center}
+.hzgbg{z-index:35}.hzgnm{max-width:360px;align-items:stretch}.hzgnm img{width:96px;height:auto;align-self:center;image-rendering:pixelated}.hzgnm .lbl{display:flex;flex-direction:column;gap:6px}.hzgnote{font-size:13px;margin:0;text-align:center}
 .hzglist{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.hzgitem{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--surface-2);border-radius:12px;padding:8px 6px;min-width:0}
 .hzgitem img{width:64px;height:70px;object-fit:contain;image-rendering:pixelated}.hzgitem b{font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hzgitem button{width:100%;border:0;border-radius:10px;padding:7px 0;font-size:13px;font-weight:600;background:var(--surface);color:var(--fg)}
@@ -4538,12 +4538,27 @@ function hzgOk(r){if(!r||typeof r!=='object')return null;const d=rkDz({dz:r.dz})
   const lg=r.lg&&kTeam(r.lg)?r.lg:'',f=v=>typeof v==='number'&&v>=0&&v<=1?v:null;
   return{id:r.id,name:String(r.name||'').slice(0,24),dz:d,b:r.b.toUpperCase(),lg,lx:f(r.lx)??.5,ly:f(r.ly)??.2,ls:f(r.ls)??HZ_LGW}}
 const hzgImg=(r,vis)=>(hzCanvas({base:r.b,sec:r.b,vis,dz:r.dz,...(r.lg?{lg:r.lg,lx:r.lx,ly:r.ly,ls:r.ls}:{})})||{}).url||HELMETS[1];
-async function hzgUp(){const Z=HZ;if(!Z)return;if(!rkNet()){toast('인터넷에 연결된 곳에서만 올릴 수 있어요');return}
-  const dz=hzStr(Z.grid);if(!/[^.]/.test(dz)){toast('먼저 헬멧에 그림을 그려 주세요');return}
+/* 올리기 전 검사: 그림·같은 그림·하루 개수. 통과하면 압축한 dz */
+function hzgPre(){const Z=HZ;if(!rkNet()){toast('인터넷에 연결된 곳에서만 올릴 수 있어요');return null}
+  const dz=hzStr(Z.grid);if(!/[^.]/.test(dz)){toast('먼저 헬멧에 그림을 그려 주세요');return null}
   const pk=hzPack(dz),mine=lsJ(HZG_MINE,[]),day=Date.now()-864e5;
-  if(mine.some(m=>m.pk===pk)){toast('이미 올린 그림이에요');return}
-  if(mine.filter(m=>m.t>day).length>=HZG_DAY){toast(`갤러리에는 하루 ${HZG_DAY}개까지 올릴 수 있어요`);return}
-  const nm=String(Z.tgt.name||'').trim().slice(0,24),name=nm&&!badName(nm)?nm:'익명',lg=hzLgId(Z.lg)||null;
+  if(mine.some(m=>m.pk===pk)){toast('이미 올린 그림이에요');return null}
+  if(mine.filter(m=>m.t>day).length>=HZG_DAY){toast(`갤러리에는 하루 ${HZG_DAY}개까지 올릴 수 있어요`);return null}
+  return pk}
+/* 올릴 이름 창(v1.8.18-d4): 드라이버 이름을 미리 채운 이름 칸. 욕설 이름은 못 올림 */
+function hzgName(){const Z=HZ;if(!Z||!hzgPre())return;const old=document.getElementById('hzgNm');if(old)old.remove();
+  const nm=String(Z.tgt.name||'').trim().slice(0,12),pre=nm&&!badName(nm)?nm:'',c=document.querySelector('#hzBg .hzimg');
+  const bg=document.createElement('div');bg.className='hzbg hzgbg';bg.id='hzgNm';
+  bg.innerHTML=`<section class="hzbox hzgnm" role="dialog" aria-modal="true" aria-label="갤러리에 올리기"><h3 class="h3">갤러리에 올리기</h3>${c?`<img src="${c.toDataURL()}" alt="">`:''}
+    <label class="lbl" for="hzgNmIn">올릴 이름<input class="field" id="hzgNmIn" maxlength="12" placeholder="이름" value="${esc(pre)}"></label>
+    <p class="muted hzgnote">이 이름과 헬멧 그림이 모두에게 보여요.</p>
+    <div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" data-n="x">취소</button><button class="btn" type="button" data-n="ok"${pre?'':' disabled'}>올리기</button></div></section>`;
+  const inp=bg.querySelector('input'),ok=bg.querySelector('[data-n="ok"]');
+  inp.addEventListener('input',()=>{ok.disabled=!inp.value.trim()});
+  bg.addEventListener('click',e=>{const t=e.target.closest('button');if(e.target===bg||t&&t.dataset.n==='x'){bg.remove();return}
+    if(t&&t.dataset.n==='ok'){const n=inp.value.trim().slice(0,12);if(!n)return;if(badName(n)){toast('이 이름은 쓸 수 없어요');return}bg.remove();hzgUp(n)}});
+  document.body.appendChild(bg);if(!pre)setTimeout(()=>inp.focus(),50)}
+async function hzgUp(name){const Z=HZ;if(!Z)return;const pk=hzgPre();if(!pk)return;const mine=lsJ(HZG_MINE,[]),lg=hzLgId(Z.lg)||null;
   let dk=null,dh=null;try{const u=new Uint8Array(16);crypto.getRandomValues(u);dk=rkHex(u);dh=await rkHash(dk)}catch(e){dk=dh=null}
   const body={name,dz:pk,b:Z.base,lg,lx:lg?+Z.lx.toFixed(3):null,ly:lg?+Z.ly.toFixed(3):null,ls:lg?Z.ls:null,del_hash:dh};
   try{const r=await fetch(hzgU('hz_gallery')+'?select=id',{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(body)});
@@ -4554,7 +4569,7 @@ async function hzgUp(){const Z=HZ;if(!Z)return;if(!rkNet()){toast('인터넷에 
 function hzgOpen(){if(!HZ)return;if(!rkNet()){toast('인터넷에 연결된 곳에서만 볼 수 있어요');return}hzgClose();
   const bg=document.createElement('div');bg.className='hzbg hzgbg';bg.id='hzgBg';bg.innerHTML='<section class="hzbox" role="dialog" aria-modal="true" aria-label="헬멧 갤러리"></section>';
   bg.addEventListener('click',hzgClick);document.body.appendChild(bg);HZG={list:[],more:true,busy:false,err:'',ask:null};hzgUI();hzgLoad(true)}
-function hzgClose(){const b=document.getElementById('hzgBg');if(b)b.remove();HZG=null}
+function hzgClose(){['hzgBg','hzgNm'].forEach(i=>{const b=document.getElementById(i);if(b)b.remove()});HZG=null}
 async function hzgLoad(fresh){const G=HZG;if(!G||G.busy)return;G.busy=true;G.err='';if(fresh){G.list=[];G.more=true}hzgUI();
   const last=G.list.length?G.list[G.list.length-1].id:null;
   try{const r=await fetch(hzgU('hz_gallery')+`?select=id,name,dz,b,lg,lx,ly,ls&order=id.desc&limit=${HZG_N}`+(last!=null?`&id=lt.${last}`:''),{headers:{apikey:SB_KEY}});
@@ -4606,7 +4621,7 @@ function hzUI(){const box=document.querySelector('#hzBg .hzbox');if(!box||!HZ)re
       ${s?`<button type="button" data-hzl="${i}">불러오기</button>`:''}<button type="button" data-hzs="${i}"${Z.ask==='s'+i?' class="warn"':''}>${Z.ask==='s'+i?'덮어쓰기?':'여기 저장'}</button>
       ${s?`<button type="button" class="hzdel${Z.ask==='d'+i?' warn':''}" data-hzd="${i}">${Z.ask==='d'+i?'지울까요?':'지우기'}</button>`:''}</div>`).join('')}</div>
     <div class="lbl">헬멧 갤러리 <span class="muted">(모두와 나누기)</span></div>
-    <div class="hzgrow"><button type="button" data-hz="gup"${Z.ask==='up'?' class="warn"':''}>${Z.ask==='up'?'올릴까요? 모두에게 보여요':'지금 그림 올리기'}</button><button type="button" data-hz="gal">갤러리 보기</button></div>
+    <div class="hzgrow"><button type="button" data-hz="gup">지금 그림 올리기</button><button type="button" data-hz="gal">갤러리 보기</button></div>
     <div class="hzfoot">${Z.on?'<button class="btn ghost hzoff" type="button" data-hz="off">커스텀 끄기 (원래 줄무늬로)</button>':''}
       <div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" data-hz="cancel">취소</button><button class="btn" type="button" data-hz="save">저장</button></div></div>`;
   for(const s in sx){const e=box.querySelector(s);if(e)e.scrollLeft=sx[s]}box.scrollTop=sy;
@@ -4686,7 +4701,7 @@ function hzClick(e){const Z=HZ;if(!Z)return;const t=e.target.closest('button');i
   if(d.hzs!=null){const i=+d.hzs,sl=hzSlots();if(sl[i]&&Z.ask!=='s'+i){Z.ask='s'+i;hzUI();return}sl[i]={dz:hzStr(Z.grid),b:Z.base,...(Z.lg?{lg:Z.lg,lx:Z.lx,ly:Z.ly,ls:Z.ls}:{})};lsSet(HZ_SLOTS,JSON.stringify(sl));Z.ask=null;hzUI();toast(`보관함 ${i+1}번에 저장했어요`);return}
   if(d.hzd!=null){const i=+d.hzd,sl=hzSlots();if(Z.ask!=='d'+i){Z.ask='d'+i;hzUI();return}sl[i]=null;lsSet(HZ_SLOTS,JSON.stringify(sl));Z.ask=null;hzUI();return}
   const a=d.hz;if(!a)return;
-  if(a==='gup'){if(Z.ask!=='up'){Z.ask='up';hzUI();return}Z.ask=null;hzUI();hzgUp();return}
+  if(a==='gup'){Z.ask=null;hzUI();hzgName();return}
   if(a==='gal'){Z.ask=null;hzUI();hzgOpen();return}
   if(a==='sym'){Z.sym=!Z.sym;hzUI();return}
   if(a==='undo'){Z.pat=null;if(Z.undo.length){Z.redo.push(Z.grid);Z.grid=Z.undo.pop()}Z.ask=null;hzUI();return}
@@ -5506,7 +5521,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.18-d3',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.18-d4',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
