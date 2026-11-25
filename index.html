@@ -4574,19 +4574,35 @@ function hzgOpen(mode){mode=mode||'edit';if(mode==='edit'&&!HZ)return;if(!rkNet(
   const t=hzgTgt(),vis=HZ?HZ.h.vis:(t&&normHelmet(t.helmet).vis)||'smoke';if(!HZ)document.body.style.overflow='hidden';
   const bg=document.createElement('div');bg.className='hzbg hzgbg';bg.id='hzgBg';bg.innerHTML='<section class="hzbox" role="dialog" aria-modal="true" aria-label="헬멧 갤러리"></section>';
   bg.addEventListener('click',hzgClick);document.body.appendChild(bg);HZG={list:[],more:true,busy:false,err:'',ask:null,mode,vis};hzgUI();hzgLoad(true)}
-function hzgClose(){['hzgBg','hzgNm','hzgSl'].forEach(i=>{const b=document.getElementById(i);if(b)b.remove()});if(HZG&&!HZ)document.body.style.overflow='';HZG=null}
+function hzgClose(){['hzgBg','hzgNm','hzgSl','hzgGd'].forEach(i=>{const b=document.getElementById(i);if(b)b.remove()});if(HZG&&!HZ)document.body.style.overflow='';HZG=null}
 /* 갤러리 헬멧을 헬멧 칸에 씌움(편집 창 '저장'과 같은 모양). 슈트 색 등 나머지는 그대로 */
 function hzgApply(old,r){const h={...normHelmet(old||randomHelmet())};h.hb=r.b;if(!h.hs)h.hs=helmOf(h).sec;h.dz=r.dz;delete h.dzOff;
   if(r.lg){h.lg=r.lg;h.lx=r.lx;h.ly=r.ly;h.ls=r.ls}else{delete h.lg;delete h.lx;delete h.ly;delete h.ls}return h}
+/* 그림을 덮기 전 확인(v1.8.18-d8): 지금 헬멧에 커스텀 그림이 있고, 바뀌는 그림과 다르고, 보관함에 같은 그림이 없으면 물어봄 */
+const hzNorm=dz=>hzStr(hzGrid(dz));
+function hzgGuard(old,nextDz,go){const o=old&&typeof old==='object'?old:null,od=o&&typeof o.dz==='string'&&/[^.]/.test(o.dz)?hzNorm(o.dz):null;
+  if(!od||od===hzNorm(nextDz||'')||hzSlots().some(x=>x&&hzNorm(x.dz)===od)){go();return}
+  const H=helmOf({...normHelmet(o),dzOff:0}),c=helmetCanvas(H),it={dz:od,b:H.base,...(o.lg?{lg:o.lg,lx:o.lx??.5,ly:o.ly??.2,ls:o.ls??HZ_LGW}:{})};
+  const old2=document.getElementById('hzgGd');if(old2)old2.remove();
+  const bg=document.createElement('div');bg.className='hzbg hzgbg';bg.id='hzgGd';
+  bg.innerHTML=`<section class="hzbox hzgnm" role="dialog" aria-modal="true" aria-label="지금 헬멧 그림"><h3 class="h3">지금 헬멧 그림이 보관함에 없어요</h3>${c?`<img src="${c.url}" alt="">`:''}
+    <p class="muted hzgnote">바꾸면 지금 그림은 사라져요.</p>
+    <button class="btn" type="button" data-g="keep">보관함에 넣고 바꾸기</button>
+    <div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" data-g="x">취소</button><button class="btn ghost" type="button" data-g="go">그냥 바꾸기</button></div></section>`;
+  bg.addEventListener('click',e=>{const b=e.target.closest('button'),g=b&&b.dataset.g;if(e.target===bg||g==='x'){bg.remove();return}
+    if(g==='go'){bg.remove();go()}else if(g==='keep'){bg.remove();hzgKeep(it,go)}});
+  document.body.appendChild(bg)}
+const lastHelm=()=>{try{return(JSON.parse(lsGet('k2wc-last'))||{}).helmet}catch(e){return null}};
 /* 사용하기: 커리어 중(또는 드라이버 만들기 중)이면 지금 드라이버에 씌우고 꾸미기 창으로. 커리어가 없으면 그 헬멧으로 새 커리어 1단계, 은퇴 카드가 있으면 지워진다고 먼저 물음 */
 let obPend=null;
-function hzgUse(r){const t=hzgTgt();hzgClose();
+function hzgUse(r){const t=hzgTgt();hzgGuard(t?t.helmet:S&&S.p?S.p.helmet:lastHelm(),r.dz,()=>hzgUse2(r,t))}
+function hzgUse2(r,t){hzgClose();
   if(t){t.helmet=hzgApply(t.helmet,r);if(t===ob){ob.step=1;title=false;render();window.scrollTo(0,0)}else{save();title=false;titleAsk=false;tab='driver';sheet='helmet';render()}
     toast('헬멧을 바꿨어요. 팀 컬러로 슈트를 맞춰 보세요');return}
   obPend=hzgApply(null,r);if(S&&S.p){titleAsk=true;title=true;render();return}ob=null;enterGame()}
 /* 보관함에 담기: 빈 칸 첫 번째에, 다 차 있으면 덮어쓸 칸을 고름 */
-function hzgKeep(r){const sl=hzSlots(),it={dz:r.dz,b:r.b,...(r.lg?{lg:r.lg,lx:r.lx,ly:r.ly,ls:r.ls}:{})},i=sl.findIndex(x=>!x);
-  const put=k=>{const a=hzSlots();a[k]=it;lsSet(HZ_SLOTS,JSON.stringify(a));toast(`보관함 ${k+1}번에 담았어요`);if(HZ)hzUI()};
+function hzgKeep(r,after){const sl=hzSlots(),it={dz:r.dz,b:r.b,...(r.lg?{lg:r.lg,lx:r.lx,ly:r.ly,ls:r.ls}:{})},i=sl.findIndex(x=>!x);
+  const put=k=>{const a=hzSlots();a[k]=it;lsSet(HZ_SLOTS,JSON.stringify(a));toast(`보관함 ${k+1}번에 담았어요`);if(HZ)hzUI();if(after)after()};
   if(i>=0){put(i);return}
   const old=document.getElementById('hzgSl');if(old)old.remove();const vis=HZG?HZG.vis:'smoke';
   const bg=document.createElement('div');bg.className='hzbg hzgbg';bg.id='hzgSl';
@@ -4618,7 +4634,7 @@ async function hzgClick(e){const G=HZG,Z=HZ;if(!G)return;if(e.target===e.current
   if(d.hzg==='more'){hzgLoad(false);return}
   if(d.hzgu){const r=G.list.find(x=>x.id==d.hzgu);if(r)hzgUse(r);return}
   if(d.hzgk){const r=G.list.find(x=>x.id==d.hzgk);if(r)hzgKeep(r);return}
-  if(d.hzgl){const r=G.list.find(x=>x.id==d.hzgl);if(!r||!Z)return;hzPush();Z.pat=null;Z.grid=hzGrid(r.dz);Z.base=HCOL.includes(r.b)?r.b:Z.base;Z.lg=r.lg;Z.lx=r.lx;Z.ly=r.ly;Z.ls=r.ls;
+  if(d.hzgl){const r=G.list.find(x=>x.id==d.hzgl);if(!r||!Z)return;hzPush();Z.pat=null;Z.fromG=1;Z.grid=hzGrid(r.dz);Z.base=HCOL.includes(r.b)?r.b:Z.base;Z.lg=r.lg;Z.lx=r.lx;Z.ly=r.ly;Z.ls=r.ls;
     if(!Z.lg&&Z.tool==='logo')Z.tool='pen';Z.ask=null;hzgClose();hzUI();toast('가져왔어요. 마음에 들면 저장을 눌러 주세요');return}
   if(d.hzgr){const id=+d.hzgr;if(G.ask!=='r'+id){G.ask='r'+id;hzgUI();return}G.ask=null;
     try{const r=await fetch(hzgU('rpc/hz_report'),{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({p_id:id})});
@@ -4735,6 +4751,7 @@ function hzClick(e){const Z=HZ;if(!Z)return;const t=e.target.closest('button');i
   if(a==='redo'){Z.pat=null;if(Z.redo.length){Z.undo.push(Z.grid);Z.grid=Z.redo.pop()}Z.ask=null;hzUI();return}
   if(a==='clear'){hzPush();Z.grid=new Uint8Array(HZN*HZN);Z.pat=null;Z.ask=null;hzUI();return}
   if(a==='cancel'){hzClose();return}
+  if(a==='save'&&Z.fromG&&!Z.guarded){hzgGuard(Z.tgt.helmet,hzStr(Z.grid),()=>{if(HZ===Z){Z.guarded=1;hzClick({target:t})}});return}
   if(a==='off'||a==='save'){const h={...normHelmet(Z.tgt.helmet)};if(a==='save'){h.hb=Z.base;if(!h.hs)h.hs=helmOf(h).sec;h.dz=hzStr(Z.grid);delete h.dzOff;if(Z.lg){h.lg=Z.lg;h.lx=+Z.lx.toFixed(3);h.ly=+Z.ly.toFixed(3);h.ls=Z.ls}else{delete h.lg;delete h.lx;delete h.ly;delete h.ls}}else h.dzOff=1;
     Z.tgt.helmet=h;hzClose();if(S&&!ob)save();render();return}}
 function currentLine(){
@@ -5549,7 +5566,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.18-d7',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.18-d8',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
