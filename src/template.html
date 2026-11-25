@@ -270,6 +270,14 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .hzslots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.hzslot{display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--surface-2);border-radius:12px;padding:8px 6px}
 .hzslot img,.hzslot .hzempty{width:56px;height:62px;object-fit:contain;image-rendering:pixelated}.hzslot .hzempty{display:grid;place-items:center;color:var(--dim);font-size:13px}
 .hzslot button{width:100%;padding:7px 0;font-size:13px;background:var(--surface)}.hzslot button.warn{background:var(--bad);color:#fff}.hzslot .hzdel{background:none;color:var(--muted);padding:2px 0}
+.hzgrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}.hzgrow button{border:0;border-radius:10px;background:var(--surface-2);color:var(--fg);font-size:14px;font-weight:600;padding:10px 0}.hzgrow button.warn{background:var(--bad);color:#fff}
+.hzgbg{z-index:35}.hzgnm{max-width:360px;align-items:stretch}.hzgnm img{width:96px;height:auto;align-self:center;image-rendering:pixelated}.hzgnm .lbl{display:flex;flex-direction:column;gap:6px;text-align:center}.hzgnm .field{text-align:center}.hzgnote{font-size:13px;margin:0;text-align:center}
+.hzglist{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.hzgitem{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--surface-2);border-radius:12px;padding:8px 6px;min-width:0}
+.hzgitem img{width:64px;height:70px;object-fit:contain;image-rendering:pixelated}.hzgitem b{font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hzgitem button{width:100%;border:0;border-radius:10px;padding:7px 0;font-size:13px;font-weight:600;background:var(--surface);color:var(--fg)}
+.hedbtns{display:flex;gap:6px}.hzgb{padding:5px 12px}
+.hzgitem button.hzguse{background:var(--accent);color:#fff}.hzgslb{border:0;color:var(--fg);font:inherit;font-size:13px;font-weight:600;cursor:pointer}.hzgslb img{width:56px;height:62px;object-fit:contain;image-rendering:pixelated}
+.hzgitem .hzglink{background:none;color:var(--muted);padding:2px 0;font-size:12px;font-weight:500}.hzgitem button.warn{background:var(--bad);color:#fff}
 .hzfoot{display:flex;flex-direction:column;gap:8px;margin-top:4px}.hzoff{padding:12px;font-size:15px}
 .htabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;background:var(--surface-2);border-radius:12px}
 .htabs button{border:0;background:none;color:var(--muted);font-size:14px;font-weight:600;padding:8px 0;border-radius:9px}
@@ -3000,7 +3008,7 @@ const keepDz=(n,o)=>{o=o&&typeof o==='object'?o:{};if(o.dz!=null){n.dz=o.dz;if(o
   /* 커스텀 켜져 있으면 헬멧은 그대로(바탕색·포인트·바이저), 슈트만 바뀜(v1.7.20-d3) */
   if(!o.dzOff){const H=helmOf(o);n.hb=H.base;n.hs=H.sec;n.vis=H.vis}}return n};
 /* '직접 고르기' 제목 줄 + 헬멧 커스텀 버튼 */
-function hedHead(h){return`<div class="hedhead"><div class="lbl">직접 고르기</div><button class="hzbtn" type="button" id="hzOpen">${helmetImg(h)}<span>헬멧 커스텀</span></button></div>`}
+function hedHead(h){return`<div class="hedhead"><div class="lbl">직접 고르기</div><div class="hedbtns"><button class="hzbtn" type="button" id="hzOpen">${helmetImg(h)}<span>헬멧 커스텀</span></button><button class="hzbtn hzgb" type="button" id="hzgOpenB">갤러리</button></div></div>`}
 /* ===== 헬멧 커스텀(v1.7.20-d1): 32x32 칸 도트. h.dz = 1024글자('.' 안 칠함, 'a'+HCOL 번호), h.dzOff = 끔(그림은 남김).
    칠한 칸은 헬멧 메인색(초록)·줄무늬(자홍) 자리에만 보이고, 원래 그림의 명암은 그대로. 안 칠한 칸 = 헬멧 메인색. 랭킹엔 v1.8.6-d4부터 같이 올림(rkHelm·rkDz) */
 const HZN=48,HZ_SLOTS='k2wc-hz-slots';
@@ -3075,7 +3083,122 @@ function rkHzView(h){if(!h||!hzOn(h.helmet))return;const c=helmetCanvas(h.helmet
   bg.innerHTML=`<div class="rkhzbox"><img src="${c.url}" alt=""><b>${esc(h.name)}</b>${h.num!=null?`<span class="muted">#${esc(h.num)}</span>`:''}<span class="muted rkhzx">눌러서 닫기</span></div>`;
   const close=()=>{bg.remove();document.removeEventListener('keydown',k)},k=e=>{if(e.key==='Escape')close()};
   bg.addEventListener('click',close);document.addEventListener('keydown',k);document.body.appendChild(bg)}
-function hzClose(){const b=document.getElementById('hzBg');if(b)b.remove();document.body.style.overflow='';HZ=null}
+function hzClose(){const b=document.getElementById('hzBg');if(b)b.remove();hzgClose();document.body.style.overflow='';HZ=null}
+/* ===== 헬멧 갤러리(v1.8.18-d3): 원하는 사람만 올림(Supabase hz_gallery, tools/hz_gallery.sql). 편집 창에서 올리고·보고·가져옴.
+   자동 숨김 없음: 신고는 서버에 수만 쌓이고 logs.py 점검에서 봄. 내가 올린 것은 삭제 열쇠(k2wc-hzg-mine)로 지움 */
+const hzgU=p=>SB_URL.replace(/ranking$/,p),HZG_MINE='k2wc-hzg-mine',HZG_REP='k2wc-hzg-rep',HZG_DAY=5,HZG_N=30;
+const hzPack=s=>'~'+s.replace(/(.)\1*/g,m=>m[0]+(m.length>1?m.length:''));
+let HZG=null;
+/* 서버에서 온 줄 검사: 이상하면 버림 */
+function hzgOk(r){if(!r||typeof r!=='object')return null;const d=rkDz({dz:r.dz}).dz;
+  if(typeof d!=='string'||!/^[.a-x]+$/.test(d)||(d.length!==1024&&d.length!==HZN*HZN)||!/^#[0-9A-Fa-f]{6}$/.test(r.b||''))return null;
+  const lg=r.lg&&kTeam(r.lg)?r.lg:'',f=v=>typeof v==='number'&&v>=0&&v<=1?v:null;
+  return{id:r.id,name:String(r.name||'').slice(0,24),dz:d,b:r.b.toUpperCase(),lg,lx:f(r.lx)??.5,ly:f(r.ly)??.2,ls:f(r.ls)??HZ_LGW}}
+const hzgImg=(r,vis)=>(hzCanvas({base:r.b,sec:r.b,vis,dz:r.dz,...(r.lg?{lg:r.lg,lx:r.lx,ly:r.ly,ls:r.ls}:{})})||{}).url||HELMETS[1];
+/* 올리기 전 검사: 그림·같은 그림·하루 개수. 통과하면 압축한 dz */
+function hzgPre(){const Z=HZ;if(!rkNet()){toast('인터넷에 연결된 곳에서만 올릴 수 있어요');return null}
+  const dz=hzStr(Z.grid);if(!/[^.]/.test(dz)){toast('먼저 헬멧에 그림을 그려 주세요');return null}
+  const pk=hzPack(dz),mine=lsJ(HZG_MINE,[]),day=Date.now()-864e5;
+  if(mine.some(m=>m.pk===pk)){toast('이미 올린 그림이에요');return null}
+  if(mine.filter(m=>m.t>day).length>=HZG_DAY){toast(`갤러리에는 하루 ${HZG_DAY}개까지 올릴 수 있어요`);return null}
+  return pk}
+/* 헬멧 이름 창(v1.8.18-d4, d6에 '올릴 이름' → '헬멧 이름'): 드라이버 이름을 미리 채운 이름 칸. 욕설 이름은 못 올림 */
+function hzgName(){const Z=HZ;if(!Z||!hzgPre())return;const old=document.getElementById('hzgNm');if(old)old.remove();
+  const nm=String(Z.tgt.name||'').trim().slice(0,12),pre=nm&&!badName(nm)?nm:'',c=document.querySelector('#hzBg .hzimg');
+  const bg=document.createElement('div');bg.className='hzbg hzgbg';bg.id='hzgNm';
+  bg.innerHTML=`<section class="hzbox hzgnm" role="dialog" aria-modal="true" aria-label="갤러리에 올리기"><h3 class="h3">갤러리에 올리기</h3>${c?`<img src="${c.toDataURL()}" alt="">`:''}
+    <label class="lbl" for="hzgNmIn">헬멧 이름<input class="field" id="hzgNmIn" maxlength="12" placeholder="헬멧 이름" value="${esc(pre)}"></label>
+    <p class="muted hzgnote">이 이름과 헬멧 그림이 모두에게 보여요.</p>
+    <div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" data-n="x">취소</button><button class="btn" type="button" data-n="ok"${pre?'':' disabled'}>올리기</button></div></section>`;
+  const inp=bg.querySelector('input'),ok=bg.querySelector('[data-n="ok"]');
+  inp.addEventListener('input',()=>{ok.disabled=!inp.value.trim()});
+  bg.addEventListener('click',e=>{const t=e.target.closest('button');if(e.target===bg||t&&t.dataset.n==='x'){bg.remove();return}
+    if(t&&t.dataset.n==='ok'){const n=inp.value.trim().slice(0,12);if(!n)return;if(badName(n)){toast('이 이름은 쓸 수 없어요');return}bg.remove();hzgUp(n)}});
+  document.body.appendChild(bg);if(!pre)setTimeout(()=>inp.focus(),50)}
+async function hzgUp(name){const Z=HZ;if(!Z)return;const pk=hzgPre();if(!pk)return;const mine=lsJ(HZG_MINE,[]),lg=hzLgId(Z.lg)||null;
+  let dk=null,dh=null;try{const u=new Uint8Array(16);crypto.getRandomValues(u);dk=rkHex(u);dh=await rkHash(dk)}catch(e){dk=dh=null}
+  const body={name,dz:pk,b:Z.base,lg,lx:lg?+Z.lx.toFixed(3):null,ly:lg?+Z.ly.toFixed(3):null,ls:lg?Z.ls:null,del_hash:dh};
+  try{const r=await fetch(hzgU('hz_gallery')+'?select=id',{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(body)});
+    if(r.status===404){toast('갤러리를 준비하고 있어요. 조금만 기다려 주세요');return}
+    if(!r.ok){toast('올리지 못했어요. 잠시 뒤 다시 해 주세요');return}
+    const id=((await r.json())[0]||{}).id;mine.push({id,dk,pk,t:Date.now()});lsW(HZG_MINE,mine.slice(-200));toast('갤러리에 올렸어요');if(HZG)hzgLoad(true)}
+  catch(e){toast('올리지 못했어요. 잠시 뒤 다시 해 주세요')}}
+/* mode 'edit' = 편집 창에서(가져오기), 'out' = 첫 화면·꾸미기 창에서(사용하기·보관함에 담기, v1.8.18-d7) */
+const hzgTgt=()=>ob||(S&&S.p&&!S.p.retired?S.p:null);
+function hzgOpen(mode){mode=mode||'edit';if(mode==='edit'&&!HZ)return;if(!rkNet()){toast('인터넷에 연결된 곳에서만 볼 수 있어요');return}hzgClose();hzPrep();
+  const t=hzgTgt(),vis=HZ?HZ.h.vis:(t&&normHelmet(t.helmet).vis)||'smoke';if(!HZ)document.body.style.overflow='hidden';
+  const bg=document.createElement('div');bg.className='hzbg hzgbg';bg.id='hzgBg';bg.innerHTML='<section class="hzbox" role="dialog" aria-modal="true" aria-label="헬멧 갤러리"></section>';
+  bg.addEventListener('click',hzgClick);document.body.appendChild(bg);HZG={list:[],more:true,busy:false,err:'',ask:null,mode,vis};hzgUI();hzgLoad(true)}
+function hzgClose(){['hzgBg','hzgNm','hzgSl','hzgGd'].forEach(i=>{const b=document.getElementById(i);if(b)b.remove()});if(HZG&&!HZ)document.body.style.overflow='';HZG=null}
+/* 갤러리 헬멧을 헬멧 칸에 씌움(편집 창 '저장'과 같은 모양). 슈트 색 등 나머지는 그대로 */
+function hzgApply(old,r){const h={...normHelmet(old||randomHelmet())};h.hb=r.b;if(!h.hs)h.hs=helmOf(h).sec;h.dz=r.dz;delete h.dzOff;
+  if(r.lg){h.lg=r.lg;h.lx=r.lx;h.ly=r.ly;h.ls=r.ls}else{delete h.lg;delete h.lx;delete h.ly;delete h.ls}return h}
+/* 그림을 덮기 전 확인(v1.8.18-d8): 지금 헬멧에 커스텀 그림이 있고, 바뀌는 그림과 다르고, 보관함에 같은 그림이 없으면 물어봄 */
+const hzNorm=dz=>hzStr(hzGrid(dz));
+function hzgGuard(old,nextDz,go){const o=old&&typeof old==='object'?old:null,od=o&&typeof o.dz==='string'&&/[^.]/.test(o.dz)?hzNorm(o.dz):null;
+  if(!od||od===hzNorm(nextDz||'')||hzSlots().some(x=>x&&hzNorm(x.dz)===od)){go();return}
+  const H=helmOf({...normHelmet(o),dzOff:0}),c=helmetCanvas(H),it={dz:od,b:H.base,...(o.lg?{lg:o.lg,lx:o.lx??.5,ly:o.ly??.2,ls:o.ls??HZ_LGW}:{})};
+  const old2=document.getElementById('hzgGd');if(old2)old2.remove();
+  const bg=document.createElement('div');bg.className='hzbg hzgbg';bg.id='hzgGd';
+  bg.innerHTML=`<section class="hzbox hzgnm" role="dialog" aria-modal="true" aria-label="지금 헬멧 그림"><h3 class="h3">지금 헬멧 그림이 보관함에 없어요</h3>${c?`<img src="${c.url}" alt="">`:''}
+    <p class="muted hzgnote">바꾸면 지금 그림은 사라져요.</p>
+    <button class="btn" type="button" data-g="keep">보관함에 넣고 바꾸기</button>
+    <div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" data-g="x">취소</button><button class="btn ghost" type="button" data-g="go">그냥 바꾸기</button></div></section>`;
+  bg.addEventListener('click',e=>{const b=e.target.closest('button'),g=b&&b.dataset.g;if(e.target===bg||g==='x'){bg.remove();return}
+    if(g==='go'){bg.remove();go()}else if(g==='keep'){bg.remove();hzgKeep(it,go)}});
+  document.body.appendChild(bg)}
+const lastHelm=()=>{try{return(JSON.parse(lsGet('k2wc-last'))||{}).helmet}catch(e){return null}};
+/* 사용하기: 커리어 중(또는 드라이버 만들기 중)이면 지금 드라이버에 씌우고 꾸미기 창으로. 커리어가 없으면 그 헬멧으로 새 커리어 1단계, 은퇴 카드가 있으면 지워진다고 먼저 물음 */
+let obPend=null;
+function hzgUse(r){const t=hzgTgt();hzgGuard(t?t.helmet:S&&S.p?S.p.helmet:lastHelm(),r.dz,()=>hzgUse2(r,t))}
+function hzgUse2(r,t){hzgClose();
+  if(t){t.helmet=hzgApply(t.helmet,r);if(t===ob){ob.step=1;title=false;render();window.scrollTo(0,0)}else{save();title=false;titleAsk=false;tab='driver';sheet='helmet';render()}
+    toast('헬멧을 바꿨어요. 팀 컬러로 슈트를 맞춰 보세요');return}
+  obPend=hzgApply(null,r);if(S&&S.p){titleAsk=true;title=true;render();return}ob=null;enterGame()}
+/* 보관함에 담기: 빈 칸 첫 번째에, 다 차 있으면 덮어쓸 칸을 고름 */
+function hzgKeep(r,after){const sl=hzSlots(),it={dz:r.dz,b:r.b,...(r.lg?{lg:r.lg,lx:r.lx,ly:r.ly,ls:r.ls}:{})},i=sl.findIndex(x=>!x);
+  const put=k=>{const a=hzSlots();a[k]=it;lsSet(HZ_SLOTS,JSON.stringify(a));toast(`보관함 ${k+1}번에 담았어요`);if(HZ)hzUI();if(after)after()};
+  if(i>=0){put(i);return}
+  const old=document.getElementById('hzgSl');if(old)old.remove();const vis=HZG?HZG.vis:'smoke';
+  const bg=document.createElement('div');bg.className='hzbg hzgbg';bg.id='hzgSl';
+  bg.innerHTML=`<section class="hzbox hzgnm" role="dialog" aria-modal="true" aria-label="보관함 칸 고르기"><h3 class="h3">보관함이 꽉 찼어요</h3><p class="muted hzgnote">덮어쓸 칸을 골라 주세요. 그 칸의 디자인은 지워져요.</p>
+    <div class="hzslots">${sl.map((x,k)=>`<button type="button" class="hzslot hzgslb" data-k="${k}"><img src="${(hzCanvas({base:x.b,sec:x.b,vis,dz:x.dz,...(x.lg&&hzLgId(x.lg)?{lg:hzLgId(x.lg),lx:x.lx,ly:x.ly,ls:x.ls??HZ_LGW}:{})})||{}).url||HELMETS[1]}" alt=""><span>${k+1}번 덮어쓰기</span></button>`).join('')}</div>
+    <button class="btn ghost" type="button" data-k="x">취소</button></section>`;
+  bg.addEventListener('click',e=>{const b=e.target.closest('button');if(e.target===bg||b&&b.dataset.k==='x'){bg.remove();return}if(b&&b.dataset.k!=null){bg.remove();put(+b.dataset.k)}});
+  document.body.appendChild(bg)}
+async function hzgLoad(fresh){const G=HZG;if(!G||G.busy)return;G.busy=true;G.err='';if(fresh){G.list=[];G.more=true}hzgUI();
+  const last=G.list.length?G.list[G.list.length-1].id:null;
+  try{const r=await fetch(hzgU('hz_gallery')+`?select=id,name,dz,b,lg,lx,ly,ls&order=id.desc&limit=${HZG_N}`+(last!=null?`&id=lt.${last}`:''),{headers:{apikey:SB_KEY}});
+    if(HZG!==G)return;if(!r.ok){G.err=r.status===404?'갤러리를 준비하고 있어요. 조금만 기다려 주세요.':'불러오지 못했어요. 잠시 뒤 다시 열어 주세요.'}
+    else{const a=await r.json();if(HZG!==G)return;G.list=G.list.concat(a.map(hzgOk).filter(Boolean));G.more=a.length===HZG_N}}
+  catch(e){if(HZG===G)G.err='불러오지 못했어요. 잠시 뒤 다시 열어 주세요.'}
+  G.busy=false;hzgUI()}
+function hzgUI(){const box=document.querySelector('#hzgBg .hzbox'),G=HZG;if(!box||!G)return;const sy=box.scrollTop,vis=G.vis,
+    mine=new Set(lsJ(HZG_MINE,[]).map(m=>m.id)),rep=new Set(lsJ(HZG_REP,[]));
+  box.innerHTML=`<div class="hzhead"><h3 class="h3">헬멧 갤러리</h3><button class="iconbtn" type="button" data-hzg="close" aria-label="닫기">✕</button></div>
+    <p class="muted hzgnote">다른 사람이 올린 헬멧을 ${G.mode==='edit'?'가져와 고쳐':'내 헬멧으로'} 쓸 수 있어요. 이상한 그림은 신고해 주세요.</p>
+    ${G.list.length?`<div class="hzglist">${G.list.map(r=>{const me=mine.has(r.id);return`<div class="hzgitem"><img src="${hzgImg(r,vis)}" alt=""><b>${esc(r.name)}</b>
+      ${G.mode==='edit'?`<button type="button" data-hzgl="${r.id}">가져오기</button>`:`<button type="button" class="hzguse" data-hzgu="${r.id}">사용하기</button><button type="button" class="hzglink" data-hzgk="${r.id}">보관함에 담기</button>`}
+      ${me?`<button type="button" class="hzglink${G.ask==='d'+r.id?' warn':''}" data-hzgd="${r.id}">${G.ask==='d'+r.id?'지울까요?':'내 것 지우기'}</button>`
+        :rep.has(r.id)?'<span class="hzglink muted">신고함</span>':`<button type="button" class="hzglink${G.ask==='r'+r.id?' warn':''}" data-hzgr="${r.id}">${G.ask==='r'+r.id?'신고할까요?':'신고'}</button>`}</div>`}).join('')}</div>`:''}
+    ${G.err?`<p class="muted hzgnote">${G.err}</p>`:G.busy?'<p class="muted hzgnote">불러오는 중…</p>':!G.list.length?'<p class="muted hzgnote">아직 올라온 헬멧이 없어요. 첫 번째로 올려 보세요!</p>':''}
+    ${G.list.length&&G.more&&!G.busy&&!G.err?'<button class="btn ghost" type="button" data-hzg="more">더 보기</button>':''}`;
+  box.scrollTop=sy}
+async function hzgClick(e){const G=HZG,Z=HZ;if(!G)return;if(e.target===e.currentTarget){hzgClose();return}const t=e.target.closest('button');if(!t)return;const d=t.dataset;
+  if(d.hzg==='close'){hzgClose();return}
+  if(d.hzg==='more'){hzgLoad(false);return}
+  if(d.hzgu){const r=G.list.find(x=>x.id==d.hzgu);if(r)hzgUse(r);return}
+  if(d.hzgk){const r=G.list.find(x=>x.id==d.hzgk);if(r)hzgKeep(r);return}
+  if(d.hzgl){const r=G.list.find(x=>x.id==d.hzgl);if(!r||!Z)return;hzPush();Z.pat=null;Z.fromG=1;Z.grid=hzGrid(r.dz);Z.base=HCOL.includes(r.b)?r.b:Z.base;Z.lg=r.lg;Z.lx=r.lx;Z.ly=r.ly;Z.ls=r.ls;
+    if(!Z.lg&&Z.tool==='logo')Z.tool='pen';Z.ask=null;hzgClose();hzUI();toast('가져왔어요. 마음에 들면 저장을 눌러 주세요');return}
+  if(d.hzgr){const id=+d.hzgr;if(G.ask!=='r'+id){G.ask='r'+id;hzgUI();return}G.ask=null;
+    try{const r=await fetch(hzgU('rpc/hz_report'),{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({p_id:id})});
+      if(!r.ok)throw 0;const a=lsJ(HZG_REP,[]);a.push(id);lsW(HZG_REP,a.slice(-500));toast('신고했어요. 확인하고 정리할게요')}catch(x){toast('신고하지 못했어요. 잠시 뒤 다시 해 주세요')}
+    if(HZG===G)hzgUI();return}
+  if(d.hzgd){const id=+d.hzgd;if(G.ask!=='d'+id){G.ask='d'+id;hzgUI();return}G.ask=null;const mine=lsJ(HZG_MINE,[]),m=mine.find(x=>x.id===id);
+    try{if(!m||!m.dk)throw 0;const r=await fetch(hzgU('rpc/hz_delete'),{method:'POST',headers:{apikey:SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({p_id:id,p_key:m.dk})});
+      if(!r.ok)throw 0;lsW(HZG_MINE,mine.filter(x=>x.id!==id));if(HZG===G)G.list=G.list.filter(x=>x.id!==id);toast('갤러리에서 지웠어요')}catch(x){toast('지우지 못했어요. 잠시 뒤 다시 해 주세요')}
+    if(HZG===G)hzgUI();return}}
 const HZ_TOOLS=[['pen','붓'],['fill','채우기'],['erase','지우개']];
 const HZ_PRE=[['orig','기본 줄무늬'],['crown','크라운 띠'],['center','센터 줄'],['three','레이싱 3줄'],['chev','V자'],['check','체크 띠'],['bolt','번개'],['flame','불꽃'],['fade','도트 페이드'],['updown','위아래'],['star','별'],['stars','별 여러 개'],['two','반반'],['chin','턱 줄']];
 function hzUI(){const box=document.querySelector('#hzBg .hzbox');if(!box||!HZ)return;
@@ -3095,6 +3218,8 @@ function hzUI(){const box=document.querySelector('#hzBg .hzbox');if(!box||!HZ)re
     <div class="hzslots">${sl.map((s,i)=>`<div class="hzslot">${s?`<img src="${(hzCanvas({base:s.b,sec:s.b,vis,dz:s.dz,...(s.lg&&hzLgId(s.lg)?{lg:hzLgId(s.lg),lx:s.lx,ly:s.ly,ls:s.ls??HZ_LGW}:{})})||{}).url||HELMETS[1]}" alt="">`:'<div class="hzempty">빈칸</div>'}
       ${s?`<button type="button" data-hzl="${i}">불러오기</button>`:''}<button type="button" data-hzs="${i}"${Z.ask==='s'+i?' class="warn"':''}>${Z.ask==='s'+i?'덮어쓰기?':'여기 저장'}</button>
       ${s?`<button type="button" class="hzdel${Z.ask==='d'+i?' warn':''}" data-hzd="${i}">${Z.ask==='d'+i?'지울까요?':'지우기'}</button>`:''}</div>`).join('')}</div>
+    <div class="lbl">헬멧 갤러리 <span class="muted">(모두와 나누기)</span></div>
+    <div class="hzgrow"><button type="button" data-hz="gup">지금 그림 올리기</button><button type="button" data-hz="gal">갤러리 보기</button></div>
     <div class="hzfoot">${Z.on?'<button class="btn ghost hzoff" type="button" data-hz="off">커스텀 끄기 (원래 줄무늬로)</button>':''}
       <div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" data-hz="cancel">취소</button><button class="btn" type="button" data-hz="save">저장</button></div></div>`;
   for(const s in sx){const e=box.querySelector(s);if(e)e.scrollLeft=sx[s]}box.scrollTop=sy;
@@ -3174,11 +3299,14 @@ function hzClick(e){const Z=HZ;if(!Z)return;const t=e.target.closest('button');i
   if(d.hzs!=null){const i=+d.hzs,sl=hzSlots();if(sl[i]&&Z.ask!=='s'+i){Z.ask='s'+i;hzUI();return}sl[i]={dz:hzStr(Z.grid),b:Z.base,...(Z.lg?{lg:Z.lg,lx:Z.lx,ly:Z.ly,ls:Z.ls}:{})};lsSet(HZ_SLOTS,JSON.stringify(sl));Z.ask=null;hzUI();toast(`보관함 ${i+1}번에 저장했어요`);return}
   if(d.hzd!=null){const i=+d.hzd,sl=hzSlots();if(Z.ask!=='d'+i){Z.ask='d'+i;hzUI();return}sl[i]=null;lsSet(HZ_SLOTS,JSON.stringify(sl));Z.ask=null;hzUI();return}
   const a=d.hz;if(!a)return;
+  if(a==='gup'){Z.ask=null;hzUI();hzgName();return}
+  if(a==='gal'){Z.ask=null;hzUI();hzgOpen('edit');return}
   if(a==='sym'){Z.sym=!Z.sym;hzUI();return}
   if(a==='undo'){Z.pat=null;if(Z.undo.length){Z.redo.push(Z.grid);Z.grid=Z.undo.pop()}Z.ask=null;hzUI();return}
   if(a==='redo'){Z.pat=null;if(Z.redo.length){Z.undo.push(Z.grid);Z.grid=Z.redo.pop()}Z.ask=null;hzUI();return}
   if(a==='clear'){hzPush();Z.grid=new Uint8Array(HZN*HZN);Z.pat=null;Z.ask=null;hzUI();return}
   if(a==='cancel'){hzClose();return}
+  if(a==='save'&&Z.fromG&&!Z.guarded){hzgGuard(Z.tgt.helmet,hzStr(Z.grid),()=>{if(HZ===Z){Z.guarded=1;hzClick({target:t})}});return}
   if(a==='off'||a==='save'){const h={...normHelmet(Z.tgt.helmet)};if(a==='save'){h.hb=Z.base;if(!h.hs)h.hs=helmOf(h).sec;h.dz=hzStr(Z.grid);delete h.dzOff;if(Z.lg){h.lg=Z.lg;h.lx=+Z.lx.toFixed(3);h.ly=+Z.ly.toFixed(3);h.ls=Z.ls}else{delete h.lg;delete h.lx;delete h.ly;delete h.ls}}else h.dzOff=1;
     Z.tgt.helmet=h;hzClose();if(S&&!ob)save();render();return}}
 function currentLine(){
@@ -3881,6 +4009,7 @@ function obInit(){hcustOpen=false;
     Object.assign(ob,{name:L.name,nameAuto:false,num:clamp(parseInt(L.num)||2,2,99),nat:L.nat});
     if(Number.isInteger(L.avatar)&&AVATAR[L.avatar]){ob.av=L.avatar;ob.avPick=true}else ob.av=avDefault(L.nat);
     if(L.helmet)ob.helmet=normHelmet(L.helmet)}
+  if(obPend){ob.helmet=obPend;obPend=null}
 }
 function obView(){
   const steps=`<div class="steps">${[1,2,3].map(i=>`<i class="${i<=ob.step?'on':''}"></i>`).join('')}</div>`;
@@ -3992,7 +4121,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.17',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.18',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};
@@ -4064,7 +4193,7 @@ const BADW_C={욕설:['시발','씨발','ㅅㅂ','ㅆㅂ','병신','ㅂㅅ','좆
   패드립:['니미','느금','애미','네르마망','느개','니애비','애비뒤짐','애비터짐','부모욕','부모홀수','ㄴㅇㅁ','ㄴㄱㅁ'],
   성적:['섹스','쎅스','색스','sex','보지','자지','젖줘','엄마젖','porn','포르노','hentai','야동','야설','야짤','창녀','노콘','자위','딸감','딸치기','대딸','오나홀','섹파','섹트','일탈계','강간','후장','보빨','야스','입싸','얼싸','질싸','질내사정','구강사정','부카케','들박','에키벤','갱뱅','쓰리썸','핸플','펠라','커닐링구스','사카시','앙기모','꼭지','찌찌','pussy','whore','slut','ㅇㅆ','ㅈㅆ','ㄴㅋ','ㅎㅈ','ㅍㄹ','ㅇㄹ','ㅅㄲㅅ','ㄷㄸ'],
   혐오:['니거','nigg','홍어','라디언','탈라도','개쌍도','멍청도','까보전','김치녀','보슬','일베','일게이','행게이','네다홍','이기야','핑크게이'],
-  정치:['이승만','윤보선','박정희','최규하','전두환','노태우','김영삼','김대중','노무현','이명박','박근혜','문재인','윤석열','석열','이재명','김정은','히틀러','노알라','노짱','놈현','노시계','운지','중력절','응디','북딱','부딱','응깃','기분좋다','문재앙','슨상','다이쮸','다이쥬','간철수']};
+  정치:['이승만','윤보선','박정희','최규하','전두환','노태우','김영삼','김대중','노무현','이명박','박근혜','문재인','윤석열','석열','이재명','김정은','김일성','김정일','김주애','김여정','리설주','이설주','히틀러','노알라','노짱','놈현','노시계','운지','중력절','응디','북딱','부딱','응깃','기분좋다','문재앙','슨상','다이쮸','다이쥬','간철수']};
 const BADW=Object.values(BADW_C).flat();
 // 우회 막기(v1.8.12-d4): 대소문자·전각 / 한글·영문만 남김(특수문자·이모지·공백) / 숫자는 지운 것과 영문자로 바꾼 것 둘 다 / 같은 글자 반복·'시이발' 늘이기 줄임
 // / 풀어 쓴 자모(ㅅㅣㅂㅏㄹ)·영타(tlqkf)는 자모로 풀어 2글자 이상 단어와 비교 / 반만 초성은 따로 쓴 초성이 낀 자리만
@@ -4177,7 +4306,7 @@ function titleView(){
       ${titleAsk?`<div class="ask"><b>${p&&p.retired?'은퇴한 커리어 카드가 지워져요. 새로 시작할까요?':'지금 커리어가 지워져요. 새로 시작할까요?'}</b><div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" id="tNo">취소</button><button class="btn" type="button" id="tYes" style="background:var(--bad)">새로 시작</button></div></div>`:`
       ${p?`<button class="btn" type="button" id="tCont">이어하기<small>${cur}</small></button>`:''}
       <button class="btn${p?' ghost':''}" type="button" id="tNew">새 커리어</button>
-      <button class="btn ghost" type="button" id="tHof">랭킹</button>`}
+      <div class="grid2" style="grid-template-columns:1fr 1fr"><button class="btn ghost" type="button" id="tHof">랭킹</button><button class="btn ghost" type="button" id="tHzg">헬멧 갤러리</button></div>`}
     </div>
     <p class="disc">비공식 팬 게임이에요. 수익을 내지 않으며 F1·FIA·각 팀과 관련이 없어요.<br>팀명·로고·선수명 등 상표는 각 소유자의 것이에요.</p>
     <nav class="tfoot"><button type="button" id="fbOpen">의견 보내기</button><i>·</i><button type="button" data-sheet="dev">개발자의 말</button><i>·</i><a href="privacy.html">개인정보 처리방침</a><i>·</i><a href="guide.html">게임 가이드</a><i>·</i><a href="guides/">공략</a>
@@ -4908,8 +5037,9 @@ root.addEventListener('click',e=>{
   if(id==='xferYes'){const cl=hasClause();S.p.altGo=null;S.p.xfer=S.year;S.p.xferCl=cl||null;const m=cl?'':applyEff({rep:-6});save();toast(cl?'탈출 조항으로 이적을 요청했어요 · 손해 없음':`이적 요청을 공개했어요 · ${m}`);if(chain){nextStep();return}sheet=null;render();return}
   if(id==='tNew'){if(S&&S.p){titleAsk=true;render();return}lightsGo(()=>{S=null;try{localStorage.removeItem(KEY)}catch(_){}ob=null;enterGame()});return}
   if(id==='tYes'){lightsGo(()=>{S=null;try{localStorage.removeItem(KEY)}catch(_){}ob=null;enterGame()});return}
-  if(id==='tNo'){titleAsk=false;render();return}
+  if(id==='tNo'){titleAsk=false;obPend=null;render();return}
   if(id==='tHof'){rkOpen();render();return}
+  if(id==='tHzg'||id==='hzgOpenB'){hzgOpen('out');return}
   if(id==='thxGo'){sheet=null;const p=S&&S.p;if(p&&!p.retired){lightsGo(enterGame);return}if(p){titleAsk=true;render();return}lightsGo(()=>{S=null;ob=null;enterGame()});return}
   if(d.rk||d.rklg){if(d.rk)rkTab=d.rk;if(d.rklg)rkLg=d.rklg;if(rkOn(rkTab)&&rkNeed(rkKey()))rkLoad(rkKey());render();return}
   if(id==='rkRetry'){rkLoad(rkKey());render();return}
