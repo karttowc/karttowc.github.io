@@ -316,10 +316,10 @@
    1,
    4
   ],
-  "own_injury_per_season": 0.05,
+  "own_injury_per_season": 0.02,
   "injury_races": [
    1,
-   6
+   2
   ],
   "f1_seat_ovr": {
    "top": 85,
