@@ -3941,14 +3941,15 @@ function progressView(){
   return`<section class="prog">${stepper()}<div class="eyebrow pgeb">${C.year} ${sLogo(C.sid)}· ${withLogos(esc(C.teamName))}${C.role==='reserve'?' 리저브':''}</div>
     <h2 class="h2" id="pHead">${C.role==='reserve'?'패독에서 기회를 기다리고 있어요':'시즌 개막을 앞두고 있어요'}</h2>
     <div class="progbar"><i id="pBar"></i></div><div class="muted num" id="pRound" style="font-size:15px">0 / ${S.season.races} 라운드</div>
-    <div class="progrank"><b id="pRank">–</b><span class="muted" id="pPts">${esc(C.seriesName)}</span></div>
+    <div class="progrank"><b id="pRank">–</b><span class="muted" id="pPts">${esc(C.seriesName)}</span></div><div class="muted num" id="pGap" style="font-size:14px;min-height:20px;margin-top:4px"></div>
     <div class="feed" id="pFeed"></div>
     <button class="btn ghost" type="button" id="skipProg">건너뛰기</button><div id="pInc"></div></section>`;
 }
 function roundInfo(r){
   const Z=S.season,m=tally(r),me=m.me,o=Z.orders[r],ab=Z.meAbsent.includes(r);
-  const rank=me.starts>0?standingsOf(Object.values(m)).findIndex(e=>e.key==='me')+1:null;
-  const CR=ALT_CROWN[Z.ctx.sid],cr=CR&&CR.r===r;return{r,wet:o.wet,cr:cr?CR:null,tc:Z.ctx.f1&&r===7&&tcLast()==='MONACO'||cr&&tcLast()===CR.id,home:Z.ctx.f1&&isHome(r),absent:ab,fp:ab?null:me.fp[r]??null,pole:o.q[0]==='me',pts:me.pts,rank,wins:me.wins};
+  const st=me.starts>0?standingsOf(Object.values(m)):null,rank=st?st.findIndex(e=>e.key==='me')+1:null;
+  const gap=!st||st.length<2?'':rank===1?`2위와 +${me.pts-st[1].pts}점`:`앞 선수와 -${st[rank-2].pts-me.pts}점${rank>2?` · 1위와 -${st[0].pts-me.pts}점`:''}`;
+  const CR=ALT_CROWN[Z.ctx.sid],cr=CR&&CR.r===r;return{r,wet:o.wet,cr:cr?CR:null,tc:Z.ctx.f1&&r===7&&tcLast()==='MONACO'||cr&&tcLast()===CR.id,home:Z.ctx.f1&&isHome(r),absent:ab,fp:ab?null:me.fp[r]??null,pole:o.q[0]==='me',pts:me.pts,rank,gap,wins:me.wins};
 }
 function describe(t){
   const C=S.season.ctx;
@@ -3986,7 +3987,7 @@ function stepProgress(){
   g('pHead').textContent=d.head;
   g('pBar').style.width=((progI+1)/Z.races*100)+'%';
   g('pRound').textContent=roundLine(t.r,Z.races);
-  if(t.rank){g('pRank').textContent=t.rank+'위';g('pPts').textContent=`/ ${Z.ents.length}명 · ${t.pts}점`}
+  if(t.rank){g('pRank').textContent=t.rank+'위';g('pPts').textContent=`/ ${Z.ents.length}명 · ${t.pts}점`;g('pGap').textContent=t.gap}
   progI++;
   progTimer=setTimeout(stepProgress,clamp(4500/Z.races,180,550)+(d.hl?450:0));
 }
@@ -4142,7 +4143,7 @@ const NOTES=[
  {v:'1.1.0',d:'2026.11.3',t:'F2 챔피언 F1 영입',items:['F2 챔피언인데 F1 제안이 하나도 없으면, 하위 팀이 약한 드라이버를 빼고 시트를 주기도 합니다(50%)']},
  {v:'1.0.0',d:'2026.11.2',t:'정식 공개!',items:['카트에서 F4·FRECA·F3·F2를 거쳐 F1 월드 챔피언까지, 실제 F1 팀·드라이버와 함께하는 커리어 게임입니다','훈련 프로그램 6가지, 프리시즌 결정, 레이스 중 사건, 휴식기 도전이 있습니다','F1 시트를 못 받아도 WEC·인디카·포뮬러E·슈퍼포뮬러·DTM에서 커리어를 이어갈 수 있습니다','르망 24시·인디 500에 도전해 트리플 크라운을 노릴 수 있습니다','은퇴식, 커리어 결산 카드, 전체 랭킹이 있습니다']},
  {d:'2026.11.2',t:'개발자의 말',dev:true,info:true}];
-const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.19',KEYL='k2wc-log-v1';
+const LOG_URL='https://script.google.com/macros/s/AKfycbyvaW_ZcP86QI4zMVgIvp67PHEpDinuXji1EfBDgQUT11YoB62IAw9qDwIOfyilME89vQ/exec',LOG_V2=true,LOG_VER='1.8.20',KEYL='k2wc-log-v1';
 const noteKey=()=>NOTES[0].id||NOTES[0].v;
 // thank-you pill on the title screen until `to`; shines until first opened (`k`)
 const BAN={k:'k2wc-ban-10d',to:Date.UTC(2026,10,15,15),t:'🏁 공개 10일, 고맙습니다'};

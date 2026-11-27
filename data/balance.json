@@ -296,7 +296,7 @@
   "minor_change_top": 2,
   "home": {"mercedes": "top", "ferrari": "top", "redbull": "top", "mclaren": "top", "astonmartin": "mid", "audi": "mid", "alpine": "mid", "racingbulls": "bottom", "haas": "bottom", "williams": "bottom", "cadillac": "bottom"},
   "home_pull": 0.2,
-  "rebrand": {"chance": {"haas": 0.2, "alpine": 0.2, "racingbulls": 0.07, "williams": 0.07, "cadillac": 0.07}, "min_year": 2029},
+  "rebrand": {"chance": {"haas": 0.1, "alpine": 0.1, "racingbulls": 0.04, "williams": 0.04, "cadillac": 0.04}, "min_year": 2029},
   "major_regulation": {
    "first_year": 2026,
    "swing": 8,
@@ -316,10 +316,10 @@
    1,
    4
   ],
-  "own_injury_per_season": 0.05,
+  "own_injury_per_season": 0.02,
   "injury_races": [
    1,
-   6
+   2
   ],
   "f1_seat_ovr": {
    "top": 85,
